@@ -36,7 +36,7 @@ export interface WorkItemContinuity {
 export interface TransitionWorkItemInput {
   workItemId: string;
   expectedRevision: number;
-  targetStatus: Exclude<WorkItemStatus, "focus" | "done">;
+  targetStatus: Exclude<WorkItemStatus, "focus">;
   checkpoint?: string | null;
   nextAction?: string | null;
   blockedReason?: string | null;

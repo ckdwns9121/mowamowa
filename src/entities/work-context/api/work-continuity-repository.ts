@@ -123,7 +123,7 @@ export async function transitionWorkItem(input: TransitionWorkItemInput): Promis
          resume_condition = CASE WHEN $1 = 'blocked' THEN $5 ELSE NULL END,
          next_review_at = CASE WHEN $1 = 'blocked' THEN $6 ELSE NULL END,
          paused_at = CASE WHEN status = 'focus' AND $1 <> 'focus' THEN $7 ELSE paused_at END,
-         completed_at = CASE WHEN $1 <> 'done' THEN NULL ELSE completed_at END,
+         completed_at = CASE WHEN $1 = 'done' THEN $7 ELSE NULL END,
          transition_correlation_id = $8,
          revision = revision + 1,
          updated_at = $7
@@ -340,8 +340,8 @@ export async function applyStatusSuggestion(id: string): Promise<void> {
     [id],
   );
   if (!suggestion) throw new TransitionConflictError("제안이 이미 처리되었거나 만료되었습니다.");
-  if (suggestion.proposed_status === "focus" || suggestion.proposed_status === "done") {
-    throw new Error("집중 또는 완료 제안은 전용 확인 흐름에서 처리해야 합니다.");
+  if (suggestion.proposed_status === "focus") {
+    throw new Error("집중 제안은 전용 확인 흐름에서 처리해야 합니다.");
   }
   await transitionWorkItem({
     workItemId: suggestion.work_item_id,

@@ -189,22 +189,20 @@ test("focus command swaps tasks with one correlation and rejects stale revisions
   database.close();
 });
 
-test("completion episode clears focus and direct done is rejected", () => {
+test("direct completion clears focus without requiring a completion record", () => {
   const database = migratedDatabase();
   insertTask(database, "a");
   database.query(`INSERT INTO work_focus_transition_commands(
     id, correlation_id, requested_work_item_id, expected_slot_revision,
     expected_requested_revision, status, created_at
   ) VALUES ('focus','focus-a','a',0,0,'pending','2026-08-06T02:00:00.000Z')`).run();
-  expect(() => database.query(`UPDATE work_items SET status='done', revision=revision+1,
-    updated_at='2026-08-06T03:00:00.000Z' WHERE id='a'`).run()).toThrow("done_requires_completion_record");
-  database.query(`INSERT INTO completion_records(
-    id, work_item_id, result_summary, provenance, state, base_work_item_revision,
-    completed_at, created_at
-  ) VALUES ('done-a','a','Delivered','user','active',1,
-    '2026-08-06T03:00:00.000Z','2026-08-06T03:00:00.000Z')`).run();
-  expect(database.query("SELECT status, revision FROM work_items WHERE id='a'").get())
-    .toEqual({ status: "done", revision: 2 });
+  database.query(`UPDATE work_items SET status='done', completed_at='2026-08-06T03:00:00.000Z',
+    transition_correlation_id='done-a', revision=revision+1,
+    updated_at='2026-08-06T03:00:00.000Z' WHERE id='a'`).run();
+  expect(database.query("SELECT status, revision, completed_at FROM work_items WHERE id='a'").get())
+    .toEqual({ status: "done", revision: 2, completed_at: "2026-08-06T03:00:00.000Z" });
+  expect(database.query("SELECT COUNT(*) AS count FROM completion_records WHERE work_item_id='a'").get())
+    .toEqual({ count: 0 });
   expect(database.query("SELECT work_item_id, revision FROM work_focus_slot WHERE slot=1").get())
     .toEqual({ work_item_id: null, revision: 2 });
   expect(database.query("SELECT event_type, correlation_id FROM activity_events WHERE correlation_id='done-a'").get())

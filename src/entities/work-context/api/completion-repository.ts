@@ -1,6 +1,5 @@
 import type { WorkItemStatus } from "../model/work-item";
 import type Database from "@tauri-apps/plugin-sql";
-import { TransitionConflictError } from "../model/work-continuity";
 import { getDatabase } from "./database";
 import { transitionWorkItem } from "./work-continuity-repository";
 
@@ -76,16 +75,6 @@ const completionFields = `c.id, c.work_item_id, c.result_summary, c.decisions,
   c.provenance, c.state, c.base_work_item_revision, c.superseded_at,
   c.completed_at, c.created_at`;
 
-function safeEvidence(evidence: CompletionEvidence[]): CompletionEvidence[] {
-  return evidence.slice(0, 100).map((item) => ({
-    source: item.source,
-    sourceId: item.sourceId.slice(0, 240),
-    label: item.label.replace(/(?:Bearer\s+\S+|(?:token|secret)\s*[:=]\s*\S+)/gi, "[REDACTED]").slice(0, 300),
-    url: item.url?.slice(0, 2_000) ?? null,
-    excerpt: item.excerpt?.replace(/(?:Bearer\s+\S+|(?:token|secret)\s*[:=]\s*\S+)/gi, "[REDACTED]").slice(0, 500) ?? null,
-  }));
-}
-
 function parseEvidence(value: string): CompletionEvidence[] {
   try {
     const parsed: unknown = JSON.parse(value);
@@ -112,43 +101,6 @@ function mapRow(row: CompletionRow): CompletionEpisode {
     completedAt: row.completed_at,
     createdAt: row.created_at,
   };
-}
-
-export async function completeWorkItem(input: {
-  workItemId: string;
-  expectedRevision: number;
-  resultSummary: string;
-  decisions: string;
-  remainingRisk: string;
-  retrospective: string;
-  jiraProjectKey?: string | null;
-  evidence?: CompletionEvidence[];
-  completedAt?: string;
-}): Promise<string> {
-  if (!input.resultSummary.trim() || !input.decisions.trim()
-    || !input.remainingRisk.trim() || !input.retrospective.trim()) {
-    throw new Error("완료하려면 결과, 결정, 남은 위험, 다음에 다르게 할 점을 모두 기록해주세요.");
-  }
-  const database = await getDatabase();
-  const id = crypto.randomUUID();
-  const completedAt = input.completedAt ?? new Date().toISOString();
-  try {
-    await database.execute(
-      `INSERT INTO completion_records(
-        id, work_item_id, result_summary, decisions, remaining_risk, retrospective,
-        jira_project_key, evidence_json, provenance, state, base_work_item_revision,
-        completed_at, created_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'user','active',$9,$10,$10)`,
-      [id, input.workItemId, input.resultSummary.trim(), input.decisions.trim(),
-        input.remainingRisk.trim(), input.retrospective.trim(),
-        input.jiraProjectKey?.trim().toUpperCase() || null,
-        JSON.stringify(safeEvidence(input.evidence ?? [])), input.expectedRevision, completedAt],
-    );
-  } catch (error) {
-    if (String(error).includes("revision_conflict")) throw new TransitionConflictError();
-    throw error;
-  }
-  return id;
 }
 
 export async function reopenWorkItem(

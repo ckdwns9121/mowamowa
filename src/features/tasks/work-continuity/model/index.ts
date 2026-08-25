@@ -118,27 +118,6 @@ export function validateInterruption(input: {
   return errors;
 }
 
-export function validateCompletion(input: {
-  resultSummary: string;
-  decisions: string;
-  remainingRisks: string;
-  retrospective: string;
-}): Record<string, string> {
-  const errors: Record<string, string> = {};
-  if (!input.resultSummary.trim()) errors.resultSummary = "완료 결과를 입력하세요.";
-  if (!input.decisions.trim()) errors.decisions = "주요 결정을 입력하세요.";
-  if (!input.remainingRisks.trim()) errors.remainingRisks = "남은 위험이 없다면 ‘없음’이라고 입력하세요.";
-  if (!input.retrospective.trim()) errors.retrospective = "다음에 다르게 할 점을 입력하세요.";
-  return errors;
-}
-
-export const skippedCompletionValues = {
-  resultSummary: "사용자가 완료 회고 작성을 건너뛰었습니다.",
-  decisions: "기록하지 않음",
-  remainingRisks: "확인하지 않음",
-  retrospective: "기록하지 않음",
-} as const;
-
 export type FreshnessLike = {
   source: string;
   status: string;
