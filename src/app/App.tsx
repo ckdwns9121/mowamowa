@@ -93,8 +93,7 @@ import {
   transitionWorkItem,
 } from "../entities/work-context/api/work-continuity-repository";
 import type { StatusSuggestion } from "../entities/work-context/model/work-continuity";
-import { CompletionSheet, InterruptionDialog, type InterruptionValues } from "../features/tasks/work-continuity";
-import { completeWorkItem, type CompletionEvidence } from "../entities/work-context/api/completion-repository";
+import { InterruptionDialog, type InterruptionValues } from "../features/tasks/work-continuity";
 import { addWorkItemToDailyPlan } from "../entities/work-context/api/daily-plan-repository";
 import { dailyPlanDateForTargetAt } from "../entities/work-context/model/daily-plan";
 import { listSourceSyncStates } from "../entities/work-context/api/source-sync-repository";
@@ -145,10 +144,8 @@ function App() {
   const [dailyBriefingError, setDailyBriefingError] = useState<string | null>(null);
   const [discoveryTask, setDiscoveryTask] = useState<{ id: string; title: string; description: string } | null>(null);
   const [pendingTransition, setPendingTransition] = useState<{ targetId: string; targetStatus: WorkItemStatus; openContextAfter?: boolean; suggestionId?: string } | null>(null);
-  const [pendingCompletion, setPendingCompletion] = useState<WorkItem | null>(null);
   const [statusSuggestions, setStatusSuggestions] = useState<StatusSuggestion[]>([]);
   const [sourceSyncStates, setSourceSyncStates] = useState<SourceSyncState[]>([]);
-  const [completionEvidence, setCompletionEvidence] = useState<CompletionEvidence[]>([]);
   const [interruptionEvidence, setInterruptionEvidence] = useState<Array<{ label: string; url?: string }>>([]);
   const [interruptionDraft, setInterruptionDraft] = useState<{ checkpoint?: string; nextAction?: string }>({});
   const [openSections, setOpenSections] = useState<PrimarySection[]>(() =>
@@ -273,30 +270,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!pendingCompletion) { setCompletionEvidence([]); return; }
-    let active = true;
-    void Promise.all([listWorkItemLinks(pendingCompletion.id), listAiSessions()]).then(([links, sessions]) => {
-      if (!active) return;
-      setCompletionEvidence([
-        ...links.map((link) => ({
-          source: link.kind,
-          sourceId: link.externalId || link.id,
-          label: link.label,
-          url: link.externalUrl,
-          excerpt: link.kind === "slack" ? link.label : null,
-        } satisfies CompletionEvidence)),
-        ...sessions.filter((session) => session.linkedWorkItemId === pendingCompletion.id).map((session) => ({
-          source: "ai" as const,
-          sourceId: `${session.provider}:${session.sessionId}`,
-          label: displaySessionTitle(session),
-          url: null,
-        })),
-      ]);
-    }).catch((cause) => active && setError(cause instanceof Error ? cause.message : String(cause)));
-    return () => { active = false; };
-  }, [pendingCompletion]);
-
-  useEffect(() => {
     if (!pendingTransition || !focusItem) { setInterruptionEvidence([]); setInterruptionDraft({}); return; }
     let active = true;
     void Promise.all([listWorkItemLinks(focusItem.id), listAiSessions()]).then(([links, sessions]) => {
@@ -354,10 +327,6 @@ function App() {
       setError(null);
       const item = items.find((candidate) => candidate.id === id);
       if (!item || item.status === status) return true;
-      if (status === "done") {
-        setPendingCompletion(item);
-        return false;
-      }
       if (status === "focus") {
         const slot = await getFocusSlot();
         const current = slot.workItemId ? items.find((candidate) => candidate.id === slot.workItemId) : null;
@@ -377,7 +346,7 @@ function App() {
         await transitionWorkItem({
           workItemId: id,
           expectedRevision: item.revision,
-          targetStatus: status as Exclude<WorkItemStatus, "focus" | "done">,
+          targetStatus: status as Exclude<WorkItemStatus, "focus">,
         });
       }
       await refresh();
@@ -417,10 +386,6 @@ function App() {
 
   async function handleApplySuggestion(suggestion: StatusSuggestion) {
     const item = items.find((candidate) => candidate.id === suggestion.workItemId);
-    if (item && suggestion.proposedStatus === "done") {
-      setPendingCompletion(item);
-      return;
-    }
     if (item?.status === "focus" && suggestion.proposedStatus !== "focus" && suggestion.proposedStatus !== "done") {
       void recordActivityEvent({ eventType: "pause_requested", workItemId: item.id, source: "app" });
       setPendingTransition({
@@ -668,27 +633,6 @@ function App() {
               });
             }
             setPendingTransition(null);
-          }}
-        />
-      )}
-
-      {pendingCompletion && (
-        <CompletionSheet
-          item={pendingCompletion}
-          evidence={completionEvidence}
-          onCancel={() => setPendingCompletion(null)}
-          onComplete={async (values) => {
-            await completeWorkItem({
-              workItemId: pendingCompletion.id,
-              expectedRevision: pendingCompletion.revision,
-              resultSummary: values.resultSummary,
-              decisions: values.decisions,
-              remainingRisk: values.remainingRisks,
-              retrospective: values.retrospective,
-              evidence: completionEvidence,
-            });
-            setPendingCompletion(null);
-            await refresh();
           }}
         />
       )}

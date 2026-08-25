@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Bot,
   Calendar,
@@ -762,6 +762,11 @@ function ProviderCredentialForm({
   const [secret, setSecret] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedResetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (savedResetTimerRef.current !== null) window.clearTimeout(savedResetTimerRef.current);
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -774,7 +779,11 @@ function ProviderCredentialForm({
         setSecret("");
       }
       setSaved(true);
-      window.setTimeout(() => setSaved(false), 1800);
+      if (savedResetTimerRef.current !== null) window.clearTimeout(savedResetTimerRef.current);
+      savedResetTimerRef.current = window.setTimeout(() => {
+        savedResetTimerRef.current = null;
+        setSaved(false);
+      }, 1_800);
     } finally {
       setIsSaving(false);
     }

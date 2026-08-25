@@ -8,6 +8,8 @@ Orbit의 제품 요구사항, 디자인, 아키텍처, 기술 결정, 정책과 
 | --- | --- |
 | Orbit이 해결하는 문제 이해 | [제품 문제 정의](product-problem.md) |
 | 제품 범위와 수용기준 확인 | [업무 연속성 PRD](prd/prd-orbit-work-continuity.md) |
+| 기능의 사용자 동작 확인 | [Feature Specs](specs/README.md) |
+| 기능 구현 방식 확인 | [Design Documents](design-documents/README.md) |
 | UI/UX 구현 | [DESIGN.md](../DESIGN.md) |
 | 시스템 전체 구조 이해 | [System Architecture](architecture/system-overview.md) |
 | 기술 스택과 개발 규칙 확인 | [Tech Stack](technical/tech-stack.md) |
@@ -27,8 +29,9 @@ Product → PRD → Spec → RFC/Architecture → Technical Design → ADR
 | 영역 | 소유하는 질문 | 인덱스 |
 | --- | --- | --- |
 | Product | 누구의 어떤 문제를 푸는가? | [product/](product/README.md) |
-| PRD & Spec | 무엇을 만들고 어떻게 동작해야 하는가? | [prd/](prd/README.md) |
-| Design | 어떤 경험과 시각 언어를 제공하는가? | [design/](design/README.md) |
+| PRD | 무엇을 왜 만들어야 하는가? | [prd/](prd/README.md) |
+| Specs | 사용자 관점에서 어떻게 동작해야 하는가? | [specs/](specs/README.md) |
+| Design Documents | 기능을 코드와 데이터로 어떻게 구현하는가? | [design-documents/](design-documents/README.md) |
 | Architecture | 시스템 경계와 품질 속성은 무엇인가? | [architecture/](architecture/README.md) |
 | Technical | 구체적으로 어떻게 구현·운영하는가? | [technical/](technical/README.md) |
 | ADR | 무엇을 결정했고 왜 선택했는가? | [ADR/](ADR/README.md) |
@@ -58,7 +61,7 @@ Product → PRD → Spec → RFC/Architecture → Technical Design → ADR
 
 - [Task 생명주기](policies/task-lifecycle-policy.md)
 - [집중과 중단](policies/focus-and-interruption-policy.md)
-- [완료 기록](policies/completion-policy.md)
+- [Task 즉시 완료](policies/completion-policy.md)
 - [외부 연동과 동기화](policies/integration-sync-policy.md)
 - [AI 자동화](policies/ai-automation-policy.md)
 - [인증정보와 보안](policies/credential-security-policy.md)
@@ -69,10 +72,11 @@ Product → PRD → Spec → RFC/Architecture → Technical Design → ADR
 - [ADR-001 Task를 업무 SSOT로 사용](<ADR/[ADR-001] Task를 업무 SSOT로 사용.md>)
 - [ADR-002 로컬 우선 SQLite 저장](<ADR/[ADR-002] 로컬 우선 SQLite 저장.md>)
 - [ADR-003 단일 집중 슬롯](<ADR/[ADR-003] 단일 집중 슬롯.md>)
-- [ADR-004 완료 기록과 근거 스냅샷의 원자적 저장](<ADR/[ADR-004] 완료 기록과 근거 스냅샷의 원자적 저장.md>)
+- [ADR-004 완료 기록과 근거 스냅샷의 원자적 저장](<ADR/[ADR-004] 완료 기록과 근거 스냅샷의 원자적 저장.md>) — ADR-008로 대체됨
 - [ADR-005 Context Graph를 재구축 가능한 Projection으로 운영](<ADR/[ADR-005] Context Graph를 재구축 가능한 Projection으로 운영.md>)
 - [ADR-006 프런트엔드 FSD 의존 방향 적용](<ADR/[ADR-006] 프런트엔드 FSD 의존 방향 적용.md>)
 - [ADR-007 Google Calendar에 공용 데스크톱 OAuth 클라이언트 사용](<ADR/[ADR-007] Google Calendar에 공용 데스크톱 OAuth 클라이언트 사용.md>)
+- [ADR-008 태스크 완료 마찰 제거](ADR/ADR-008-태스크-완료-마찰-제거.md)
 
 ### Evidence and historical context
 
@@ -99,10 +103,10 @@ Draft → Proposed → Accepted → Implemented
 
 ```text
 문제·사용자 가치 변경       → Product brief 또는 PRD
-기능 계약·상태 변경         → PRD AC + Spec
+기능 계약·상태 변경         → PRD AC + `specs/` Spec
 여러 대안의 합의 필요       → RFC
 시스템 경계 변경            → Architecture + RFC + ADR
-중요 구현·migration 변경    → Technical Design + ADR/Policy 검토
+중요 구현·migration 변경    → `design-documents/` Design Document + ADR/Policy 검토
 디자인 시스템 변경          → DESIGN.md + Technical Design
 검증 완료                   → Evidence + 문서 상태 갱신
 ```

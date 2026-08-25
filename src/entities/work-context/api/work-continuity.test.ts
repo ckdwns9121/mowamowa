@@ -4,7 +4,6 @@ import {
   validateFocusTransition,
   validateTransitionInput,
 } from "../model/work-continuity";
-import { completeWorkItem } from "./completion-repository";
 
 test("blocked transitions require structured interruption fields", () => {
   expect(() => validateTransitionInput({
@@ -51,15 +50,4 @@ test("activity payload strips bodies and credentials", () => {
     token: "secret",
     hasCheckpoint: true,
   })).toEqual({ fromStatus: "focus", toStatus: "todo", hasCheckpoint: true });
-});
-
-test("completion repository rejects an incomplete reflection before persistence", async () => {
-  await expect(completeWorkItem({
-    workItemId: "a",
-    expectedRevision: 0,
-    resultSummary: "배포 완료",
-    decisions: "",
-    remainingRisk: "없음",
-    retrospective: "테스트를 먼저 작성",
-  })).rejects.toThrow("모두 기록");
 });

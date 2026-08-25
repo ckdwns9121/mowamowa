@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bot, Check, Clipboard, LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -14,12 +14,21 @@ export default function DailyBriefingPanel({ briefing, isCollecting, error, onCo
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const copiedResetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (copiedResetTimerRef.current !== null) window.clearTimeout(copiedResetTimerRef.current);
+  }, []);
 
   async function copyMarkdown() {
     if (!briefing) return;
     await navigator.clipboard.writeText(briefing.markdown);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1_800);
+    if (copiedResetTimerRef.current !== null) window.clearTimeout(copiedResetTimerRef.current);
+    copiedResetTimerRef.current = window.setTimeout(() => {
+      copiedResetTimerRef.current = null;
+      setCopied(false);
+    }, 1_800);
   }
 
   return (

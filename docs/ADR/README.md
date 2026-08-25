@@ -21,7 +21,8 @@
 - [ADR-001 Task를 업무 SSOT로 사용](<[ADR-001] Task를 업무 SSOT로 사용.md>)
 - [ADR-002 로컬 우선 SQLite 저장](<[ADR-002] 로컬 우선 SQLite 저장.md>)
 - [ADR-003 단일 집중 슬롯](<[ADR-003] 단일 집중 슬롯.md>)
-- [ADR-004 완료 기록과 근거 스냅샷의 원자적 저장](<[ADR-004] 완료 기록과 근거 스냅샷의 원자적 저장.md>)
+- [ADR-004 완료 기록과 근거 스냅샷의 원자적 저장](<[ADR-004] 완료 기록과 근거 스냅샷의 원자적 저장.md>) — ADR-008로 대체됨
 - [ADR-005 Context Graph를 재구축 가능한 Projection으로 운영](<[ADR-005] Context Graph를 재구축 가능한 Projection으로 운영.md>)
 - [ADR-006 프런트엔드 FSD 의존 방향 적용](<[ADR-006] 프런트엔드 FSD 의존 방향 적용.md>)
 - [ADR-007 Google Calendar에 공용 데스크톱 OAuth 클라이언트 사용](<[ADR-007] Google Calendar에 공용 데스크톱 OAuth 클라이언트 사용.md>)
+- [ADR-008 태스크 완료 마찰 제거](ADR-008-태스크-완료-마찰-제거.md)

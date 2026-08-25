@@ -6,7 +6,7 @@
 
 - [Task 생명주기](task-lifecycle-policy.md)
 - [집중과 중단](focus-and-interruption-policy.md)
-- [완료 기록](completion-policy.md)
+- [Task 즉시 완료](completion-policy.md)
 - [외부 연동과 동기화](integration-sync-policy.md)
 - [AI 자동화](ai-automation-policy.md)
 - [인증정보와 보안](credential-security-policy.md)

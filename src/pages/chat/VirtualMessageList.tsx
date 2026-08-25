@@ -68,6 +68,13 @@ export default function VirtualMessageList({ messages, onApproveTask, onRejectTa
   const [scrollState, setScrollState] = useState({ top: 0, height: 600 });
   const [measurementVersion, setMeasurementVersion] = useState(0);
 
+  useEffect(() => {
+    const visibleMessageIds = new Set(messages.map((message) => message.id));
+    for (const messageId of measurements.current.keys()) {
+      if (!visibleMessageIds.has(messageId)) measurements.current.delete(messageId);
+    }
+  }, [messages]);
+
   const heights = useMemo(
     () => messages.map((message) => measurements.current.get(message.id) ?? estimatedHeight(message)),
     // measurementVersion intentionally invalidates the cached height map.

@@ -16,3 +16,5 @@
 | [Meeting note](meeting-notes-template.md) | 논의·결정·action item 기록 |
 
 문서 상태와 경로 규칙은 [문서 운영 가이드](../documentation-guide.md)를 따른다.
+
+새 파일은 `태스크-즉시-완료.md`, `컨텍스트-그래프-아키텍처.md`처럼 한글 핵심 단어를 하이픈으로 연결한다. `README.md`와 `ADR-009-결정-제목.md`의 식별자 부분만 예외다.

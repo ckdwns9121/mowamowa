@@ -31,9 +31,9 @@
 
 ### Completion
 
-- `completeWorkItem`은 네 개의 명시적 완료 필드와 최대 100개의 정제된 evidence를 받는다.
-- completion record 생성이 성공해야 Task가 `done`으로 전이된다.
-- skip 값은 결과를 추론하지 않고 사용자 생략·미확인을 표시한다.
+- `transitionWorkItem`은 expected revision을 검증해 Task를 `done`으로 전이한다.
+- 완료 시 `completed_at`을 기록하고 집중 중인 Task라면 focus slot을 같은 statement에서 해제한다.
+- 새 completion record나 evidence snapshot은 생성하지 않으며 기존 외부 연결은 유지한다.
 
 ### Secrets
 
@@ -56,10 +56,9 @@
 
 ```text
 완료 요청
-  → 회고 입력 또는 건너뛰기 선택
-  → 연결 evidence 정제·snapshot
-  → completion record INSERT
-  → DB trigger가 Task done + focus 해제를 함께 적용
+  → expected revision 검증
+  → Task done + completed_at 기록
+  → DB trigger가 focus를 함께 해제
   → 실패 시 전체 rollback
 ```
 

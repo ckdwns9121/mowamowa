@@ -99,6 +99,13 @@ export default function GraphPage() {
   const velocitiesRef = useRef(createGraphVelocities([]));
   const pointerGraphRef = useRef<GraphPoint | null>(null);
   const simulationAlphaRef = useRef(.9);
+  const simulationRunningRef = useRef(false);
+  const [simulationRevision, setSimulationRevision] = useState(0);
+
+  const wakeSimulation = useCallback((minimumAlpha = .48) => {
+    simulationAlphaRef.current = Math.max(minimumAlpha, simulationAlphaRef.current);
+    if (!simulationRunningRef.current) setSimulationRevision((current) => current + 1);
+  }, []);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -158,7 +165,9 @@ export default function GraphPage() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || filtered.nodes.length === 0) return;
     let frameId = 0;
     let lastPaint = 0;
+    simulationRunningRef.current = true;
     const tick = (time: number) => {
+      const isDraggingNode = pointerState.current?.kind === "node";
       advanceGraphSimulation(filtered.nodes, filtered.edges, positionsRef.current, velocitiesRef.current, {
         width: size.width,
         height: size.height,
@@ -167,16 +176,26 @@ export default function GraphPage() {
         fixedNodeId: pointerState.current?.kind === "node" ? pointerState.current.id : null,
         timeMs: time,
       });
-      simulationAlphaRef.current = Math.max(pointerGraphRef.current ? .24 : .075, simulationAlphaRef.current * .994);
+      simulationAlphaRef.current = isDraggingNode
+        ? Math.max(.24, simulationAlphaRef.current * .96)
+        : simulationAlphaRef.current * .96;
       if (time - lastPaint >= 16) {
         setPositions(new Map(positionsRef.current));
         lastPaint = time;
       }
+      if (!isDraggingNode && simulationAlphaRef.current <= .015) {
+        simulationAlphaRef.current = 0;
+        simulationRunningRef.current = false;
+        return;
+      }
       frameId = requestAnimationFrame(tick);
     };
     frameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameId);
-  }, [filtered.nodes, filtered.edges, size.width, size.height]);
+    return () => {
+      simulationRunningRef.current = false;
+      cancelAnimationFrame(frameId);
+    };
+  }, [filtered.nodes, filtered.edges, size.width, size.height, simulationRevision]);
 
   const selectedNode = selectedId ? nodesById.get(selectedId) ?? snapshot?.nodes.find((node) => node.id === selectedId) ?? null : null;
   const activeNodeId = hoveredId ?? selectedId;
@@ -228,7 +247,7 @@ export default function GraphPage() {
           x: (event.clientX - rect.left - viewport.x) / viewport.scale,
           y: (event.clientY - rect.top - viewport.y) / viewport.scale,
         };
-        simulationAlphaRef.current = Math.max(.34, simulationAlphaRef.current);
+        wakeSimulation(.34);
       }
       return;
     }
@@ -242,7 +261,7 @@ export default function GraphPage() {
       if (point) {
         positionsRef.current.set(pointer.id, { x: point.x + dx / viewport.scale, y: point.y + dy / viewport.scale });
         velocitiesRef.current.set(pointer.id, { x: 0, y: 0 });
-        simulationAlphaRef.current = .72;
+        wakeSimulation(.72);
         setPositions(new Map(positionsRef.current));
       }
     } else {
@@ -255,7 +274,7 @@ export default function GraphPage() {
     if (pointer?.kind === "node" && pointer.id && !pointer.moved) setSelectedId(pointer.id);
     if (pointer?.kind === "pan" && !pointer.moved) setSelectedId(null);
     pointerState.current = null;
-    simulationAlphaRef.current = Math.max(.48, simulationAlphaRef.current);
+    wakeSimulation(.48);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
@@ -356,7 +375,7 @@ export default function GraphPage() {
                     onPointerDown={(event) => { event.stopPropagation(); beginPointer(event, "node", node.id); }}
                     onPointerUp={(event) => { event.stopPropagation(); endPointer(event); }}
                     onClick={(event) => { event.stopPropagation(); setSelectedId(node.id); }}
-                    onPointerEnter={() => { setHoveredId(node.id); simulationAlphaRef.current = Math.max(.42, simulationAlphaRef.current); }}
+                    onPointerEnter={() => { setHoveredId(node.id); wakeSimulation(.42); }}
                     onPointerLeave={() => setHoveredId((current) => current === node.id ? null : current)}
                     role="button"
                     tabIndex={0}

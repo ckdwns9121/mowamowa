@@ -402,6 +402,12 @@ pub fn run() {
             sql: include_str!("../migrations/0033_task_workflow_documents.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 34,
+            description: "allow_direct_task_completion",
+            sql: include_str!("../migrations/0034_allow_direct_task_completion.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
