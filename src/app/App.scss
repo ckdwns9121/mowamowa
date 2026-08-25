@@ -341,6 +341,11 @@ select:focus, input:focus, textarea:focus { border-color: var(--ring); box-shado
 .task-board-empty strong { color: var(--text-secondary); font-size: 11px; }
 .task-board-empty span { max-width: 190px; margin-top: 5px; font-size: 9px; line-height: 1.45; }
 .task-board-empty button { display: inline-flex; min-height: 30px; margin-top: 12px; align-items: center; gap: 5px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 25%, var(--border)); font-size: 9px; }
+.task-board-load-actions { display: flex; padding: 3px 1px 0; align-items: center; gap: 4px; }
+.task-board-load-actions button { display: inline-flex; min-height: 30px; padding: 0 8px; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); border-color: transparent; background: transparent; font-size: 9px; }
+.task-board-load-actions button:first-child { flex: 1; }
+.task-board-load-actions button:hover { color: var(--text); background: color-mix(in srgb, var(--surface) 72%, transparent); }
+.task-board-load-actions.is-collapse-only button { width: 100%; }
 
 .task-board-page.is-focus-locked { background: #17191e; }
 .task-board-page.is-focus-locked .task-board-toolbar,
