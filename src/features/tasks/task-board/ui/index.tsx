@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react";
-import { AlarmClock, Bot, CalendarDays, Check, GitBranch, GripVertical, Link2, LockKeyhole, MessageSquare, MoreHorizontal, Pencil, Plus, Ticket, Trash2, X } from "lucide-react";
+import { AlarmClock, Bot, CalendarDays, Check, ChevronDown, ChevronUp, GitBranch, GripVertical, Link2, LockKeyhole, MessageSquare, MoreHorizontal, Pencil, Plus, Ticket, Trash2, X } from "lucide-react";
 import type { WorkItem, WorkItemStatus } from "../../../../entities/work-context/model/work-item";
 import { statusMeta, workItemStatuses } from "../../../../entities/work-context/model/work-item";
 import type { WorkItemSessionProgress } from "../../../../entities/work-context/api/ai-session-repository";
 import type { WorkItemLink } from "../../../../entities/work-context/model/work-item-link";
 import type { PlannerCategory } from "../../../../entities/work-context/model/planner";
 import { reorderWorkItemIds, sortWorkItems, type TaskSortMode } from "../../../../entities/work-context/model/work-item-sort";
-import { taskBoardLaneForStatus, taskBoardLanes, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
+import { taskBoardLaneForStatus, taskBoardLanes, visibleTaskBoardItems, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
+
+const initialVisibleLimits = { todo: 12, done: 8 } as const;
+const visibleIncrement = 12;
 
 const taskBoardLaneMeta: Record<TaskBoardLane, { label: string }> = {
   todo: { label: "할 일" },
@@ -218,6 +221,8 @@ export default function TaskBoard({
   const [dragOverStatus, setDragOverStatus] = useState<TaskBoardLane | null>(null);
   const [isSortUnlockOpen, setIsSortUnlockOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [visibleLimits, setVisibleLimits] = useState({ ...initialVisibleLimits });
+  const [forcedVisibleIds, setForcedVisibleIds] = useState<Set<string>>(() => new Set());
   const laneItems = useMemo(() => {
     const next: Record<TaskBoardLane, WorkItem[]> = { todo: [], ai_running: [], review: [], done: [] };
     workItemStatuses.forEach((status) => {
@@ -241,7 +246,18 @@ export default function TaskBoard({
     return result;
   }, new Map()), [workItemLinks]);
   const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
+  const displayedItems = useMemo(() => ({
+    todo: visibleTaskBoardItems(sortedItems.todo, visibleLimits.todo, forcedVisibleIds),
+    ai_running: sortedItems.ai_running,
+    review: sortedItems.review,
+    done: visibleTaskBoardItems(sortedItems.done, visibleLimits.done, forcedVisibleIds),
+  }), [sortedItems, visibleLimits, forcedVisibleIds]);
   const focusLocked = items.focus.length > 0;
+
+  useEffect(() => {
+    setVisibleLimits({ ...initialVisibleLimits });
+    setForcedVisibleIds(new Set());
+  }, [sortMode]);
 
   function startDrag(event: DragEvent<HTMLElement>, item: WorkItem) {
     const origin = event.target as HTMLElement;
@@ -271,6 +287,7 @@ export default function TaskBoard({
 
     if (draggingStatus !== status) {
       setAnnouncement(`${dragged.title}을 ${taskBoardLaneMeta[status].label}로 이동합니다.`);
+      setForcedVisibleIds((current) => new Set(current).add(dragged.id));
       setDraggingId(null);
       setDraggingStatus(null);
       await onMove(dragged.id, status);
@@ -358,7 +375,7 @@ export default function TaskBoard({
                 )}
 
                 <div className="task-board-list">
-                  {sortedItems[status].map((item) => (
+                  {displayedItems[status].map((item) => (
                     <TaskRow
                       key={item.id}
                       item={item}
@@ -383,6 +400,31 @@ export default function TaskBoard({
                       <strong>{taskBoardLaneMeta[status].label} 작업이 없습니다</strong>
                       <span>{status === "todo" ? "새 작업을 추가하거나 카드를 여기로 옮겨보세요." : "다른 열의 카드를 여기로 옮겨보세요."}</span>
                       {status === "todo" && <button type="button" onClick={onAdd}><Plus size={13} /> 작업 추가</button>}
+                    </div>
+                  )}
+                  {(status === "todo" || status === "done") && sortedItems[status].length > displayedItems[status].length && (
+                    <div className="task-board-load-actions">
+                      <button type="button" onClick={() => setVisibleLimits((current) => ({
+                        ...current,
+                        [status]: current[status] + visibleIncrement,
+                      }))}>
+                        <ChevronDown size={13} /> 다음 {Math.min(visibleIncrement, sortedItems[status].length - displayedItems[status].length)}개 더 보기
+                      </button>
+                      {visibleLimits[status] > initialVisibleLimits[status] && <button type="button" onClick={() => setVisibleLimits((current) => ({
+                        ...current,
+                        [status]: initialVisibleLimits[status],
+                      }))}><ChevronUp size={13} /> 접기</button>}
+                    </div>
+                  )}
+                  {(status === "todo" || status === "done")
+                    && sortedItems[status].length > initialVisibleLimits[status]
+                    && sortedItems[status].length === displayedItems[status].length
+                    && visibleLimits[status] > initialVisibleLimits[status] && (
+                    <div className="task-board-load-actions is-collapse-only">
+                      <button type="button" onClick={() => setVisibleLimits((current) => ({
+                        ...current,
+                        [status]: initialVisibleLimits[status],
+                      }))}><ChevronUp size={13} /> 기본 개수로 접기</button>
                     </div>
                   )}
                 </div>
