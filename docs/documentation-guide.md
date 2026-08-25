@@ -15,10 +15,11 @@ docs/
 ├── README.md                 # 전체 문서 지도
 ├── documentation-guide.md   # 작성·상태·검토 규칙
 ├── product/                  # 문제, 원칙, 범위와 제품 방향
-├── prd/                      # 제품 요구사항과 기능 Spec
-├── design/                   # UI/UX 시스템과 화면 설계 인덱스
+├── prd/                      # 제품 요구사항
+├── specs/                    # 사용자 흐름, 상태와 기능 계약
+├── design-documents/         # 기능별 구현, migration과 rollout 설계
 ├── architecture/             # 시스템 경계와 장기 구조
-├── technical/                # 구현 계약, 기술 스택과 운영 절차
+├── technical/                # 기술 스택과 운영 절차
 ├── ADR/                      # 확정된 의사결정 기록
 ├── policies/                 # 항상 지켜야 하는 불변 규칙
 ├── evidence/                 # 수용기준과 검증 증거
@@ -54,15 +55,24 @@ docs/
 
 ## 파일 이름
 
-- 일반 문서: `kebab-case.md`
-- PRD: `prd-<feature>.md`
-- Spec: `spec-<feature>.md`
-- RFC: `[RFC-###] <제목>.md`
-- ADR: `[ADR-###] <제목>.md`
-- Technical Design: `td-<feature>.md`
-- Evidence: `evidence-<feature>-<yyyy-mm-dd>.md`
+새 문서는 의미를 바로 알 수 있는 **한글 단어를 하이픈으로 연결한 이름**을 사용한다.
 
-번호는 기존 문서의 다음 번호를 사용하며 재사용하지 않는다.
+- 일반 문서: `태스크-상태-전이.md`
+- PRD: `개인-업무-연속성.md`
+- Spec: `태스크-즉시-완료.md`
+- Design Document: `태스크-즉시-완료-설계.md`
+- Architecture: `컨텍스트-그래프-아키텍처.md`
+- ADR: `ADR-009-태스크-완료-정책.md`
+- Evidence: `태스크-즉시-완료-검증-2026-08-25.md`
+
+작성 규칙:
+
+1. 공백, 대괄호, 밑줄과 영문식 `kebab-case` 제목을 사용하지 않는다.
+2. 조사보다 핵심 명사를 사용하고 단어 사이는 `-`로 구분한다.
+3. `AI`, `API`, `OAuth`, `SQLite`, `FSD`, `MCP`, `ADR`처럼 통용되는 기술 식별자는 영문을 허용한다.
+4. `README.md`는 폴더 인덱스이므로 예외로 유지한다.
+5. ADR 번호는 기존 문서의 다음 번호를 사용하며 재사용하지 않는다.
+6. 기존 영문·공백 파일명은 링크 호환성을 위해 즉시 일괄 변경하지 않고, 문서를 크게 수정하거나 이동할 때 모든 참조와 함께 새 규칙으로 바꾼다.
 
 ## 최소 메타데이터
 
@@ -82,10 +92,10 @@ docs/
 
 ```text
 문제·가치 변경        → Product brief 또는 PRD
-기능 동작 변경        → PRD AC + Feature Spec
+기능 동작 변경        → PRD AC + `specs/` Feature Spec
 대안 합의 필요        → RFC
 시스템 경계 변경      → Architecture + RFC
-구현 방식 확정        → Technical Design + ADR
+구현 방식 확정        → `design-documents/` Design Document + ADR
 불변 규칙 변경        → Policy + ADR
 구현 완료             → Evidence + 관련 문서 상태 갱신
 UI 시스템 변경        → DESIGN.md + 필요 시 Technical Design

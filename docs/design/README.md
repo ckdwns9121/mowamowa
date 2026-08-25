@@ -14,5 +14,5 @@ Orca는 고밀도 데스크톱 UI, 패널 구조와 중립적 시각 언어의 �
 ## 변경 규칙
 
 - 전역 token, navigation, panel과 공통 interaction 변경은 먼저 `DESIGN.md`를 갱신한다.
-- 화면 한 곳에만 필요한 세부 설계는 `docs/technical/td-<feature>.md`에 기록한다.
+- 화면 한 곳에만 필요한 세부 구현 설계는 `docs/design-documents/한글-기능명-설계.md`에 기록한다.
 - 승인된 이미지 기준으로 정밀 구현할 때는 별도의 visual baseline과 검증 결과를 evidence에 남긴다.
