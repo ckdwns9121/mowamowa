@@ -382,7 +382,7 @@ select:focus, input:focus, textarea:focus { border-color: var(--ring); box-shado
   letter-spacing: .02em;
 }
 
-.task-row.task-board-card { position: relative; display: flex; min-height: 124px; padding: 11px 11px 10px; flex-direction: column; align-items: stretch; gap: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); box-shadow: none; cursor: grab; user-select: none; transition: border-color .15s ease, background .15s ease, transform .15s ease, opacity .15s ease; }
+.task-row.task-board-card { position: relative; display: flex; min-height: 112px; padding: 9px 10px 8px; flex-direction: column; align-items: stretch; gap: 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); box-shadow: none; cursor: grab; user-select: none; transition: border-color .15s ease, background .15s ease, transform .15s ease, opacity .15s ease; }
 .task-row.task-board-card:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); background: color-mix(in srgb, var(--surface) 96%, var(--accent-soft)); }
 .task-row.task-board-card:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent-ring); outline-offset: 1px; }
 .task-row.task-board-card:active { cursor: grabbing; }
@@ -421,7 +421,7 @@ select:focus, input:focus, textarea:focus { border-color: var(--ring); box-shado
 .task-card-dates { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; color: var(--text-muted); font-size: 9px; }
 .task-card-dates > span { display: inline-flex; min-width: 0; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-card-dates .is-overdue { color: var(--danger); }
-.task-card-compact-meta { display: flex; min-height: 20px; margin-top: auto; align-items: center; justify-content: space-between; gap: 8px; color: var(--text-muted); }
+.task-card-compact-meta { display: flex; min-height: 16px; margin-top: auto; align-items: center; justify-content: space-between; gap: 8px; color: var(--text-muted); }
 .task-card-compact-meta .task-target-time { display: inline-flex; min-width: 0; align-items: center; gap: 4px; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .task-card-connections { display: flex; margin-left: auto; align-items: center; gap: 7px; }
 .task-card-connections small { display: inline-flex; align-items: center; gap: 3px; color: var(--text-muted); font-size: 9px; }
