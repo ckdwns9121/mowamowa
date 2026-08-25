@@ -1,29 +1,35 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react";
-import { AlarmClock, Check, GripVertical, Link2, LockKeyhole, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { AlarmClock, Bot, CalendarDays, Check, GitBranch, GripVertical, Link2, LockKeyhole, MessageSquare, MoreHorizontal, Pencil, Plus, Ticket, Trash2, X } from "lucide-react";
 import type { WorkItem, WorkItemStatus } from "../../../../entities/work-context/model/work-item";
 import { statusMeta, workItemStatuses } from "../../../../entities/work-context/model/work-item";
 import type { WorkItemSessionProgress } from "../../../../entities/work-context/api/ai-session-repository";
+import type { WorkItemLink } from "../../../../entities/work-context/model/work-item-link";
+import type { PlannerCategory } from "../../../../entities/work-context/model/planner";
 import { reorderWorkItemIds, sortWorkItems, type TaskSortMode } from "../../../../entities/work-context/model/work-item-sort";
 import { taskBoardLaneForStatus, taskBoardLanes, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
 
-const taskBoardLaneMeta: Record<TaskBoardLane, { label: string; description: string }> = {
-  todo: { label: "할 일", description: "시작을 기다리는 모든 작업" },
-  ai_running: { label: "진행 중", description: "현재 실행하고 있는 작업" },
-  done: { label: "완료", description: "결과와 근거를 남긴 작업" },
+const taskBoardLaneMeta: Record<TaskBoardLane, { label: string }> = {
+  todo: { label: "할 일" },
+  ai_running: { label: "진행 중" },
+  review: { label: "확인 필요" },
+  done: { label: "완료" },
 };
 
 function formatWorkItemCreatedAt(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value));
+  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(value));
 }
+
 function formatWorkItemTargetAt(value: string) {
   const target = new Date(value);
-  const label = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(target);
-  return `${target.getTime() <= Date.now() ? "목표 지남" : "목표"} ${label}`;
+  const label = new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(target);
+  return `${target.getTime() <= Date.now() ? "지연" : "목표"} ${label}`;
 }
 
 function TaskRow({
   item,
   progress,
+  links,
+  category,
   onMove,
   onRename,
   onOpenContext,
@@ -38,6 +44,8 @@ function TaskRow({
 }: {
   item: WorkItem;
   progress?: WorkItemSessionProgress;
+  links: WorkItemLink[];
+  category?: PlannerCategory;
   onMove: (id: string, status: WorkItemStatus) => Promise<void>;
   onRename: (id: string, title: string) => Promise<void>;
   onOpenContext: (item: WorkItem) => void;
@@ -55,6 +63,10 @@ function TaskRow({
   const [title, setTitle] = useState(item.title);
   const [renameError, setRenameError] = useState<string | null>(null);
   const cardRef = useRef<HTMLElement | null>(null);
+  const jiraCount = links.filter((link) => link.kind === "jira").length;
+  const githubCount = links.filter((link) => link.kind === "github_pr" || link.kind === "github_commit").length;
+  const slackCount = links.filter((link) => link.kind === "slack").length;
+  const aiCount = progress?.total ?? 0;
 
   useEffect(() => {
     if (boardCard && item.status === "focus") cardRef.current?.focus();
@@ -85,7 +97,17 @@ function TaskRow({
       onDragOver={onDragOver ? (event) => onDragOver(event, item) : undefined}
       onDrop={onDrop ? (event) => onDrop(event, item) : undefined}
       onDragEnd={onDragEnd}
+      onClick={boardCard ? (event) => {
+        if ((event.target as HTMLElement).closest("button, input, textarea, a")) return;
+        onOpenContext(item);
+      } : undefined}
       onKeyDown={boardCard ? (event) => {
+        if ((event.target as HTMLElement).closest("button, input, textarea, a")) return;
+        if (!event.altKey && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onOpenContext(item);
+          return;
+        }
         if (item.status === "focus") return;
         if (!event.altKey || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
         const currentIndex = taskBoardLanes.indexOf(taskBoardLaneForStatus(item.status));
@@ -97,11 +119,14 @@ function TaskRow({
       } : undefined}
     >
       <header className="task-card-header">
-        <span className={`task-card-status ${item.status}`}><i aria-hidden="true" />{statusMeta[item.status].label}</span>
+        <div className="task-card-labels">
+          <span className={`task-priority-tag ${item.priority ?? "unset"}`}>{item.priority?.toUpperCase() ?? "우선순위 없음"}</span>
+          {category && <span className="task-category-tag"><i style={{ background: category.color }} />{category.name}</span>}
+          {(item.status === "focus" || item.status === "review" || item.status === "blocked") && <span className={`task-card-status ${item.status}`}><i aria-hidden="true" />{statusMeta[item.status].shortLabel}</span>}
+        </div>
         <div className="task-card-header-actions" onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsMenuOpen(false);
         }}>
-          <span className="task-card-source">{item.source === "orbit" ? "LOCAL" : item.source.toUpperCase()}</span>
           <button type="button" aria-label={`${item.title} 작업 메뉴`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((current) => !current)}><MoreHorizontal size={16} /></button>
           {isMenuOpen && (
             <div className="task-card-menu" role="menu">
@@ -110,6 +135,11 @@ function TaskRow({
               {item.status === "ai_running" && <>
                 <div className="task-card-menu-divider" />
                 <button className="focus-action" type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "focus"); }}><LockKeyhole size={13} /> 집중 시작</button>
+              </>}
+              {item.status === "focus" && <>
+                <div className="task-card-menu-divider" />
+                <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "ai_running"); }}><X size={13} /> 집중 종료</button>
+                <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "done"); }}><Check size={13} /> 완료</button>
               </>}
               {item.status !== "focus" && <>
               <div className="task-card-menu-divider" />
@@ -132,30 +162,24 @@ function TaskRow({
             <button className="task-title-save" type="submit" aria-label="작업 이름 저장"><Check size={14} strokeWidth={2} aria-hidden="true" /></button>
             <button type="button" aria-label="취소" onClick={() => { setTitle(item.title); setIsEditing(false); }}><X size={14} strokeWidth={2} aria-hidden="true" /></button>
           </form>
-        ) : <strong onDoubleClick={() => setIsEditing(true)}>{item.title}</strong>}
-        {(item.nextAction || item.goal) && <p className="task-card-summary">{item.nextAction || item.goal}</p>}
+        ) : <button className="task-card-title" type="button" onClick={() => onOpenContext(item)}>{item.title}</button>}
+        {item.status === "blocked" && item.blockedReason && <p className="task-card-blocked">{item.blockedReason}</p>}
         {renameError && <small className="task-inline-error">{renameError}</small>}
       </div>
-      <div className="task-card-meta">
-        <span>생성 {formatWorkItemCreatedAt(item.createdAt)}</span>
-        <span>{progress ? `AI 세션 ${progress.done}/${progress.total} 완료` : "연결된 AI 세션 없음"}</span>
+      <div className="task-card-dates">
+        <span><CalendarDays size={12} aria-hidden="true" />생성 {formatWorkItemCreatedAt(item.createdAt)}</span>
+        <span className={`task-target-time ${item.targetAt && new Date(item.targetAt).getTime() <= Date.now() ? "is-overdue" : ""}`}>
+          <AlarmClock size={12} aria-hidden="true" />{item.targetAt ? formatWorkItemTargetAt(item.targetAt) : "목표일 없음"}
+        </span>
       </div>
-      {(item.priority || item.targetAt) && <div className="task-planning-meta">
-        {item.priority && <small className={`task-priority-tag ${item.priority}`}>{item.priority.toUpperCase()}</small>}
-        {item.targetAt && <small className={`task-target-time ${new Date(item.targetAt).getTime() <= Date.now() ? "is-overdue" : ""}`}><AlarmClock size={12} strokeWidth={1.8} aria-hidden="true" />{formatWorkItemTargetAt(item.targetAt)}</small>}
-      </div>}
-      {item.status === "focus" ? (
-        <footer className="task-card-focus-actions">
-          <button type="button" onClick={() => onOpenContext(item)}><Link2 size={13} /> 컨텍스트</button>
-          <button type="button" onClick={() => { void onMove(item.id, "ai_running"); }}>집중 종료</button>
-          <button className="primary-button" type="button" onClick={() => { void onMove(item.id, "done"); }}><Check size={13} /> 완료</button>
-        </footer>
-      ) : (
-        <footer className="task-card-footer">
-          <span className="task-card-drag-cue"><GripVertical size={14} strokeWidth={1.8} aria-hidden="true" /> 드래그해서 이동</span>
-          <span>⌥ ← →</span>
-        </footer>
-      )}
+      {jiraCount + githubCount + slackCount + aiCount > 0 && <footer className="task-card-compact-meta">
+        <span className="task-card-connections" aria-label="연결 컨텍스트">
+          {jiraCount > 0 && <small title={`Jira ${jiraCount}개`}><Ticket size={12} />{jiraCount}</small>}
+          {githubCount > 0 && <small title={`GitHub ${githubCount}개`}><GitBranch size={12} />{githubCount}</small>}
+          {slackCount > 0 && <small title={`Slack ${slackCount}개`}><MessageSquare size={12} />{slackCount}</small>}
+          {aiCount > 0 && <small title={`AI 세션 ${aiCount}개`}><Bot size={12} />{aiCount}</small>}
+        </span>
+      </footer>}
     </article>
   );
 }
@@ -168,6 +192,8 @@ export default function TaskBoard({
   onOpenContext,
   onDelete,
   sessionProgress,
+  workItemLinks,
+  categories,
   onAdd,
   sortMode,
   onSortModeChange,
@@ -180,6 +206,8 @@ export default function TaskBoard({
   onOpenContext: (item: WorkItem) => void;
   onDelete: (item: WorkItem) => void;
   sessionProgress: Record<string, WorkItemSessionProgress>;
+  workItemLinks: WorkItemLink[];
+  categories: PlannerCategory[];
   onAdd: () => void;
   sortMode: TaskSortMode;
   onSortModeChange: (mode: TaskSortMode) => void;
@@ -191,7 +219,7 @@ export default function TaskBoard({
   const [isSortUnlockOpen, setIsSortUnlockOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const laneItems = useMemo(() => {
-    const next: Record<TaskBoardLane, WorkItem[]> = { todo: [], ai_running: [], done: [] };
+    const next: Record<TaskBoardLane, WorkItem[]> = { todo: [], ai_running: [], review: [], done: [] };
     workItemStatuses.forEach((status) => {
       items[status].forEach((item) => next[taskBoardLaneForStatus(item.status)].push(item));
     });
@@ -206,6 +234,13 @@ export default function TaskBoard({
       return [status, sorted];
     }),
   ) as Record<TaskBoardLane, WorkItem[]>, [laneItems, sortMode]);
+  const linksByWorkItem = useMemo(() => workItemLinks.reduce<Map<string, WorkItemLink[]>>((result, link) => {
+    const current = result.get(link.workItemId) ?? [];
+    current.push(link);
+    result.set(link.workItemId, current);
+    return result;
+  }, new Map()), [workItemLinks]);
+  const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
   const focusLocked = items.focus.length > 0;
 
   function startDrag(event: DragEvent<HTMLElement>, item: WorkItem) {
@@ -268,8 +303,7 @@ export default function TaskBoard({
     <section className={`task-board-page ${focusLocked ? "is-focus-locked" : ""}`} aria-label="Task 보드">
       <header className="task-board-toolbar" inert={focusLocked ? true : undefined} aria-hidden={focusLocked ? true : undefined}>
         <div>
-          <h2>작업 보드</h2>
-          <p>카드를 세로로 확인하고 다른 열로 드래그해 상태를 바꿀 수 있어요.</p>
+          <h2>Task</h2>
         </div>
         <div className="task-sort-actions">
           <span>{items.todo.length + items.focus.length + items.ai_running.length + items.review.length + items.blocked.length + items.inbox.length + items.done.length}개</span>
@@ -314,7 +348,6 @@ export default function TaskBoard({
                     <span className={`task-board-status-dot ${status}`} aria-hidden="true" />
                     <div>
                       <h3 id={`task-column-${status}`}>{taskBoardLaneMeta[status].label}</h3>
-                      <p>{taskBoardLaneMeta[status].description}</p>
                     </div>
                   </div>
                   <span className="task-board-count" aria-label={`${laneItems[status].length}개`}>{laneItems[status].length}</span>
@@ -330,6 +363,8 @@ export default function TaskBoard({
                       key={item.id}
                       item={item}
                       progress={sessionProgress[item.id]}
+                      links={linksByWorkItem.get(item.id) ?? []}
+                      category={item.categoryId ? categoryById.get(item.categoryId) : undefined}
                       onMove={onMove}
                       onRename={onRename}
                       onOpenContext={onOpenContext}

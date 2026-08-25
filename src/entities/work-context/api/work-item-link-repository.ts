@@ -37,6 +37,15 @@ export async function listWorkItemLinks(workItemId: string): Promise<WorkItemLin
   return rows.map(toLink);
 }
 
+export async function listAllWorkItemLinks(): Promise<WorkItemLink[]> {
+  const database = await getDatabase();
+  const rows = await database.select<WorkItemLinkRow[]>(
+    `SELECT id, work_item_id, kind, external_id, external_url, label, status, last_synced_at, created_at
+     FROM work_item_links ORDER BY created_at`,
+  );
+  return rows.map(toLink);
+}
+
 export async function createWorkItemLink(
   workItemId: string,
   kind: Exclude<WorkItemLinkKind, "slack">,

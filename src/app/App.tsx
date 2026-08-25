@@ -32,6 +32,7 @@ import {
   createWorkItemLink,
   deleteWorkItemLink,
   extractJiraKey,
+  listAllWorkItemLinks,
   listWorkItemLinks,
 } from "../entities/work-context/api/work-item-link-repository";
 import {
@@ -60,6 +61,8 @@ import {
   type JiraIssueDevelopment,
 } from "../entities/work-context/model/jira-development";
 import type { WorkItemLink } from "../entities/work-context/model/work-item-link";
+import { listPlannerCategories } from "../entities/work-context/api/planner-repository";
+import type { PlannerCategory } from "../entities/work-context/model/planner";
 import type { DailyBriefing } from "../entities/work-context/model/daily-briefing";
 import type { JiraIssue, JiraTaskLink } from "../entities/work-context/model/jira-issue";
 import { taskStatusSuggestionForSessions } from "../entities/work-context/model/task-flow";
@@ -146,6 +149,8 @@ function App() {
   const [pendingTransition, setPendingTransition] = useState<{ targetId: string; targetStatus: WorkItemStatus; openContextAfter?: boolean; suggestionId?: string } | null>(null);
   const [statusSuggestions, setStatusSuggestions] = useState<StatusSuggestion[]>([]);
   const [sourceSyncStates, setSourceSyncStates] = useState<SourceSyncState[]>([]);
+  const [workItemLinks, setWorkItemLinks] = useState<WorkItemLink[]>([]);
+  const [plannerCategories, setPlannerCategories] = useState<PlannerCategory[]>([]);
   const [interruptionEvidence, setInterruptionEvidence] = useState<Array<{ label: string; url?: string }>>([]);
   const [interruptionDraft, setInterruptionDraft] = useState<{ checkpoint?: string; nextAction?: string }>({});
   const [openSections, setOpenSections] = useState<PrimarySection[]>(() =>
@@ -224,16 +229,20 @@ function App() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const [nextItems, nextProgress, nextSuggestions, nextSyncStates] = await Promise.all([
+      const [nextItems, nextProgress, nextSuggestions, nextSyncStates, nextLinks, nextCategories] = await Promise.all([
         listWorkItems(),
         listWorkItemSessionProgress(),
         listPendingStatusSuggestions(),
         listSourceSyncStates(),
+        listAllWorkItemLinks(),
+        listPlannerCategories(),
       ]);
       setItems(nextItems);
       setSessionProgress(nextProgress);
       setStatusSuggestions(nextSuggestions);
       setSourceSyncStates(nextSyncStates);
+      setWorkItemLinks(nextLinks);
+      setPlannerCategories(nextCategories);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -539,6 +548,8 @@ function App() {
           onOpenContext={setContextItem}
           onDelete={setDeleteItem}
           sessionProgress={sessionProgress}
+          workItemLinks={workItemLinks}
+          categories={plannerCategories}
           onAdd={() => setIsComposerOpen(true)}
           sortMode={taskSortMode}
           onSortModeChange={handleTaskSortMode}
