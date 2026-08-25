@@ -395,6 +395,12 @@ select:focus, input:focus, textarea:focus { border-color: var(--ring); box-shado
 .task-row.task-board-card.status-done { opacity: .68; }
 .task-row.task-board-card.status-done:hover, .task-row.task-board-card.status-done:focus-visible { opacity: 1; }
 .task-row.task-board-card.status-focus { border-color: color-mix(in srgb, var(--accent) 62%, var(--border)); border-left-width: 3px; cursor: default; }
+@supports (content-visibility: auto) {
+  .task-row.task-board-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 112px;
+  }
+}
 .task-card-header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; }
 .task-card-labels { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px; }
 .task-card-status, .task-category-tag { display: inline-flex; min-width: 0; min-height: 20px; padding: 0 6px; align-items: center; gap: 5px; color: var(--text-muted); border-radius: 4px; background: var(--subtle); font-size: 9px; font-weight: 650; }
