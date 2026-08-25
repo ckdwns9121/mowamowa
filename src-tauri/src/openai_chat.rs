@@ -581,7 +581,7 @@ pub async fn stream_chat_with_orbit_context(
         .map_err(|_| "채팅 스트림 상태를 열지 못했습니다.".to_string())?
         .insert(request_id.clone(), cancelled.clone());
 
-    let result = tauri::async_runtime::spawn_blocking(move || {
+    let joined = tauri::async_runtime::spawn_blocking(move || {
         let api_key = super::get_secret("openai_api_key")?;
         let selected_model = model
             .filter(|value| !value.trim().is_empty())
@@ -658,12 +658,12 @@ pub async fn stream_chat_with_orbit_context(
         }
         Ok(())
     })
-    .await
-    .map_err(|error| error.to_string())?;
+    .await;
 
     if let Ok(mut streams) = active_streams().lock() {
         streams.remove(&request_id);
     }
+    let result = joined.map_err(|error| error.to_string())?;
     result
 }
 

@@ -46,11 +46,15 @@ export default function AppTabBar({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const suppressTabActivationRef = useRef(false);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
+  const activationResetTimerRef = useRef<number | null>(null);
 
   function beginWindowDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     if (event.button !== 0) return;
+    dragCleanupRef.current?.();
     const origin = { x: event.clientX, y: event.clientY };
     let listening = true;
+    let handleMove: (moveEvent: PointerEvent) => void;
 
     const cleanup = () => {
       if (!listening) return;
@@ -58,21 +62,32 @@ export default function AppTabBar({
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", cleanup);
       window.removeEventListener("pointercancel", cleanup);
+      if (dragCleanupRef.current === cleanup) dragCleanupRef.current = null;
     };
-    const handleMove = (moveEvent: PointerEvent) => {
+    handleMove = (moveEvent: PointerEvent) => {
       if (Math.hypot(moveEvent.clientX - origin.x, moveEvent.clientY - origin.y) < 4) return;
       cleanup();
       suppressTabActivationRef.current = true;
-      window.setTimeout(() => { suppressTabActivationRef.current = false; }, 250);
+      if (activationResetTimerRef.current !== null) window.clearTimeout(activationResetTimerRef.current);
+      activationResetTimerRef.current = window.setTimeout(() => {
+        activationResetTimerRef.current = null;
+        suppressTabActivationRef.current = false;
+      }, 250);
       void getCurrentWindow().startDragging().catch(() => {
         suppressTabActivationRef.current = false;
       });
     };
 
+    dragCleanupRef.current = cleanup;
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", cleanup, { once: true });
     window.addEventListener("pointercancel", cleanup, { once: true });
   }
+
+  useEffect(() => () => {
+    dragCleanupRef.current?.();
+    if (activationResetTimerRef.current !== null) window.clearTimeout(activationResetTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return;
