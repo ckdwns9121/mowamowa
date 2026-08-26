@@ -6,7 +6,7 @@ import type { WorkItemSessionProgress } from "../../../../entities/work-context/
 import type { WorkItemLink } from "../../../../entities/work-context/model/work-item-link";
 import type { PlannerCategory } from "../../../../entities/work-context/model/planner";
 import { reorderWorkItemIds, sortWorkItems, type TaskSortMode } from "../../../../entities/work-context/model/work-item-sort";
-import { taskBoardLaneForStatus, taskBoardLanes, visibleTaskBoardItems, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
+import { nextTaskBoardRefreshAt, taskBoardLaneForStatus, taskBoardLanes, visibleTaskBoardItems, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
 
 const initialVisibleLimits = { todo: 12, done: 8 } as const;
 const visibleIncrement = 12;
@@ -22,10 +22,10 @@ function formatWorkItemCreatedAt(value: string) {
   return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(value));
 }
 
-function formatWorkItemTargetAt(value: string) {
+function formatWorkItemTargetAt(value: string, nowMs: number) {
   const target = new Date(value);
   const label = new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(target);
-  return `${target.getTime() <= Date.now() ? "지연" : "목표"} ${label}`;
+  return `${target.getTime() <= nowMs ? "지연" : "목표"} ${label}`;
 }
 
 function TaskRow({
@@ -33,6 +33,7 @@ function TaskRow({
   progress,
   links,
   category,
+  nowMs,
   onMove,
   onRename,
   onOpenContext,
@@ -49,6 +50,7 @@ function TaskRow({
   progress?: WorkItemSessionProgress;
   links: WorkItemLink[];
   category?: PlannerCategory;
+  nowMs: number;
   onMove: (id: string, status: WorkItemStatus) => Promise<void>;
   onRename: (id: string, title: string) => Promise<void>;
   onOpenContext: (item: WorkItem) => void;
@@ -171,8 +173,8 @@ function TaskRow({
       </div>
       <div className="task-card-dates">
         <span><CalendarDays size={12} aria-hidden="true" />생성 {formatWorkItemCreatedAt(item.createdAt)}</span>
-        <span className={`task-target-time ${item.targetAt && new Date(item.targetAt).getTime() <= Date.now() ? "is-overdue" : ""}`}>
-          <AlarmClock size={12} aria-hidden="true" />{item.targetAt ? formatWorkItemTargetAt(item.targetAt) : "목표일 없음"}
+        <span className={`task-target-time ${item.targetAt && new Date(item.targetAt).getTime() <= nowMs ? "is-overdue" : ""}`}>
+          <AlarmClock size={12} aria-hidden="true" />{item.targetAt ? formatWorkItemTargetAt(item.targetAt, nowMs) : "목표일 없음"}
         </span>
       </div>
       {jiraCount + githubCount + slackCount + aiCount > 0 && <footer className="task-card-compact-meta">
@@ -223,6 +225,7 @@ export default function TaskBoard({
   const [announcement, setAnnouncement] = useState("");
   const [visibleLimits, setVisibleLimits] = useState({ ...initialVisibleLimits });
   const [forcedVisibleIds, setForcedVisibleIds] = useState<Set<string>>(() => new Set());
+  const [now, setNow] = useState(() => new Date());
   const laneItems = useMemo(() => {
     const next: Record<TaskBoardLane, WorkItem[]> = { todo: [], ai_running: [], review: [], done: [] };
     workItemStatuses.forEach((status) => {
@@ -246,18 +249,28 @@ export default function TaskBoard({
     return result;
   }, new Map()), [workItemLinks]);
   const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
+  const nextRefreshAt = useMemo(() => nextTaskBoardRefreshAt(
+    taskBoardLanes.flatMap((status) => laneItems[status]),
+    now,
+  ), [laneItems, now]);
   const displayedItems = useMemo(() => ({
-    todo: visibleTaskBoardItems(sortedItems.todo, visibleLimits.todo, forcedVisibleIds),
+    todo: visibleTaskBoardItems(sortedItems.todo, visibleLimits.todo, forcedVisibleIds, now),
     ai_running: sortedItems.ai_running,
     review: sortedItems.review,
-    done: visibleTaskBoardItems(sortedItems.done, visibleLimits.done, forcedVisibleIds),
-  }), [sortedItems, visibleLimits, forcedVisibleIds]);
+    done: visibleTaskBoardItems(sortedItems.done, visibleLimits.done, forcedVisibleIds, now),
+  }), [sortedItems, visibleLimits, forcedVisibleIds, now]);
   const focusLocked = items.focus.length > 0;
 
   useEffect(() => {
     setVisibleLimits({ ...initialVisibleLimits });
     setForcedVisibleIds(new Set());
   }, [sortMode]);
+
+  useEffect(() => {
+    const delay = Math.max(1, nextRefreshAt - Date.now() + 25);
+    const timer = window.setTimeout(() => setNow(new Date()), delay);
+    return () => window.clearTimeout(timer);
+  }, [nextRefreshAt]);
 
   function startDrag(event: DragEvent<HTMLElement>, item: WorkItem) {
     const origin = event.target as HTMLElement;
@@ -287,7 +300,7 @@ export default function TaskBoard({
 
     if (draggingStatus !== status) {
       setAnnouncement(`${dragged.title}을 ${taskBoardLaneMeta[status].label}로 이동합니다.`);
-      setForcedVisibleIds((current) => new Set(current).add(dragged.id));
+      setForcedVisibleIds(status === "todo" || status === "done" ? new Set([dragged.id]) : new Set());
       setDraggingId(null);
       setDraggingStatus(null);
       await onMove(dragged.id, status);
@@ -382,6 +395,7 @@ export default function TaskBoard({
                       progress={sessionProgress[item.id]}
                       links={linksByWorkItem.get(item.id) ?? []}
                       category={item.categoryId ? categoryById.get(item.categoryId) : undefined}
+                      nowMs={now.getTime()}
                       onMove={onMove}
                       onRename={onRename}
                       onOpenContext={onOpenContext}

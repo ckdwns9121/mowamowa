@@ -35,3 +35,15 @@ export function visibleTaskBoardItems(
   }
   return items.filter((item) => visibleIds.has(item.id));
 }
+
+export function nextTaskBoardRefreshAt(items: WorkItem[], now = new Date()): number {
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return items.reduce((nextBoundary, item) => {
+    if (!item.targetAt) return nextBoundary;
+    const targetTime = new Date(item.targetAt).getTime();
+    return Number.isFinite(targetTime) && targetTime > now.getTime() && targetTime < nextBoundary
+      ? targetTime
+      : nextBoundary;
+  }, nextMidnight.getTime());
+}

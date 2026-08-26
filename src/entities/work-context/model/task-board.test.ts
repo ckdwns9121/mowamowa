@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { taskBoardLaneForStatus, visibleTaskBoardItems } from "./task-board";
+import { nextTaskBoardRefreshAt, taskBoardLaneForStatus, visibleTaskBoardItems } from "./task-board";
 import type { WorkItem, WorkItemStatus } from "./work-item";
 
 function item(id: string, overrides: Partial<WorkItem> = {}): WorkItem {
@@ -42,5 +42,17 @@ describe("taskBoardLaneForStatus", () => {
     expect(visibleTaskBoardItems(tasks, 3, new Set(["forced"]), new Date("2026-08-25T12:00:00+09:00")).map(({ id }) => id)).toEqual([
       "p1", "overdue", "today", "forced",
     ]);
+  });
+
+  test("refreshes at the next future goal time, then falls back to local midnight", () => {
+    const now = new Date(2026, 7, 25, 12, 0, 0);
+    const nextGoal = new Date(2026, 7, 25, 13, 30, 0);
+    const nextMidnight = new Date(2026, 7, 26, 0, 0, 0);
+    expect(nextTaskBoardRefreshAt([
+      item("past", { targetAt: new Date(2026, 7, 25, 11, 0, 0).toISOString() }),
+      item("later", { targetAt: new Date(2026, 7, 25, 18, 0, 0).toISOString() }),
+      item("next", { targetAt: nextGoal.toISOString() }),
+    ], now)).toBe(nextGoal.getTime());
+    expect(nextTaskBoardRefreshAt([], now)).toBe(nextMidnight.getTime());
   });
 });
