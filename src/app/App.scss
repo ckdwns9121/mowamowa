@@ -400,6 +400,10 @@ select:focus, input:focus, textarea:focus { border-color: var(--ring); box-shado
     content-visibility: auto;
     contain-intrinsic-size: auto 112px;
   }
+  .task-row.task-board-card.has-open-menu {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
 }
 .task-card-header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; }
 .task-card-labels { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px; }

@@ -92,7 +92,7 @@ function TaskRow({
   return (
     <article
       ref={cardRef}
-      className={`task-row ${boardCard ? `task-board-card status-${item.status}` : ""} ${item.status === "review" ? "needs-review" : ""} ${onDragStart ? "is-sortable" : ""} ${isDragging ? "is-dragging" : ""} ${isFocusLocked ? "is-focus-locked" : ""}`}
+      className={`task-row ${boardCard ? `task-board-card status-${item.status}` : ""} ${item.status === "review" ? "needs-review" : ""} ${onDragStart ? "is-sortable" : ""} ${isDragging ? "is-dragging" : ""} ${isFocusLocked ? "is-focus-locked" : ""} ${isMenuOpen ? "has-open-menu" : ""}`}
       draggable={Boolean(onDragStart) && item.status !== "focus" && !isFocusLocked}
       inert={isFocusLocked ? true : undefined}
       aria-hidden={isFocusLocked ? true : undefined}
@@ -137,6 +137,7 @@ function TaskRow({
             <div className="task-card-menu" role="menu">
               <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); onOpenContext(item); }}><Link2 size={13} /> 컨텍스트 보기</button>
               <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); setIsEditing(true); }}><Pencil size={13} /> 이름 수정</button>
+              {item.status !== "done" && item.status !== "focus" && <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "done"); }}><Check size={13} /> 완료 처리</button>}
               {item.status === "ai_running" && <>
                 <div className="task-card-menu-divider" />
                 <button className="focus-action" type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "focus"); }}><LockKeyhole size={13} /> 집중 시작</button>
@@ -148,7 +149,7 @@ function TaskRow({
               </>}
               {item.status !== "focus" && <>
               <div className="task-card-menu-divider" />
-              {taskBoardLanes.filter((status) => status !== taskBoardLaneForStatus(item.status)).map((status) => (
+              {taskBoardLanes.filter((status) => status !== "done" && status !== taskBoardLaneForStatus(item.status)).map((status) => (
                 <button type="button" role="menuitem" key={status} onClick={() => { setIsMenuOpen(false); void onMove(item.id, status); }}>
                   <span className={`task-card-menu-dot ${status}`} /> {taskBoardLaneMeta[status].label}로 이동
                 </button>
