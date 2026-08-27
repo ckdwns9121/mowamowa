@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type FormEvent } from "react";
 import { AlarmClock, Bot, CalendarDays, Check, ChevronDown, ChevronUp, GitBranch, GripVertical, Link2, LockKeyhole, MessageSquare, MoreHorizontal, Pencil, Plus, Ticket, Trash2, X } from "lucide-react";
 import type { WorkItem, WorkItemStatus } from "../../../../entities/work-context/model/work-item";
 import { statusMeta, workItemStatuses } from "../../../../entities/work-context/model/work-item";
@@ -8,8 +8,9 @@ import type { PlannerCategory } from "../../../../entities/work-context/model/pl
 import { reorderWorkItemIds, sortWorkItems, type TaskSortMode } from "../../../../entities/work-context/model/work-item-sort";
 import { nextTaskBoardRefreshAt, taskBoardLaneForStatus, taskBoardLanes, visibleTaskBoardItems, type TaskBoardLane } from "../../../../entities/work-context/model/task-board";
 
-const initialVisibleLimits = { todo: 12, done: 8 } as const;
-const visibleIncrement = 12;
+const taskBoardPageSize = 10;
+const initialVisibleLimits = { todo: taskBoardPageSize, done: taskBoardPageSize } as const;
+const visibleIncrement = taskBoardPageSize;
 
 const taskBoardLaneMeta: Record<TaskBoardLane, { label: string }> = {
   todo: { label: "할 일" },
@@ -26,6 +27,13 @@ function formatWorkItemTargetAt(value: string, nowMs: number) {
   const target = new Date(value);
   const label = new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(target);
   return `${target.getTime() <= nowMs ? "지연" : "목표"} ${label}`;
+}
+
+function chunkTaskBoardItems(items: WorkItem[]): WorkItem[][] {
+  return Array.from(
+    { length: Math.ceil(items.length / taskBoardPageSize) },
+    (_, index) => items.slice(index * taskBoardPageSize, (index + 1) * taskBoardPageSize),
+  );
 }
 
 function TaskRow({
@@ -389,26 +397,35 @@ export default function TaskBoard({
                 )}
 
                 <div className="task-board-list">
-                  {displayedItems[status].map((item) => (
-                    <TaskRow
-                      key={item.id}
-                      item={item}
-                      progress={sessionProgress[item.id]}
-                      links={linksByWorkItem.get(item.id) ?? []}
-                      category={item.categoryId ? categoryById.get(item.categoryId) : undefined}
-                      nowMs={now.getTime()}
-                      onMove={onMove}
-                      onRename={onRename}
-                      onOpenContext={onOpenContext}
-                      onDelete={onDelete}
-                      onDragStart={startDrag}
-                      onDragOver={(event) => { if (draggingId) event.preventDefault(); }}
-                      onDrop={(event, target) => { void dropItem(event, status, target); }}
-                      onDragEnd={finishDrag}
-                      isDragging={draggingId === item.id}
-                      isFocusLocked={focusLocked && item.id !== items.focus[0]?.id}
-                      boardCard
-                    />
+                  {chunkTaskBoardItems(displayedItems[status]).map((page, pageIndex) => (
+                    <div
+                      className="task-board-card-page"
+                      data-page={pageIndex + 1}
+                      key={`${status}-page-${pageIndex}`}
+                      style={{ "--task-board-page-height": `${Math.max(112, page.length * 119 - 7)}px` } as CSSProperties}
+                    >
+                      {page.map((item) => (
+                        <TaskRow
+                          key={item.id}
+                          item={item}
+                          progress={sessionProgress[item.id]}
+                          links={linksByWorkItem.get(item.id) ?? []}
+                          category={item.categoryId ? categoryById.get(item.categoryId) : undefined}
+                          nowMs={now.getTime()}
+                          onMove={onMove}
+                          onRename={onRename}
+                          onOpenContext={onOpenContext}
+                          onDelete={onDelete}
+                          onDragStart={startDrag}
+                          onDragOver={(event) => { if (draggingId) event.preventDefault(); }}
+                          onDrop={(event, target) => { void dropItem(event, status, target); }}
+                          onDragEnd={finishDrag}
+                          isDragging={draggingId === item.id}
+                          isFocusLocked={focusLocked && item.id !== items.focus[0]?.id}
+                          boardCard
+                        />
+                      ))}
+                    </div>
                   ))}
                   {sortedItems[status].length === 0 && (
                     <div className="task-board-empty">
