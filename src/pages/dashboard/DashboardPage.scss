@@ -1,12 +1,8 @@
 @use "../../shared/styles/tokens" as *;
 
-.planner-page { max-width: 1580px; margin: 0 auto; padding: 30px 34px 54px; }
-.planner-heading { display: grid; grid-template-columns: 50px minmax(0,1fr) auto; align-items: center; gap: 14px; margin-bottom: 24px; }
-.planner-profile-mark { display: grid; width: 50px; height: 50px; place-items: center; color: var(--accent); background: var(--accent-soft); border-radius: 7px; }
-.planner-heading-copy { min-width: 0; }
-.planner-heading-copy > span { color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .14em; }
-.planner-heading h2 { margin: 4px 0 3px; font-size: 23px; letter-spacing: -.7px; }
-.planner-heading p { margin: 0; color: var(--text-muted); font-size: 11px; }
+.planner-page { max-width: 1580px; margin: 0 auto; padding: 24px 30px 48px; }
+.planner-heading { display: flex; min-height: 36px; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.planner-heading h2 { margin: 0; font-size: 20px; letter-spacing: -.5px; }
 .planner-heading-actions { display: flex; align-items: center; gap: 7px; }
 .planner-briefing-button { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb,var(--accent) 28%,var(--border)); background: var(--accent-soft); font-weight: 700; }
 .planner-heading-actions > button,.planner-manager-anchor > button { min-height: 34px; }
@@ -132,8 +128,6 @@
 .planner-review-request > svg { color: var(--text-faint); }
 .planner-review-requests > p { margin: 0; padding: 14px 4px; color: var(--text-muted); font-size: 9px; text-align: center; }
 .planner-review-requests > p.is-error { color: var(--danger); }
-.planner-context-note { display: flex; margin-top: 16px; padding: 11px; align-items: flex-start; gap: 9px; color: var(--accent); background: var(--accent-soft); border-radius: 5px; }
-.planner-context-note > span { min-width: 0; }.planner-context-note strong,.planner-context-note small { display: block; }.planner-context-note strong { font-size: 9px; }.planner-context-note small { margin-top: 4px; color: var(--text-muted); font-size: 8px; line-height: 1.45; }
 
 .planner-manager-backdrop { place-items: center; }
 .planner-manager { width: min(520px,100%); max-height: min(720px,calc(100vh - 48px)); padding: 22px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; box-shadow: 0 24px 70px rgba(24,22,20,.2); }

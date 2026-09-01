@@ -20,7 +20,6 @@ import {
   Plus,
   Repeat2,
   Settings2,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -305,12 +304,7 @@ export default function DashboardPage({
   return (
     <main className="planner-page">
       <header className="planner-heading">
-        <div className="planner-profile-mark"><Sparkles size={20} aria-hidden="true" /></div>
-        <div className="planner-heading-copy">
-          <span>ORBIT PLANNER</span>
-          <h2>이번 달, 해야 할 일만 선명하게</h2>
-          <p>업무와 생활을 계획하고 필요한 순간에만 Jira·Slack·AI 컨텍스트를 여세요.</p>
-        </div>
+        <h2>Planner</h2>
         <div className="planner-heading-actions">
           <button className="planner-briefing-button" type="button" onClick={onOpenDailyBriefing}><Bot size={15} />오늘 브리핑</button>
           <button type="button" onClick={selectToday}>오늘</button>
@@ -493,7 +487,6 @@ export default function DashboardPage({
             {reviewPullRequestsError && reviewPullRequests.length === 0 && <p className="is-error">PR을 불러오지 못했습니다.</p>}
           </section>
 
-          <div className="planner-context-note"><Sparkles size={15} /><span><strong>업무 컨텍스트는 작업 안에</strong><small>작업을 열면 Jira, PR, Slack, Codex·Claude 세션을 연결할 수 있어요.</small></span></div>
         </aside>
       </div>
 
