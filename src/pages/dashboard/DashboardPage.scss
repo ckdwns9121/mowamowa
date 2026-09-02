@@ -13,9 +13,9 @@
 .planner-manager-menu button:hover { background: var(--hover); }
 .planner-error { margin-bottom: 14px; padding: 11px 13px; color: var(--danger); background: var(--danger-soft); border: 1px solid var(--danger-border); border-radius: 5px; font-size: 11px; }
 
-.planner-layout { display: grid; min-height: calc(100vh - 120px); grid-template-columns: minmax(430px,.84fr) minmax(480px,1.16fr); align-items: start; }
+.planner-layout { display: grid; min-height: calc(100vh - 120px); grid-template-columns: minmax(400px,.72fr) minmax(520px,1.28fr); align-items: start; }
 .planner-calendar,.planner-day-panel { min-width: 0; background: transparent; }
-.planner-calendar { padding: 12px 34px 24px 6px; }
+.planner-calendar { padding: 12px 20px 24px 6px; }
 .planner-month-heading { display: flex; min-height: 56px; align-items: center; justify-content: flex-start; }
 .planner-month-heading > div { display: flex; align-items: center; gap: 4px; }
 .planner-month-heading button { display: grid; width: 30px; min-height: 30px; padding: 0; place-items: center; border-color: transparent; background: transparent; }
@@ -35,7 +35,7 @@
 .planner-day-markers i.is-done { opacity: .25; }
 .planner-day-markers i.is-event { width: 7px; height: 7px; background: transparent; border: 1px solid #d99542; border-radius: 50%; }
 
-.planner-day-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); min-height: calc(100vh - 120px); padding: 10px 8px 32px 36px; overflow-y: auto; border-left: 1px solid var(--border); scrollbar-gutter: stable; }
+.planner-day-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); min-height: calc(100vh - 120px); padding: 10px 8px 32px 22px; overflow-y: auto; border-left: 1px solid var(--border); scrollbar-gutter: stable; }
 .planner-selected-heading { display: flex; min-height: 72px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
 .planner-selected-heading > div:first-child > span { color: var(--text-muted); font-size: 9px; }
 .planner-selected-heading h3 { margin: 3px 0 0; font-size: 18px; }
@@ -162,6 +162,6 @@
 .planner-priority-picker strong { font-size: 11px; }.planner-priority-picker small { margin-top: 4px; color: var(--text-muted); font-size: 8px; }
 .planner-task-picker-search { width: 100%; margin-top: 12px; }
 
-@media (max-width: 1180px) { .planner-layout { grid-template-columns: minmax(390px,.8fr) minmax(430px,1.2fr); }.planner-calendar { padding-right: 24px; }.planner-day-panel { padding-left: 24px; }.planner-day { min-height: 70px; } }
+@media (max-width: 1180px) { .planner-layout { grid-template-columns: minmax(370px,.72fr) minmax(430px,1.28fr); }.planner-calendar { padding-right: 16px; }.planner-day-panel { padding-left: 18px; }.planner-day { min-height: 70px; } }
 @media (max-width: 960px) { .planner-page { padding-inline: 20px; }.planner-layout { grid-template-columns: 1fr; }.planner-calendar { padding-right: 6px; }.planner-day-panel { position: static; max-height: none; min-height: 0; margin-top: 14px; padding-left: 8px; border-top: 1px solid var(--border); border-left: 0; }.planner-day { min-height: 68px; } }
 @media (prefers-reduced-motion: reduce) { .planner-day,.planner-priority-section,.planner-priority-card { transition: none; } }
