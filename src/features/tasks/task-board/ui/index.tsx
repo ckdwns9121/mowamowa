@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { AlarmClock, Bot, CalendarDays, Check, ChevronDown, ChevronUp, GitBranch, GripVertical, Link2, LockKeyhole, MessageSquare, MoreHorizontal, Pencil, Plus, Ticket, Trash2, X } from "lucide-react";
 import type { WorkItem, WorkItemStatus } from "../../../../entities/work-context/model/work-item";
 import { statusMeta, workItemStatuses } from "../../../../entities/work-context/model/work-item";
@@ -73,9 +74,12 @@ function TaskRow({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0, ready: false });
   const [title, setTitle] = useState(item.title);
   const [renameError, setRenameError] = useState<string | null>(null);
   const cardRef = useRef<HTMLElement | null>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const jiraCount = links.filter((link) => link.kind === "jira").length;
   const githubCount = links.filter((link) => link.kind === "github_pr" || link.kind === "github_commit").length;
   const slackCount = links.filter((link) => link.kind === "slack").length;
@@ -84,6 +88,53 @@ function TaskRow({
   useEffect(() => {
     if (boardCard && item.status === "focus") cardRef.current?.focus();
   }, [boardCard, item.id, item.status]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    function updateMenuPosition() {
+      const trigger = menuTriggerRef.current;
+      if (!trigger) return;
+      const triggerRect = trigger.getBoundingClientRect();
+      const menuWidth = menuRef.current?.offsetWidth ?? 172;
+      const menuHeight = menuRef.current?.offsetHeight ?? 280;
+      const viewportGap = 8;
+      const left = Math.min(
+        Math.max(viewportGap, triggerRect.right - menuWidth),
+        window.innerWidth - menuWidth - viewportGap,
+      );
+      const belowTop = triggerRect.bottom + 4;
+      const top = belowTop + menuHeight <= window.innerHeight - viewportGap
+        ? belowTop
+        : Math.max(viewportGap, triggerRect.top - menuHeight - 4);
+      setMenuPosition({ left, top, ready: true });
+    }
+
+    function closeWhenOutside(event: PointerEvent) {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target) || menuTriggerRef.current?.contains(target)) return;
+      setIsMenuOpen(false);
+    }
+
+    function closeWithEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setIsMenuOpen(false);
+      menuTriggerRef.current?.focus();
+    }
+
+    const frame = window.requestAnimationFrame(updateMenuPosition);
+    window.addEventListener("pointerdown", closeWhenOutside, true);
+    window.addEventListener("keydown", closeWithEscape);
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("pointerdown", closeWhenOutside, true);
+      window.removeEventListener("keydown", closeWithEscape);
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [isMenuOpen]);
 
   async function submitTitle(event: FormEvent) {
     event.preventDefault();
@@ -137,12 +188,18 @@ function TaskRow({
           {category && <span className="task-category-tag"><i style={{ background: category.color }} />{category.name}</span>}
           {(item.status === "focus" || item.status === "review" || item.status === "blocked") && <span className={`task-card-status ${item.status}`}><i aria-hidden="true" />{statusMeta[item.status].shortLabel}</span>}
         </div>
-        <div className="task-card-header-actions" onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsMenuOpen(false);
-        }}>
-          <button type="button" aria-label={`${item.title} 작업 메뉴`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((current) => !current)}><MoreHorizontal size={16} /></button>
-          {isMenuOpen && (
-            <div className="task-card-menu" role="menu">
+        <div className="task-card-header-actions">
+          <button ref={menuTriggerRef} type="button" aria-label={`${item.title} 작업 메뉴`} aria-expanded={isMenuOpen} onClick={() => {
+            setMenuPosition((current) => ({ ...current, ready: false }));
+            setIsMenuOpen((current) => !current);
+          }}><MoreHorizontal size={16} /></button>
+          {isMenuOpen && createPortal(
+            <div
+              ref={menuRef}
+              className="task-card-menu task-card-menu-portal"
+              role="menu"
+              style={{ left: menuPosition.left, top: menuPosition.top, visibility: menuPosition.ready ? "visible" : "hidden" }}
+            >
               <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); onOpenContext(item); }}><Link2 size={13} /> 컨텍스트 보기</button>
               <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); setIsEditing(true); }}><Pencil size={13} /> 이름 수정</button>
               {item.status !== "done" && item.status !== "focus" && <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); void onMove(item.id, "done"); }}><Check size={13} /> 완료 처리</button>}
@@ -165,7 +222,8 @@ function TaskRow({
               </>}
               {item.status !== "focus" && <><div className="task-card-menu-divider" />
                 <button className="danger" type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); onDelete(item); }}><Trash2 size={13} /> 삭제</button></>}
-            </div>
+            </div>,
+            document.body,
           )}
         </div>
       </header>
