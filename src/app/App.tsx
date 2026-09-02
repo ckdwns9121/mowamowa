@@ -969,12 +969,14 @@ function TaskDetailDrawer({ item, onClose, onChanged }: { item: WorkItem; onClos
   }, [item.id]);
 
   const refreshContext = useCallback(async () => {
-    const [nextSessions, nextLinks] = await Promise.all([
+    const [nextSessions, nextLinks, nextJiraIssues] = await Promise.all([
       listAiSessions(),
       listWorkItemLinks(item.id),
+      listCachedJiraIssues(),
     ]);
     setSessions(nextSessions);
     setLinks(nextLinks);
+    setJiraIssues(nextJiraIssues);
   }, [item.id]);
 
   useEffect(() => {
@@ -1174,6 +1176,8 @@ function TaskDetailDrawer({ item, onClose, onChanged }: { item: WorkItem; onClos
 
   const jiraLinks = links.filter((link) => link.kind === "jira");
   const slackLinks = links.filter((link) => link.kind === "slack");
+  const jiraIssueByKey = new Map(jiraIssues.map((issue) => [issue.key.toUpperCase(), issue]));
+  const jiraDevelopmentByKey = new Map(development.map((entry) => [entry.issue.key.toUpperCase(), entry.issue]));
   const jiraTaskLinkByKey = new Map(jiraTaskLinks.map((link) => [link.issueKey.toUpperCase(), link]));
   const jiraComboboxOptions: SearchComboboxOption[] = [
     ...jiraIssues.map((issue) => {
@@ -1235,16 +1239,26 @@ function TaskDetailDrawer({ item, onClose, onChanged }: { item: WorkItem; onClos
 
         <div className="context-section">
           <div className="context-section-title"><strong>Jira</strong><span>{isJiraSyncing ? "개발 정보 동기화 중…" : `${jiraLinks.length}개 연결됨`}</span></div>
-          {jiraLinks.map((link) => (
-            <div className="context-link-row external" key={link.id}>
-              <i className="service jira"><ServiceIcon kind="jira" size={17} /></i>
-              <div><strong>{link.label}</strong><span>Jira 이슈{link.status !== "linked" ? ` · ${link.status}` : ""}</span></div>
-              <div className="context-row-actions">
-                {link.externalUrl && <button type="button" onClick={() => void openUrl(link.externalUrl!)}>열기</button>}
-                <button type="button" onClick={async () => { await deleteWorkItemLink(link.id); await refreshContext(); }}>해제</button>
+          {jiraLinks.map((link) => {
+            const issueKey = link.externalId?.toUpperCase() || link.label.split(" · ")[0].toUpperCase();
+            const cachedIssue = jiraIssueByKey.get(issueKey);
+            const developmentIssue = jiraDevelopmentByKey.get(issueKey);
+            const labelPrefix = `${link.externalId || issueKey} · `;
+            const labelSummary = link.label.startsWith(labelPrefix) ? link.label.slice(labelPrefix.length).trim() : "";
+            const summary = cachedIssue?.summary || developmentIssue?.summary || labelSummary;
+            const issueStatus = cachedIssue?.status || developmentIssue?.status || (link.status !== "linked" ? link.status : "");
+            const issueUrl = link.externalUrl || cachedIssue?.url || developmentIssue?.url;
+            return (
+              <div className="context-link-row external" key={link.id}>
+                <i className="service jira"><ServiceIcon kind="jira" size={17} /></i>
+                <div><strong>{link.externalId || issueKey}</strong><span>{summary || "Jira 이슈"}{issueStatus ? ` · ${issueStatus}` : ""}</span></div>
+                <div className="context-row-actions">
+                  {issueUrl && <button type="button" onClick={() => void openUrl(issueUrl)}>열기</button>}
+                  <button type="button" onClick={async () => { await deleteWorkItemLink(link.id); await refreshContext(); }}>해제</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {jiraLinks.length === 0 && !isJiraLinkEditorOpen && (
             <div className="context-empty-row context-empty-action">
               <span>연결된 Jira 티켓이 없습니다.</span>
