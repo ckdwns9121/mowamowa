@@ -5,7 +5,6 @@ import {
   ArrowDown,
   ArrowUp,
   Bot,
-  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -96,10 +95,10 @@ export default function DashboardPage({
   const [routines, setRoutines] = useState<PlannerRoutine[]>([]);
   const [manager, setManager] = useState<ManagerKind>(null);
   const [isManagerMenuOpen, setIsManagerMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPriorityPickerOpen, setIsPriorityPickerOpen] = useState(false);
   const [isTaskPickerOpen, setIsTaskPickerOpen] = useState(false);
+  const [quickCategoryId, setQuickCategoryId] = useState<string | null>(null);
   const [plannedWorkItemIds, setPlannedWorkItemIds] = useState<string[]>([]);
   const [replacementCandidate, setReplacementCandidate] = useState<WorkItem | null>(null);
   const [draggedPriorityId, setDraggedPriorityId] = useState<string | null>(null);
@@ -135,13 +134,10 @@ export default function DashboardPage({
       setPlannedWorkItemIds(nextPlannedWorkItemIds);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setIsLoading(false);
     }
   }, [rangeEnd, rangeStart, selectedKey, workItems]);
 
   useEffect(() => {
-    setIsLoading(true);
     void refresh();
   }, [refresh]);
 
@@ -178,6 +174,17 @@ export default function DashboardPage({
   }));
   const priorityWorkItemIds = new Set(currentPriorities.map((priority) => priority.workItemId));
   const otherEntries = selectedEntries.filter((entry) => !priorityWorkItemIds.has(entry.workItemId));
+  const categoryGroups = [
+    ...categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      color: category.color,
+      entries: otherEntries.filter((entry) => entry.workItem.categoryId === category.id),
+    })),
+    ...otherEntries.some((entry) => !entry.workItem.categoryId)
+      ? [{ id: "uncategorized", name: "기타", color: "#9B9792", entries: otherEntries.filter((entry) => !entry.workItem.categoryId) }]
+      : [],
+  ];
   const availableTasks = unplannedWorkItems(workItems, plannedWorkItemIds);
   const priorityCandidates = workItems.filter((item) => item.status !== "done" && !priorityWorkItemIds.has(item.id));
   const selectedEvents = events.filter((event) => isSameDay(new Date(event.startAt), selectedDate));
@@ -331,7 +338,6 @@ export default function DashboardPage({
               <h3>{monthLabel.format(month)}</h3>
               <button type="button" aria-label="다음 달" onClick={() => changeMonth(1)}><ChevronRight size={18} /></button>
             </div>
-            <span>{entries.filter((entry) => entry.workItem.status === "done").length}개 완료</span>
           </header>
           <div className="planner-weekdays" aria-hidden="true">
             {weekdayLabels.map((label) => <span key={label}>{label}</span>)}
@@ -352,15 +358,14 @@ export default function DashboardPage({
                   aria-label={`${selectedDateLabel.format(day)}, 할 일 ${dayEntries.length}개, 일정 ${dayEvents.length}개`}
                   onClick={() => { setSelectedDate(day); if (!isCurrentMonth) setMonth(new Date(day.getFullYear(), day.getMonth(), 1)); }}
                 >
-                  <span className="planner-day-number">{day.getDate()}</span>
-                  <div className="planner-day-items">
-                    {dayEntries.slice(0, 3).map((entry) => {
+                  <div className="planner-day-markers" aria-hidden="true">
+                    {dayEntries.slice(0, 4).map((entry) => {
                       const category = entry.workItem.categoryId ? categoryById.get(entry.workItem.categoryId) : undefined;
-                      return <span className={entry.workItem.status === "done" ? "is-done" : ""} key={entry.id} style={{ "--item-color": category?.color || "var(--accent)" } as CSSProperties}><i />{entry.workItem.title}</span>;
+                      return <i className={entry.workItem.status === "done" ? "is-done" : ""} key={entry.id} style={{ "--item-color": category?.color || "var(--accent)" } as CSSProperties} />;
                     })}
-                    {dayEvents.slice(0, Math.max(0, 3 - dayEntries.length)).map((event) => <span className="is-event" key={event.id}><i />{event.title}</span>)}
-                    {dayEntries.length + dayEvents.length > 3 && <small>+{dayEntries.length + dayEvents.length - 3}</small>}
+                    {dayEvents.length > 0 && <i className="is-event" />}
                   </div>
+                  <span className="planner-day-number">{day.getDate()}</span>
                 </button>
               );
             })}
@@ -368,16 +373,13 @@ export default function DashboardPage({
         </section>
 
         <aside className="planner-day-panel" aria-label={`${selectedDateLabel.format(selectedDate)} 계획`}>
-          <div className="planner-category-strip">
-            {categories.map((category) => (
-              <span key={category.id} style={{ "--category-color": category.color } as CSSProperties}><i />{category.name}</span>
-            ))}
-            <button type="button" aria-label="카테고리 추가" onClick={() => setManager("category")}><Plus size={14} /></button>
-          </div>
-
           <header className="planner-selected-heading">
-            <div><span>{selectedDateLabel.format(selectedDate)}</span><h3>{selectedEntries.length ? `${selectedEntries.length}개의 계획` : "비어 있는 하루"}</h3></div>
-            <em>{selectedEntries.length ? `${selectedCompleted}/${selectedEntries.length}` : "0"}</em>
+            <div><span>{selectedDateLabel.format(selectedDate)}</span><h3>할 일</h3></div>
+            <div className="planner-selected-actions">
+              <span>{selectedCompleted}/{selectedEntries.length}</span>
+              <button type="button" aria-label="기존 Task에서 추가" onClick={() => setIsTaskPickerOpen(true)} disabled={availableTasks.length === 0}><ListPlus size={16} /></button>
+              <button type="button" aria-label="카테고리 관리" onClick={() => setManager("category")}><Plus size={17} /></button>
+            </div>
           </header>
 
           <section
@@ -433,34 +435,43 @@ export default function DashboardPage({
 
           <p className="sr-only" aria-live="polite">{priorityAnnouncement}</p>
 
-          <QuickTaskForm categories={categories} selectedDate={selectedDate} onSubmit={createPlannedTask} />
-          <button className="planner-existing-task-button" type="button" onClick={() => setIsTaskPickerOpen(true)} disabled={availableTasks.length === 0}>
-            <ListPlus size={15} /><span>기존 Task에서 추가</span><em>{availableTasks.length}</em>
-          </button>
-
-          <div className="planner-task-list">
-            {otherEntries.length > 0 && <div className="planner-other-heading"><strong>다른 할 일</strong><span>{otherEntries.length}</span></div>}
-            {otherEntries.map((entry) => {
-              const category = entry.workItem.categoryId ? categoryById.get(entry.workItem.categoryId) : undefined;
-              return (
-                <article
-                  className={entry.workItem.status === "done" ? "is-done" : ""}
-                  draggable={entry.workItem.status !== "done"}
-                  key={entry.id}
-                  style={{ "--category-color": category?.color || "var(--accent)" } as CSSProperties}
-                  onDragStart={() => { setDraggedTaskId(entry.workItemId); setDraggedPriorityId(null); }}
-                  onDragEnd={() => { setDraggedTaskId(null); setIsPriorityDragOver(false); }}
-                >
-                  <button className="planner-task-check" type="button" disabled={entry.workItem.status === "done"} aria-label={entry.workItem.status === "done" ? `${entry.workItem.title} 완료됨` : `${entry.workItem.title} 완료`} onClick={() => onComplete(entry.workItem)}>{entry.workItem.status === "done" ? <Check size={14} /> : <Circle size={14} />}</button>
-                  <button className="planner-task-copy" type="button" onClick={() => onOpenContext(entry.workItem)}>
-                    <strong>{entry.workItem.title}</strong>
-                    <small>{category?.name || "미분류"}{entry.workItem.targetAt ? ` · ${timeLabel.format(new Date(entry.workItem.targetAt))} 알림` : ""}</small>
-                  </button>
-                  {entry.workItem.status !== "done" && <div className="planner-task-actions"><button type="button" aria-label={`${entry.workItem.title} 핵심에 추가`} onClick={() => void addPriority(entry.workItem)}><Pin size={13} /></button><button className="planner-focus-button" type="button" onClick={() => onResume(entry.workItem)}><Focus size={14} /><span>집중</span></button></div>}
-                </article>
-              );
-            })}
-            {!isLoading && selectedEntries.length === 0 && <div className="planner-empty"><CalendarDays size={25} /><strong>아직 계획이 없어요</strong><span>새로 만들거나 기존 Task를 이 날짜에 추가하세요.</span></div>}
+          <div className="planner-category-groups">
+            {categoryGroups.map((group) => (
+              <section className="planner-category-group" key={group.id} style={{ "--category-color": group.color } as CSSProperties}>
+                <header>
+                  <div><i /><strong>{group.name}</strong><span>{group.entries.filter((entry) => entry.workItem.status === "done").length}/{group.entries.length}</span></div>
+                  <button type="button" aria-label={`${group.name} 할 일 추가`} onClick={() => setQuickCategoryId(group.id)}><Plus size={17} /></button>
+                </header>
+                {quickCategoryId === group.id && (
+                  <QuickTaskForm
+                    key={`${selectedKey}-${group.id}`}
+                    categoryId={group.id === "uncategorized" ? null : group.id}
+                    selectedDate={selectedDate}
+                    onSubmit={createPlannedTask}
+                    onClose={() => setQuickCategoryId(null)}
+                  />
+                )}
+                <div className="planner-task-list">
+                  {group.entries.map((entry) => (
+                    <article
+                      className={entry.workItem.status === "done" ? "is-done" : ""}
+                      draggable={entry.workItem.status !== "done"}
+                      key={entry.id}
+                      onDragStart={() => { setDraggedTaskId(entry.workItemId); setDraggedPriorityId(null); }}
+                      onDragEnd={() => { setDraggedTaskId(null); setIsPriorityDragOver(false); }}
+                    >
+                      <button className="planner-task-check" type="button" disabled={entry.workItem.status === "done"} aria-label={entry.workItem.status === "done" ? `${entry.workItem.title} 완료됨` : `${entry.workItem.title} 완료`} onClick={() => onComplete(entry.workItem)}>{entry.workItem.status === "done" ? <Check size={14} /> : <Circle size={14} />}</button>
+                      <button className="planner-task-copy" type="button" onClick={() => onOpenContext(entry.workItem)}>
+                        <strong>{entry.workItem.title}</strong>
+                        {entry.workItem.targetAt && <small>{timeLabel.format(new Date(entry.workItem.targetAt))}</small>}
+                      </button>
+                      {entry.workItem.status !== "done" && <div className="planner-task-actions"><button type="button" aria-label={`${entry.workItem.title} 핵심에 추가`} onClick={() => void addPriority(entry.workItem)}><Pin size={13} /></button><button className="planner-focus-button" type="button" aria-label={`${entry.workItem.title} 집중 시작`} onClick={() => onResume(entry.workItem)}><Focus size={14} /></button></div>}
+                    </article>
+                  ))}
+                  {group.entries.length === 0 && quickCategoryId !== group.id && <button className="planner-category-empty" type="button" onClick={() => setQuickCategoryId(group.id)}>할 일 입력</button>}
+                </div>
+              </section>
+            ))}
           </div>
 
           {selectedEvents.length > 0 && (
@@ -539,20 +550,16 @@ function PriorityReplacement({ priorities, candidate, onReplace, onClose }: { pr
   );
 }
 
-function QuickTaskForm({ categories, selectedDate, onSubmit }: {
-  categories: PlannerCategory[];
+function QuickTaskForm({ categoryId, selectedDate, onSubmit, onClose }: {
+  categoryId: string | null;
   selectedDate: Date;
   onSubmit: (input: { title: string; categoryId: string | null; targetAt: string | null }) => Promise<void>;
+  onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
-  const [categoryId, setCategoryId] = useState("");
   const [reminderTime, setReminderTime] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!categoryId && categories[0]) setCategoryId(categories[0].id);
-  }, [categories, categoryId]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -568,6 +575,7 @@ function QuickTaskForm({ categories, selectedDate, onSubmit }: {
       });
       setTitle("");
       setReminderTime("");
+      onClose();
     } catch (cause) {
       setSaveError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -577,9 +585,8 @@ function QuickTaskForm({ categories, selectedDate, onSubmit }: {
 
   return (
     <form className="planner-quick-form" onSubmit={submit}>
-      <div><Plus size={16} /><input aria-label="할 일 제목" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="할 일을 입력하세요" /></div>
+      <div><Circle size={15} /><input aria-label="할 일 제목" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="할 일 입력" autoFocus /><button type="button" aria-label="입력 취소" onClick={onClose}><X size={14} /></button></div>
       <div className="planner-quick-options">
-        <label><span className="sr-only">카테고리</span><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
         <label><AlarmClock size={13} /><span className="sr-only">리마인더 시간</span><input type="time" value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} /></label>
         <button className="primary-button" type="submit" disabled={!title.trim() || isSaving}>{isSaving ? "추가 중" : "추가"}</button>
       </div>
