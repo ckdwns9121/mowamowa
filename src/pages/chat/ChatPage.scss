@@ -104,6 +104,12 @@
 .chat-error { margin: 0 max(28px, calc((100% - 760px)/2)) 8px; padding: 9px 11px; color: var(--danger); background: var(--danger-soft); border-radius: $radius-small; font-size: 10px; }
 .chat-composer { position: relative; margin: 0 max(28px, calc((100% - 760px)/2)) 18px; }
 .chat-composer-toolbar { height: 34px; display: flex; align-items: center; gap: 10px; }
+.chat-provider-tabs { display: flex; align-items: center; gap: 2px; padding: 2px; flex: 0 0 auto; background: var(--subtle); border: 1px solid var(--border); border-radius: 5px; }
+.chat-provider-tab { min-height: 22px; padding: 0 8px; display: flex; align-items: center; gap: 4px; color: var(--text-secondary); background: transparent; border: 0; border-radius: 3px; font-size: 9px; }
+.chat-provider-tab:hover:not(:disabled) { color: var(--text); }
+.chat-provider-tab.active { color: var(--text); background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 8%); }
+.chat-provider-tab:disabled { opacity: .6; cursor: default; }
+.chat-provider-tab > small { color: var(--text-faint); font-size: 7px; }
 .chat-model-picker { position: relative; flex: 0 0 auto; }
 .chat-model-picker > button { min-height: 28px; padding: 0 9px; display: flex; align-items: center; gap: 6px; color: var(--text-secondary); background: transparent; border-color: transparent; font-size: 9px; }
 .chat-model-picker > button:hover,.chat-model-picker > button[aria-expanded="true"] { background: var(--subtle); border-color: var(--border); }
