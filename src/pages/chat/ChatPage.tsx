@@ -88,14 +88,22 @@ export default function ChatPage() {
   useEffect(() => { void refreshThreads(); }, []);
   useEffect(() => {
     let active = true;
+    const requestId = ++providerRequestRef.current;
     void (async () => {
-      const stored = await getStoredChatPreference();
+      let stored;
+      try {
+        stored = await getStoredChatPreference();
+      } catch (cause) {
+        if (active && requestId === providerRequestRef.current) setError(cause instanceof Error ? cause.message : String(cause));
+        return;
+      }
+      if (!active || requestId !== providerRequestRef.current) return;
       const provider = stored.provider;
       let available: OpenAiModelOption[];
       try {
         available = await listAvailableOpenAiModels(provider);
       } catch (cause) {
-        if (!active) return;
+        if (!active || requestId !== providerRequestRef.current) return;
         // 목록 조회 실패: 저장된 provider의 폴백 목록으로 내려가되 사용자 선택은 유지합니다.
         const fallback = fallbackModelsFor(provider);
         const selected = chooseOpenAiModel(fallback, stored.model, provider);
@@ -105,19 +113,19 @@ export default function ChatPage() {
         setModelNotice(cause instanceof Error ? cause.message : String(cause));
         return;
       }
-      if (!active) return;
+      if (!active || requestId !== providerRequestRef.current) return;
       const selected = chooseOpenAiModel(available, stored.model, provider);
+      if (stored.model !== selected.id) {
+        await setOpenAiModelPreference(provider, selected.id).catch((cause) => {
+          if (active && requestId === providerRequestRef.current) setError(cause instanceof Error ? cause.message : String(cause));
+        });
+      }
+      if (!active || requestId !== providerRequestRef.current) return;
       setSelectedProvider(provider);
       setModels(available);
       setSelectedModelId(selected.id);
       if (stored.model && stored.model !== selected.id) {
         setModelNotice(`현재 사용 불가 모델 ${stored.model} 대신 ${selected.label}을 사용합니다.`);
-      }
-      // 저장값이 실제 선택과 다를 때만 기록합니다. 저장 실패가 모델 목록 상태를 되돌리지 않도록 분리합니다.
-      if (stored.model !== selected.id) {
-        await setOpenAiModelPreference(provider, selected.id).catch((cause) => {
-          if (active) setError(cause instanceof Error ? cause.message : String(cause));
-        });
       }
     })();
 
@@ -137,7 +145,9 @@ export default function ChatPage() {
     try {
       const available = await listAvailableOpenAiModels(provider);
       if (requestId !== providerRequestRef.current) return;
-      const selected = chooseOpenAiModel(available, undefined, provider);
+      const stored = await getStoredChatPreference().catch(() => ({ provider, model: undefined }));
+      if (requestId !== providerRequestRef.current) return;
+      const selected = chooseOpenAiModel(available, stored.provider === provider ? stored.model : undefined, provider);
       // 저장이 성공한 뒤에만 목록/선택을 교체해, 실패 시 이전 provider 목록이 그대로 남도록 합니다.
       await setOpenAiModelPreference(provider, selected.id);
       if (requestId !== providerRequestRef.current) return;
@@ -398,12 +408,15 @@ export default function ChatPage() {
                     className={model.id === selectedModel.id ? "selected" : ""}
                     key={model.id}
                     onClick={async () => {
-                      setSelectedProvider(model.provider);
-                      setSelectedModelId(model.id);
-                      setIsModelPickerOpen(false);
                       setModelNotice(null);
-                      try { await setOpenAiModelPreference(model.provider, model.id); }
-                      catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+                      try {
+                        await setOpenAiModelPreference(model.provider, model.id);
+                        setSelectedProvider(model.provider);
+                        setSelectedModelId(model.id);
+                        setIsModelPickerOpen(false);
+                      } catch (cause) {
+                        setError(cause instanceof Error ? cause.message : String(cause));
+                      }
                     }}
                   >
                     <span><strong>{model.label}</strong><small>{model.id}</small></span>

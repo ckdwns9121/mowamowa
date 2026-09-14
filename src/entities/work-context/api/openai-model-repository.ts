@@ -105,7 +105,7 @@ export function toSavedSettingsPreference(settings: Partial<AppSettings>): Store
 }
 
 export async function getStoredChatPreference(): Promise<StoredChatPreference> {
-  const settings = await getAppSettings().catch(() => ({} as Partial<AppSettings>));
+  const settings = await getAppSettings();
   return toSavedSettingsPreference(settings);
 }
 
