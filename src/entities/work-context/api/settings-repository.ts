@@ -9,6 +9,8 @@ export type SettingKey =
   | "slack_user_name"
   | "slack_user_id"
   | "openai_model"
+  | "chat_provider"
+  | "chat_model"
   | "glm_base_url"
   | "quick_panel_shortcut"
   | "chat_shortcut"

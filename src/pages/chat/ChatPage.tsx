@@ -8,12 +8,18 @@ import {
 import { appendChatMessage, createChatThread, deleteChatThread, listChatMessages, listChatThreads } from "../../entities/work-context/api/chat-repository";
 import { attachAgentApprovalsToMessage, listThreadAgentApprovals } from "../../entities/work-context/api/chat-agent-repository";
 import {
+  chatProviders,
+  chatSubmitBlockReason,
   chooseOpenAiModel,
+  type ChatProvider,
+  fallbackModelsFor,
   fallbackOpenAiModels,
+  isExecutableProvider,
   listAvailableOpenAiModels,
+  getStoredChatPreference,
   type OpenAiModelOption,
+  setOpenAiModelPreference,
 } from "../../entities/work-context/api/openai-model-repository";
-import { getAppSettings, setAppSettings } from "../../entities/work-context/api/settings-repository";
 import type { ChatMessage, ChatThread } from "../../entities/work-context/model/chat";
 import type { ChatAgentApproval, ChatAgentStepView } from "../../entities/work-context/model/chat-agent";
 import VirtualMessageList, { type DisplayMessage } from "./VirtualMessageList";
@@ -44,6 +50,8 @@ function groupApprovalsByMessage(approvals: ChatAgentApproval[]): Record<string,
   }, {});
 }
 
+const providerLabels: Record<ChatProvider, string> = { openai: "OpenAI", claude: "Claude", glm: "GLM" };
+
 function currentAgentStatus(steps: ChatAgentStepView[]): string {
   const active = [...steps].reverse().find((step) => step.state === "running" || step.state === "waiting");
   if (!active) return steps.length ? "도구 결과를 바탕으로 답변을 정리하는 중…" : "요청을 분석하는 중…";
@@ -63,6 +71,8 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [models, setModels] = useState<OpenAiModelOption[]>(fallbackOpenAiModels);
   const [selectedModelId, setSelectedModelId] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<ChatProvider>("openai");
+  const [isSwitchingProvider, setIsSwitchingProvider] = useState(false);
   const [isModelPickerOpen, setIsModelPickerOpen] = useState(false);
   const [modelNotice, setModelNotice] = useState<string | null>(null);
   const [approvalsByMessage, setApprovalsByMessage] = useState<Record<string, ChatAgentApproval[]>>({});
@@ -72,31 +82,86 @@ export default function ChatPage() {
   const streamFrameRef = useRef<number | null>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
   const approvingTaskIdsRef = useRef(new Set<string>());
+  // provider 전환 요청 순서 토큰. 늦게 도착한 이전 요청이 최신 선택을 덮어쓰지 못하게 합니다.
+  const providerRequestRef = useRef(0);
 
   useEffect(() => { void refreshThreads(); }, []);
   useEffect(() => {
     let active = true;
-    void Promise.all([getAppSettings(), listAvailableOpenAiModels()])
-      .then(async ([settings, available]) => {
-        if (!active) return;
-        const selected = chooseOpenAiModel(available, settings.openai_model);
-        setModels(available);
-        setSelectedModelId(selected.id);
-        if (settings.openai_model !== selected.id) {
-          await setAppSettings({ openai_model: selected.id });
-          if (active && settings.openai_model) setModelNotice(`사용할 수 없는 ${settings.openai_model} 대신 ${selected.label}을 선택했습니다.`);
-        }
-      })
-      .catch(async (cause) => {
-        if (!active) return;
-        const settings = await getAppSettings().catch(() => ({ openai_model: undefined }));
-        const selected = chooseOpenAiModel(fallbackOpenAiModels, settings.openai_model);
-        setModels(fallbackOpenAiModels);
+    const requestId = ++providerRequestRef.current;
+    void (async () => {
+      let stored;
+      try {
+        stored = await getStoredChatPreference();
+      } catch (cause) {
+        if (active && requestId === providerRequestRef.current) setError(cause instanceof Error ? cause.message : String(cause));
+        return;
+      }
+      if (!active || requestId !== providerRequestRef.current) return;
+      const provider = stored.provider;
+      let available: OpenAiModelOption[];
+      try {
+        available = await listAvailableOpenAiModels(provider);
+      } catch (cause) {
+        if (!active || requestId !== providerRequestRef.current) return;
+        // 목록 조회 실패: 저장된 provider의 폴백 목록으로 내려가되 사용자 선택은 유지합니다.
+        const fallback = fallbackModelsFor(provider);
+        const selected = chooseOpenAiModel(fallback, stored.model, provider);
+        setSelectedProvider(provider);
+        setModels(fallback);
         setSelectedModelId(selected.id);
         setModelNotice(cause instanceof Error ? cause.message : String(cause));
-      });
-    return () => { active = false; };
+        return;
+      }
+      if (!active || requestId !== providerRequestRef.current) return;
+      const selected = chooseOpenAiModel(available, stored.model, provider);
+      if (stored.model !== selected.id) {
+        await setOpenAiModelPreference(provider, selected.id).catch((cause) => {
+          if (active && requestId === providerRequestRef.current) setError(cause instanceof Error ? cause.message : String(cause));
+        });
+      }
+      if (!active || requestId !== providerRequestRef.current) return;
+      setSelectedProvider(provider);
+      setModels(available);
+      setSelectedModelId(selected.id);
+      if (stored.model && stored.model !== selected.id) {
+        setModelNotice(`현재 사용 불가 모델 ${stored.model} 대신 ${selected.label}을 사용합니다.`);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const switchProvider = useCallback(async (provider: ChatProvider) => {
+    if (provider === selectedProvider) return;
+    const previousProvider = selectedProvider;
+    const requestId = ++providerRequestRef.current;
+    setSelectedProvider(provider);
+    setIsSwitchingProvider(true);
+    setModelNotice(null);
+    setError(null);
+    try {
+      const available = await listAvailableOpenAiModels(provider);
+      if (requestId !== providerRequestRef.current) return;
+      const stored = await getStoredChatPreference().catch(() => ({ provider, model: undefined }));
+      if (requestId !== providerRequestRef.current) return;
+      const selected = chooseOpenAiModel(available, stored.provider === provider ? stored.model : undefined, provider);
+      // 저장이 성공한 뒤에만 목록/선택을 교체해, 실패 시 이전 provider 목록이 그대로 남도록 합니다.
+      await setOpenAiModelPreference(provider, selected.id);
+      if (requestId !== providerRequestRef.current) return;
+      setModels(available);
+      setSelectedModelId(selected.id);
+    } catch (cause) {
+      if (requestId !== providerRequestRef.current) return;
+      // 목록 조회나 저장이 실패하면 탭 상태를 이전 provider로 되돌려 화면과 저장값이 어긋나지 않게 합니다.
+      setSelectedProvider(previousProvider);
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      if (requestId === providerRequestRef.current) setIsSwitchingProvider(false);
+    }
+  }, [selectedProvider]);
   useEffect(() => {
     if (!activeId) { setMessages([]); return; }
     void Promise.all([listChatMessages(activeId), listThreadAgentApprovals(activeId)]).then(([nextMessages, approvals]) => {
@@ -117,7 +182,8 @@ export default function ChatPage() {
     return () => document.removeEventListener("pointerdown", close);
   }, [isModelPickerOpen]);
 
-  const selectedModel = models.find((model) => model.id === selectedModelId) || chooseOpenAiModel(models);
+  const selectedModel = models.find((model) => model.id === selectedModelId) || chooseOpenAiModel(models, undefined, selectedProvider);
+  const submitBlockReason = chatSubmitBlockReason({ question, isAnswering, isSwitchingProvider, selectedProvider, selectedModel });
 
   const updateSource = useCallback((source: ContextSourceStatus) => {
     setContextSources((current) => current.map((item) => item.id === source.id ? source : item));
@@ -223,7 +289,11 @@ export default function ChatPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     const text = question.trim();
-    if (!text || isAnswering || !selectedModel?.id) return;
+    if (!text || isAnswering) return;
+    if (submitBlockReason) {
+      setError(submitBlockReason);
+      return;
+    }
     setQuestion("");
     setError(null);
     setIsAnswering(true);
@@ -303,13 +373,33 @@ export default function ChatPage() {
       {error && <div className="chat-error">{error}</div>}
       <form className="chat-composer" onSubmit={submit}>
         <div className="chat-composer-toolbar">
+          <div className="chat-provider-tabs" role="tablist" aria-label="채팅 제공자 선택">
+            {chatProviders.map((provider) => (
+              <button
+                key={provider}
+                type="button"
+                role="tab"
+                aria-selected={selectedProvider === provider}
+                className={`chat-provider-tab ${selectedProvider === provider ? "active" : ""}`}
+                title={isExecutableProvider(provider) ? undefined : `${providerLabels[provider]} 실행 경로는 준비 중입니다. 모델 목록만 볼 수 있습니다.`}
+                onClick={() => void switchProvider(provider)}
+                disabled={isAnswering || isSwitchingProvider}
+              >
+                {providerLabels[provider]}
+                {!isExecutableProvider(provider) && <small>준비 중</small>}
+              </button>
+            ))}
+          </div>
           <div className="chat-model-picker" ref={modelPickerRef}>
-            <button type="button" aria-haspopup="listbox" aria-expanded={isModelPickerOpen} disabled={isAnswering} onClick={() => setIsModelPickerOpen((current) => !current)}>
-              <span>✦</span><strong>{selectedModel.label}</strong><small>{selectedModel.description}</small><i>⌄</i>
+            <button type="button" aria-haspopup="listbox" aria-expanded={isModelPickerOpen} disabled={isAnswering || isSwitchingProvider} onClick={() => setIsModelPickerOpen((current) => !current)}>
+              <span>✦</span><strong>{isSwitchingProvider ? "모델 목록 불러오는 중…" : selectedModel.label}</strong>{!isSwitchingProvider && <small>{selectedModel.description}</small>}<i>⌄</i>
             </button>
             {isModelPickerOpen && (
-              <div className="chat-model-menu" role="listbox" aria-label="OpenAI 모델 선택">
-                <header><strong>응답 모델</strong><span>API 키에서 사용 가능한 모델</span></header>
+              <div className="chat-model-menu" role="listbox" aria-label={`${providerLabels[selectedProvider]} 모델 선택`}>
+                <header>
+                  <strong>응답 모델</strong>
+                  <span>{selectedProvider === "openai" ? "API 키에서 사용 가능한 모델" : `${providerLabels[selectedProvider]} 기본 목록 (실행 경로 준비 중)`}</span>
+                </header>
                 {models.map((model) => (
                   <button
                     type="button"
@@ -318,11 +408,15 @@ export default function ChatPage() {
                     className={model.id === selectedModel.id ? "selected" : ""}
                     key={model.id}
                     onClick={async () => {
-                      setSelectedModelId(model.id);
-                      setIsModelPickerOpen(false);
                       setModelNotice(null);
-                      try { await setAppSettings({ openai_model: model.id }); }
-                      catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+                      try {
+                        await setOpenAiModelPreference(model.provider, model.id);
+                        setSelectedProvider(model.provider);
+                        setSelectedModelId(model.id);
+                        setIsModelPickerOpen(false);
+                      } catch (cause) {
+                        setError(cause instanceof Error ? cause.message : String(cause));
+                      }
                     }}
                   >
                     <span><strong>{model.label}</strong><small>{model.id}</small></span>
@@ -338,8 +432,12 @@ export default function ChatPage() {
         <textarea value={question} disabled={isAnswering} onChange={(event) => setQuestion(event.target.value)} placeholder="오늘 일정 뭐야?" rows={2} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />
         {isAnswering
           ? <button className="chat-cancel-button" type="button" onClick={() => abortRef.current?.abort()}><span /> 중단</button>
-          : <button className="primary-button" disabled={!question.trim() || !selectedModelId}>↑</button>}
-        <small>{isAnswering ? "에이전트가 필요한 도구를 실행하고 결과를 확인하고 있습니다." : "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."}</small>
+          : <button className="primary-button" disabled={submitBlockReason !== null} title={submitBlockReason ?? undefined}>↑</button>}
+        <small>{isAnswering
+          ? "에이전트가 필요한 도구를 실행하고 결과를 확인하고 있습니다."
+          : isExecutableProvider(selectedProvider)
+            ? "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
+            : `${providerLabels[selectedProvider]} 실행 경로는 준비 중입니다. 전송하려면 OpenAI 탭을 선택해 주세요.`}</small>
       </form>
     </section>
   </div>;
