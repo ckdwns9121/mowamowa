@@ -30,9 +30,8 @@
 .planner-day.is-selected { background: var(--surface); box-shadow: inset 0 0 0 1px var(--text); }
 .planner-day-number { display: grid; width: 25px; height: 25px; place-items: center; font-size: 11px; font-weight: 700; }
 .planner-day.is-today .planner-day-number { color: #fff; background: var(--text); border-radius: 50%; }
-.planner-day-markers { display: flex; width: 36px; height: 22px; align-items: center; justify-content: center; gap: 2px; }
-.planner-day-markers i { width: 7px; height: 16px; background: var(--item-color); border-radius: 999px; opacity: .9; }
-.planner-day-markers i.is-done { opacity: .25; }
+.planner-day-markers { display: flex; width: 36px; height: 22px; align-items: center; justify-content: center; gap: 4px; }
+.planner-day-markers b { display: grid; min-width: 18px; height: 18px; padding: 0 5px; place-items: center; color: var(--surface); background: var(--text); border-radius: 999px; font-size: 9px; font-weight: 750; line-height: 1; }
 .planner-day-markers i.is-event { width: 7px; height: 7px; background: transparent; border: 1px solid #d99542; border-radius: 50%; }
 
 .planner-day-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); min-height: calc(100vh - 120px); padding: 10px 8px 32px 24px; overflow-y: auto; border-left: 1px solid var(--border); scrollbar-gutter: stable; }

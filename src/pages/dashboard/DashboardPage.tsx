@@ -359,10 +359,7 @@ export default function DashboardPage({
                   onClick={() => { setSelectedDate(day); if (!isCurrentMonth) setMonth(new Date(day.getFullYear(), day.getMonth(), 1)); }}
                 >
                   <div className="planner-day-markers" aria-hidden="true">
-                    {dayEntries.slice(0, 4).map((entry) => {
-                      const category = entry.workItem.categoryId ? categoryById.get(entry.workItem.categoryId) : undefined;
-                      return <i className={entry.workItem.status === "done" ? "is-done" : ""} key={entry.id} style={{ "--item-color": category?.color || "var(--accent)" } as CSSProperties} />;
-                    })}
+                    {dayEntries.length > 0 && <b>{dayEntries.length}</b>}
                     {dayEvents.length > 0 && <i className="is-event" />}
                   </div>
                   <span className="planner-day-number">{day.getDate()}</span>
