@@ -62,6 +62,7 @@ type SecretId =
   | "openai_api_key"
   | "claude_api_key"
   | "glm_api_key";
+type SecretStorageMode = "keychain" | "file" | "session";
 
 const tabs: Array<{ id: SettingsTab; label: string; icon: LucideIcon }> = [
   { id: "general", label: "일반", icon: SlidersHorizontal },
@@ -94,17 +95,18 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [settings, setSettings] = useState<AppSettings>({ theme: "system" });
   const [secretStatus, setSecretStatus] = useState(emptySecretStatus);
+  const [secretStorageMode, setSecretStorageMode] = useState<SecretStorageMode>("keychain");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void Promise.all([
-      getAppSettings(),
-      Promise.all(secretIds.map(async (id) => [id, await invoke<boolean>("secret_status", { secretId: id })] as const)),
-    ])
-      .then(([storedSettings, statuses]) => {
+    void getAppSettings()
+      .then(async (storedSettings) => {
+        const mode = await invoke<SecretStorageMode>("secret_storage_mode");
+        const statuses = await Promise.all(secretIds.map(async (id) => [id, await invoke<boolean>("secret_status", { secretId: id })] as const));
         setSettings({ theme: "system", ...storedSettings });
         if (isThemePreference(storedSettings.theme)) applyTheme(storedSettings.theme);
+        setSecretStorageMode(mode);
         setSecretStatus(Object.fromEntries(statuses) as Record<SecretId, boolean>);
       })
       .catch((cause) => setError(toMessage(cause)))
@@ -160,6 +162,12 @@ export default function SettingsPage() {
           <GeneralSettings
             theme={isThemePreference(settings.theme) ? settings.theme : "system"}
             stretchReminder={stretchReminderPreferencesFromStored(settings)}
+            secretStorageMode={secretStorageMode}
+            onSecretStorageModeChange={async (mode) => {
+              await invoke("set_secret_storage_mode", { mode });
+              setSecretStorageMode(mode);
+              setSecretStatus(emptySecretStatus);
+            }}
             onThemeChange={async (theme) => {
               applyTheme(theme);
               updateSetting("theme", theme);
@@ -467,11 +475,15 @@ function formatSyncTime(value: string) {
 function GeneralSettings({
   theme,
   stretchReminder,
+  secretStorageMode,
+  onSecretStorageModeChange,
   onThemeChange,
   onStretchReminderChange,
 }: {
   theme: ThemePreference;
   stretchReminder: StretchReminderPreferences;
+  secretStorageMode: SecretStorageMode;
+  onSecretStorageModeChange: (mode: SecretStorageMode) => Promise<void>;
   onThemeChange: (theme: ThemePreference) => Promise<void>;
   onStretchReminderChange: (preferences: StretchReminderPreferences) => Promise<void>;
 }) {
@@ -507,6 +519,15 @@ function GeneralSettings({
             </button>
           ))}
         </div>
+      </div>
+      <div className="settings-card">
+        <div className="settings-card-title"><strong>자격 증명 저장 방식</strong><span>Keychain 팝업이 불편할 때 개인용 로컬 파일 저장을 사용할 수 있습니다.</span></div>
+        <label className="settings-field"><span>저장 위치</span><select value={secretStorageMode} onChange={(event) => void onSecretStorageModeChange(event.target.value as SecretStorageMode)}>
+          <option value="keychain">macOS Keychain (권장)</option>
+          <option value="file">Orbit 로컬 파일</option>
+          <option value="session">이번 실행 동안만</option>
+        </select></label>
+        <p className="secret-help">로컬 파일은 이 Mac의 Orbit 앱 데이터 폴더에 저장되며, 기존 Keychain 값은 삭제하지 않습니다. 저장 방식을 바꾼 뒤 API 키를 한 번 다시 입력해주세요.</p>
       </div>
       <div className="settings-card stretch-reminder-card" aria-busy={isReminderSaving}>
         <div className="stretch-reminder-heading">

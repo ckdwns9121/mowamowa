@@ -20,6 +20,8 @@
 .settings-card-title { display: flex; flex-direction: column; gap: 5px; }
 .settings-card-title strong { font-size: 12px; }
 .settings-card-title span { color: var(--text-muted); font-size: 10px; }
+.settings-field { display: flex; flex-direction: column; gap: 6px; margin-top: 17px; color: var(--text-secondary); font-size: 10px; font-weight: 650; }
+.settings-field select { width: 100%; height: 34px; }
 .theme-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 17px; }
 .theme-options > button { display: grid; grid-template-columns: 1fr auto; height: auto; padding: 9px; background: var(--surface); border: 1px solid var(--border); text-align: left; }
 .theme-options > button.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
