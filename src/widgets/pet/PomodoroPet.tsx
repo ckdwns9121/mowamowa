@@ -171,11 +171,11 @@ export default function PomodoroPet() {
 
           <div
             className="pet-task-title"
-            title={currentTask ? currentTask.title : "진행 중인 작업 없음"}
+            title={currentTask ? currentTask.title : "클릭하여 Orbit에서 작업 선택"}
             onClick={openMainWindow}
             style={{ cursor: "pointer" }}
           >
-            {currentTask ? currentTask.title : "Orbit 작업 선택"}
+            {currentTask ? currentTask.title : "자유 몰입"}
           </div>
         </div>
       </div>

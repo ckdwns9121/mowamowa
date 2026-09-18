@@ -51,11 +51,11 @@ export default function AppHeader({ activeSection, isFocusLocked, onAddTask }: A
           className="ghost-button icon-button"
           type="button"
           onClick={handleTogglePet}
-          title="뽀모도로 데스크톱 펫 띄우기"
-          aria-label="뽀모도로 데스크톱 펫 띄우기"
+          title="뽀모도로 타이머 띄우기"
+          aria-label="뽀모도로 타이머 띄우기"
         >
           <Bot size={15} strokeWidth={2} aria-hidden="true" />
-          <span style={{ fontSize: "11px", fontWeight: 600 }}>펫 띄우기</span>
+          <span style={{ fontSize: "11px", fontWeight: 600 }}>뽀모도로 타이머</span>
         </button>
 
         {activeSection === "tasks" && (
