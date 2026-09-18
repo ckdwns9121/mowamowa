@@ -516,7 +516,7 @@ export default function ChatPage() {
                 <div className="chat-model-menu" role="listbox" aria-label={`${providerLabels[selectedProvider]} 모델 선택`}>
                   <header>
                     <strong>응답 모델</strong>
-                    <span>{selectedProvider === "openai" ? "API 키에서 사용 가능한 모델" : `${providerLabels[selectedProvider]} 기본 목록 (실행 경로 준비 중)`}</span>
+                    <span>{selectedProvider === "openai" ? "API 키에서 사용 가능한 모델" : selectedProvider === "claude" ? "Anthropic Claude 지원 모델" : `${providerLabels[selectedProvider]} 기본 목록 (실행 경로 준비 중)`}</span>
                   </header>
                   {models.map((model) => (
                     <button
@@ -573,8 +573,10 @@ export default function ChatPage() {
             {isAnswering
               ? "에이전트가 필요한 도구를 실행하고 결과를 확인하고 있습니다."
               : isExecutableProvider(selectedProvider)
-                ? "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
-                : `${providerLabels[selectedProvider]} 실행 경로는 준비 중입니다. 전송하려면 OpenAI 탭을 선택해 주세요.`}
+                ? selectedProvider === "claude"
+                  ? "연결된 업무 컨텍스트가 Anthropic Claude로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
+                  : "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
+                : `${providerLabels[selectedProvider]} 실행 경로는 준비 중입니다. 전송하려면 OpenAI 또는 Claude 탭을 선택해 주세요.`}
           </small>
         </form>
       </section>

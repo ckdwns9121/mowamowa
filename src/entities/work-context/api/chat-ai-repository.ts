@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { Channel, invoke } from "@tauri-apps/api/core";
 import type { ChatMessage } from "../model/chat";
 import type { ChatAgentApproval, ChatAgentMutationTool, ChatAgentRun, ChatAgentStepView } from "../model/chat-agent";
 import { listAiSessions } from "./ai-session-repository";
@@ -413,10 +413,16 @@ async function continueAgent(run: ChatAgentRun, callbacks: StreamCallbacks): Pro
       return { content: "", responseId: run.responseId, cancelled: true, approvals: [], runId: run.id, steps };
     }
     steps.push({ id: `thinking-${run.iteration}`, label: run.iteration ? "도구 결과를 바탕으로 다음 행동 판단" : "요청 분석 및 실행 계획 수립", state: "running" });
-    callbacks.onSteps?.([...steps]);
+    let streamedDeltas = false;
+    const onDeltaChannel = new Channel<string>();
+    onDeltaChannel.onmessage = (delta) => {
+      streamedDeltas = true;
+      callbacks.onDelta(delta);
+    };
     const response = await invoke<ChatAgentStepResponse>("run_chat_agent_step", {
       model: run.model, question: run.question, conversation: run.conversation, context: run.context,
       localDate: new Intl.DateTimeFormat("sv-SE").format(new Date()), transcript: run.transcript,
+      onDelta: onDeltaChannel,
     });
     steps[steps.length - 1].state = "complete";
     run.iteration += 1;
@@ -426,7 +432,9 @@ async function continueAgent(run: ChatAgentRun, callbacks: StreamCallbacks): Pro
       run.status = "completed";
       await saveChatAgentRun(run);
       callbacks.onSteps?.([...steps]);
-      callbacks.onDelta(content);
+      if (!streamedDeltas) {
+        callbacks.onDelta(content);
+      }
       return { content, responseId: run.responseId, cancelled: false, approvals: [], runId: run.id, steps };
     }
     if (run.toolCount + response.calls.length > MAX_AGENT_TOOL_CALLS) break;
