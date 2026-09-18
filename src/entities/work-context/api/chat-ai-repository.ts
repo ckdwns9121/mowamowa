@@ -24,6 +24,7 @@ import { listCachedJiraIssues } from "./jira-issue-repository";
 import { queryCacheWarning, type QueryCacheProvenance } from "./query-cache-provenance";
 import { safeSyncErrorSummary } from "./source-sync-repository";
 import { searchSlackMessagesWithProvenance } from "./slack-message-repository";
+import { getAppSettings } from "./settings-repository";
 import { createWorkItem, listWorkItems, updateWorkItemPriority, updateWorkItemTargetAt, updateWorkItemTitle } from "./work-item-repository";
 
 export type ContextSourceId = "tasks" | "calendar" | "jira" | "github" | "graph" | "slack" | "confluence";
@@ -406,6 +407,7 @@ async function executeReadTool(call: ChatToolCall, onSource: StreamCallbacks["on
 
 async function continueAgent(run: ChatAgentRun, callbacks: StreamCallbacks): Promise<StreamAnswer> {
   const steps: ChatAgentStepView[] = [];
+  const settings = await getAppSettings();
   while (run.iteration < MAX_AGENT_ITERATIONS && run.toolCount < MAX_AGENT_TOOL_CALLS) {
     if (callbacks.signal?.aborted) {
       run.status = "cancelled";
@@ -423,6 +425,7 @@ async function continueAgent(run: ChatAgentRun, callbacks: StreamCallbacks): Pro
       model: run.model, question: run.question, conversation: run.conversation, context: run.context,
       localDate: new Intl.DateTimeFormat("sv-SE").format(new Date()), transcript: run.transcript,
       onDelta: onDeltaChannel,
+      glmBaseUrl: settings.glm_base_url,
     });
     steps[steps.length - 1].state = "complete";
     run.iteration += 1;

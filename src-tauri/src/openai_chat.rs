@@ -412,6 +412,7 @@ pub async fn run_chat_agent_step(
     local_date: String,
     transcript: Vec<serde_json::Value>,
     on_delta: Channel<String>,
+    glm_base_url: Option<String>,
 ) -> Result<ChatAgentStep, String> {
     if question.trim().is_empty() {
         return Err("질문을 입력해주세요.".into());
@@ -428,6 +429,20 @@ pub async fn run_chat_agent_step(
             &context,
             &local_date,
             transcript,
+            on_delta,
+        )
+        .await;
+    }
+
+    if selected_model.starts_with("glm") {
+        return crate::glm_chat::run_glm_agent_step(
+            &selected_model,
+            &question,
+            conversation,
+            &context,
+            &local_date,
+            transcript,
+            glm_base_url,
             on_delta,
         )
         .await;

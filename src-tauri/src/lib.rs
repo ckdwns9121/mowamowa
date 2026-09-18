@@ -14,6 +14,7 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 
 mod codex_auth;
 mod claude_chat;
+mod glm_chat;
 mod confluence;
 mod context_discovery;
 mod github_pull_requests;

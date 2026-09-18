@@ -105,14 +105,14 @@ describe("chatSubmitBlockReason", () => {
     expect(chatSubmitBlockReason({ ...base, selectedProvider: "claude", selectedModel: claudeModel })).toBeNull();
   });
 
-  test("blocks unsupported glm provider", () => {
+  test("allows glm provider with a glm model", () => {
     const glmModel = fallbackModelsFor("glm")[0];
-    expect(chatSubmitBlockReason({ ...base, selectedProvider: "glm", selectedModel: glmModel })).toMatch(/지원/);
+    expect(chatSubmitBlockReason({ ...base, selectedProvider: "glm", selectedModel: glmModel })).toBeNull();
   });
 
   test("blocks when the tab is openai but the selected model still belongs to another provider", () => {
     const glmModel = fallbackModelsFor("glm")[0];
-    expect(chatSubmitBlockReason({ ...base, selectedProvider: "openai", selectedModel: glmModel })).toMatch(/지원/);
+    expect(chatSubmitBlockReason({ ...base, selectedProvider: "openai", selectedModel: glmModel })).toMatch(/일치/);
   });
 
   test("blocks while provider switch is in flight", () => {
