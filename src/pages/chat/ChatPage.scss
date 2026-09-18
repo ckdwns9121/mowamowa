@@ -40,6 +40,7 @@
 .chat-context-summary strong,.chat-context-summary small { display: block; }
 .chat-context-summary strong { font-size: 10px; }
 .chat-context-summary small { margin-top: 2px; color: var(--text-faint); font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-stream-badge { display: inline-flex; align-items: center; margin-top: 2px; padding: 1px 5px; font-size: 8px; font-weight: 500; color: var(--accent); background: var(--accent-soft); border-radius: 4px; white-space: nowrap; width: fit-content; }
 .chat-context-mark { width: 27px; height: 27px; display: grid; place-items: center; color: var(--accent); background: var(--accent-soft); border-radius: 8px; font-size: 11px; }
 .chat-context-sources { min-width: 0; flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .chat-context-sources::-webkit-scrollbar { display: none; }
