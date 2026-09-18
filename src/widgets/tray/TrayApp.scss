@@ -53,10 +53,47 @@ button {
   padding: 0 17px;
   border-bottom: 1px solid #e4e1de;
 
-  > div { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  > div:first-child { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
   strong { font-size: 14px; }
   span { color: #918c87; font-size: 10px; }
-  button { width: 28px; min-height: 28px; padding: 0; border: 0; background: transparent; font-size: 15px; }
+
+  .tray-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .tray-pet-toggle-btn {
+      width: auto;
+      min-height: 26px;
+      padding: 0 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #5b55d5;
+      background: rgba(91, 85, 213, 0.08);
+      border: 1px solid rgba(91, 85, 213, 0.2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+
+      &:hover {
+        background: rgba(91, 85, 213, 0.16);
+        border-color: rgba(91, 85, 213, 0.35);
+      }
+    }
+
+    button:last-child {
+      width: 28px;
+      min-height: 28px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-size: 15px;
+      cursor: pointer;
+    }
+  }
 }
 
 .tray-error { flex-shrink: 0; padding: 8px 16px; overflow: hidden; color: #9d2c22; background: #fff0ee; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }

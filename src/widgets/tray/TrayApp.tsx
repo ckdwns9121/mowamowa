@@ -88,6 +88,12 @@ export default function TrayApp() {
       expectedCurrentRevision: null,
       expectedRequestedRevision: item.revision,
     });
+    // Auto show pomodoro pet window when task starts from tray
+    try {
+      await invoke("show_pet_window");
+    } catch {
+      // Ignore if not supported
+    }
     await refresh();
   }
 
@@ -98,7 +104,18 @@ export default function TrayApp() {
           <strong>Orbit</strong>
           <span>{formatTrayDate()}</span>
         </div>
-        <button type="button" onClick={() => invoke("show_main_window")} aria-label="전체 앱 열기">↗</button>
+        <div className="tray-header-actions">
+          <button
+            type="button"
+            className="tray-pet-toggle-btn"
+            onClick={() => void invoke("toggle_pet_window")}
+            title="뽀모도로 펫 타이머 띄우기"
+            aria-label="뽀모도로 펫 타이머 띄우기"
+          >
+            🐾 뽀모도로 타이머
+          </button>
+          <button type="button" onClick={() => invoke("show_main_window")} aria-label="전체 앱 열기" title="전체 앱 열기">↗</button>
+        </div>
       </header>
 
       {error && <div className="tray-error">로컬 작업을 불러오지 못했습니다.</div>}
