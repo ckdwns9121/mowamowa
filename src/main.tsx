@@ -7,11 +7,11 @@ import { applyTheme, getStoredTheme } from "./shared/config/theme/theme";
 applyTheme(getStoredTheme());
 
 const windowLabel = getCurrentWindow().label;
-if (windowLabel === "pet") {
+if (windowLabel === "pet" || windowLabel === "tray") {
   document.documentElement.style.background = "transparent";
   document.body.style.background = "transparent";
-  document.documentElement.classList.add("window-pet");
-} else if (windowLabel !== "tray") {
+  document.documentElement.classList.add(`window-${windowLabel}`);
+} else {
   void getCurrentWebview().setZoom(1.2).catch((cause) => {
     console.warn("Orbit UI 배율을 적용하지 못했습니다.", cause);
   });
