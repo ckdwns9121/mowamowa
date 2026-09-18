@@ -163,10 +163,13 @@ button { color: inherit; }
   display: flex;
   align-items: center;
   height: 100%;
+  flex: 0 0 auto;
 }
 
 .app-topbar-traffic-pad {
   flex: 0 0 76px;
+  width: 76px;
+  min-width: 76px;
   height: 100%;
 }
 
@@ -174,12 +177,15 @@ button { color: inherit; }
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
+  white-space: nowrap;
 
   strong {
     font-size: 13px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--foreground);
+    white-space: nowrap;
   }
 
   .app-topbar-sep {
@@ -193,12 +199,15 @@ button { color: inherit; }
     font-weight: 600;
     color: var(--foreground);
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
   .app-topbar-date {
     color: var(--muted-foreground);
     font-size: 11px;
-    margin-left: 4px;
+    margin-left: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 
