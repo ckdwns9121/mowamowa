@@ -17,7 +17,7 @@
 
 ![Orbit タスクボード — 接続された業務コンテキストを管理する Task 中心の画面](docs/assets/orbit-task-board.png)
 
-Orbit は単なる Todo リストではありません。Jira、GitHub、Slack、Calendar、Confluence、AI 作業セッションに分散した **進捗地点、次のアクション、関連する会話、開発上の根拠** を一つの Task を中心につなぎます。緊急作業に割り込まれても以前の文脈を素早く復元し、完了した仕事を振り返りや実績として残せます。
+Orbit は単なる Todo リストではありません。Jira、GitHub、Slack、Confluence、AI 作業セッションに分散した **進捗地点、次のアクション、関連する会話、開発上の根拠** を一つの Task を中心につなぎます。緊急作業に割り込まれても以前の文脈を素早く復元し、完了した仕事を振り返りや実績として残せます。
 
 Orbit が減らしたいのは Todo の不足ではなく、**自分の業務状態を毎回記憶し、復元しなければならないコスト**です。
 
@@ -42,7 +42,7 @@ Orbit が減らしたいのは Todo の不足ではなく、**自分の業務状
 
 ## なぜ Orbit なのか
 
-AI と複数のコラボレーションツールを併用すると、実際の仕事の流れは簡単に分断されます。タスクと状態は Jira、議論と依頼は Slack、実装結果は GitHub、予定は Calendar、文書は Confluence、作業過程は Codex や Claude に残ります。それらを最終的につなぐ責任はユーザーの記憶に委ねられています。
+AI と複数のコラボレーションツールを併用すると、実際の仕事の流れは簡単に分断されます。タスクと状態は Jira、議論と依頼は Slack、実装結果は GitHub、文書は Confluence、作業過程は Codex や Claude に残ります。それらを最終的につなぐ責任はユーザーの記憶に委ねられています。
 
 - Jira チケットから Slack の会話を確認し、GitHub の PR に移動します。
 - Codex や Claude に仕事を任せて別の作業を始めると、以前の進捗地点を忘れます。
@@ -114,8 +114,6 @@ Planner で作成した Todo は別のコピーではなく、Task ボードに�
 - PR、commit、branch、Jira development 情報の追跡
 - Slack メッセージ検索と原文 permalink の保存
 - Codex・Claude のローカルセッション探索と Task 接続
-- Google Calendar の読み取り専用同期
-- Task と外部根拠を探索する Knowledge Graph
 
 ### AI と自動化
 
@@ -157,15 +155,9 @@ Codex と Claude のローカル作業セッションを探索し、一つの Or
 
 ### 根拠に基づく AI Chat
 
-現在の Task、Calendar、接続済み業務データを根拠に回答します。AI が Task を提案しても、ユーザー承認なしに作成されることはありません。
+現在の Task、接続済み業務データを根拠に回答します。AI が Task を提案しても、ユーザー承認なしに作成されることはありません。
 
 ![Orbit 根拠ベース AI Chat](docs/assets/orbit-ai-chat.png)
-
-### Google Calendar 読み取り専用連携
-
-Google Calendar の予定を週表示で確認し、会議と集中時間を一緒に計画します。Orbit は元の予定を編集・削除しません。
-
-![Orbit Google Calendar 連携](docs/assets/orbit-calendar.png)
 
 ## 連携サービス
 
@@ -175,7 +167,6 @@ Google Calendar の予定を週表示で確認し、会議と集中時間を一�
 | Confluence | 閲覧権限のある文書検索と業務根拠接続 | Jira と同じ Atlassian アカウント |
 | GitHub | 作成した PR、レビュー依頼 PR、commit・branch 追跡 | ローカル `gh` と Git repository |
 | Slack | メッセージ検索、permalink 保存、Task 変換 | Slack OAuth token |
-| Google Calendar | 予定のタイトル・時刻・場所の読み取り専用同期 | システムブラウザ OAuth + PKCE |
 | Codex / Claude | ローカルセッション探索、別名、Task 接続 | ローカルセッションファイル |
 | OpenAI / Claude / GLM | Chat、Task 分析、自動化提案 | OAuth または provider API key |
 
@@ -249,7 +240,6 @@ flowchart LR
     Jira
     GitHub
     Slack
-    Calendar[Google Calendar]
     Confluence
     AI[Codex / Claude]
   end
@@ -257,7 +247,6 @@ flowchart LR
   subgraph Orbit[Tauri Desktop]
     React[React UI]
     Domain[Work Context Domain]
-    Projection[Knowledge Graph Projection]
     Rust[Rust Commands / Adapters]
     SQLite[(Local SQLite)]
     Keychain[(macOS Keychain)]
@@ -265,9 +254,7 @@ flowchart LR
 
   Sources --> Rust
   React --> Domain
-  React --> Projection
   Domain --> SQLite
-  Projection --> SQLite
   Rust --> SQLite
   Rust --> Keychain
 ```
@@ -281,7 +268,7 @@ app → pages → widgets → features → entities → shared
 ```text
 src/
 ├── app/         # 初期化、シェル、ナビゲーション
-├── pages/       # Planner、Calendar、Chat、Graph、Settings
+├── pages/       # Planner、Tasks、Workspace、Tickets、Chat、Settings
 ├── widgets/     # メニューバー Quick View などの複合 UI
 ├── features/    # 集中、同期、Task 接続、通知
 ├── entities/    # WorkItem と外部コンテキストのモデル・repository
@@ -333,11 +320,10 @@ bun run release:check
 
 ## データとセキュリティ
 
-- Task、Planner、接続 metadata、Graph index はローカル SQLite に保存されます。
+- Task、Planner、接続 metadata はローカル SQLite に保存されます。
 - API token、OAuth refresh token、AI API key は macOS Keychain に保存されます。
 - Settings は保存済み secret の元の値を再表示しません。
-- Google Calendar は予定の読み取り専用 scope のみを要求します。
-- password、token、authorization、cookie パターンはログや index 保存前にマスキングします。
+- password、token、authorization、cookie パターンはログ保存前にマスキングします。
 - 外部 API の失敗を空の成功として扱わず、fresh・stale・failure を区別します。
 - 削除と状態遷移は SQLite trigger と revision 検証で整合性を維持します。
 

@@ -17,7 +17,7 @@
 
 ![Orbit task board — a task-centered view for connected work context](docs/assets/orbit-task-board.png)
 
-Orbit is more than a todo list. It connects the **current state, next action, conversations, and development evidence** scattered across Jira, GitHub, Slack, Calendar, Confluence, and local AI sessions around a single Task. When urgent work interrupts you, Orbit helps restore the context of what you were doing and turns completed work into durable review and achievement records.
+Orbit is more than a todo list. It connects the **current state, next action, conversations, and development evidence** scattered across Jira, GitHub, Slack, Confluence, and local AI sessions around a single Task. When urgent work interrupts you, Orbit helps restore the context of what you were doing and turns completed work into durable review and achievement records.
 
 Orbit targets the cost of making people remember and reconstruct their own work state—not a shortage of todo lists.
 
@@ -42,7 +42,7 @@ Orbit targets the cost of making people remember and reconstruct their own work 
 
 ## Why Orbit
 
-Work fragments quickly when AI tools and collaboration services are used together. Tasks and status live in Jira, discussions in Slack, implementation results in GitHub, schedules in Calendar, documents in Confluence, and execution history in Codex or Claude. The user is left responsible for connecting everything from memory.
+Work fragments quickly when AI tools and collaboration services are used together. Tasks and status live in Jira, discussions in Slack, implementation results in GitHub, documents in Confluence, and execution history in Codex or Claude. The user is left responsible for connecting everything from memory.
 
 - You jump from a Jira ticket to Slack and then to a GitHub pull request.
 - You delegate work to Codex or Claude, start something else, and lose the previous stopping point.
@@ -114,8 +114,6 @@ A todo created in Planner is the same underlying Task shown on the Task board, n
 - Track PRs, commits, branches, and Jira development information
 - Search Slack messages and retain source permalinks
 - Discover local Codex and Claude sessions and connect them to Tasks
-- Read-only Google Calendar synchronization
-- Knowledge Graph exploration across Tasks and external evidence
 
 ### AI and automation
 
@@ -157,15 +155,9 @@ Search assigned Jira tickets by state, inspect branches, commits, and pull reque
 
 ### Grounded AI Chat
 
-Ask questions against current Tasks, Calendar, and connected work data. AI-proposed Tasks require user approval before creation.
+Ask questions against current Tasks and connected work data. AI-proposed Tasks require user approval before creation.
 
 ![Orbit grounded AI Chat](docs/assets/orbit-ai-chat.png)
-
-### Read-only Google Calendar
-
-Review Google Calendar events in a weekly view and plan meetings alongside focus time. Orbit never edits or deletes the source calendar event.
-
-![Orbit Google Calendar integration](docs/assets/orbit-calendar.png)
 
 ## Integrations
 
@@ -175,7 +167,6 @@ Review Google Calendar events in a weekly view and plan meetings alongside focus
 | Confluence | Search accessible pages and connect work evidence | Same Atlassian account as Jira |
 | GitHub | Authored PRs, review requests, commit and branch tracking | Local `gh` and Git repository |
 | Slack | Message search, permalink retention, Task conversion | Slack OAuth token |
-| Google Calendar | Read-only event title, time, and location sync | System-browser OAuth + PKCE |
 | Codex / Claude | Local session discovery, aliases, Task links | Local session files |
 | OpenAI / Claude / GLM | Chat, Task analysis, automation suggestions | OAuth or provider API key |
 
@@ -249,7 +240,6 @@ flowchart LR
     Jira
     GitHub
     Slack
-    Calendar[Google Calendar]
     Confluence
     AI[Codex / Claude]
   end
@@ -257,7 +247,6 @@ flowchart LR
   subgraph Orbit[Tauri Desktop]
     React[React UI]
     Domain[Work Context Domain]
-    Projection[Knowledge Graph Projection]
     Rust[Rust Commands / Adapters]
     SQLite[(Local SQLite)]
     Keychain[(macOS Keychain)]
@@ -265,9 +254,7 @@ flowchart LR
 
   Sources --> Rust
   React --> Domain
-  React --> Projection
   Domain --> SQLite
-  Projection --> SQLite
   Rust --> SQLite
   Rust --> Keychain
 ```
@@ -281,7 +268,7 @@ app → pages → widgets → features → entities → shared
 ```text
 src/
 ├── app/         # Bootstrap, shell, and navigation
-├── pages/       # Planner, Calendar, Chat, Graph, Settings
+├── pages/       # Planner, Tasks, Workspace, Tickets, Chat, Settings
 ├── widgets/     # Composite UI such as menu bar Quick View
 ├── features/    # Focus, sync, Task linking, notifications
 ├── entities/    # WorkItem and external-context models and repositories
@@ -333,11 +320,10 @@ Developer ID signing and Apple notarization are recommended for external distrib
 
 ## Data and security
 
-- Tasks, Planner data, link metadata, and the Graph index are stored in local SQLite.
+- Tasks, Planner data, and link metadata are stored in local SQLite.
 - API tokens, OAuth refresh tokens, and AI API keys are stored in macOS Keychain.
 - Settings never reveal a stored secret value.
-- Google Calendar requests read-only event scopes.
-- Password, token, authorization, and cookie patterns are masked before logging or indexing.
+- Password, token, authorization, and cookie patterns are masked before logging.
 - External API results distinguish fresh, stale, and failure states instead of treating failure as an empty success.
 - SQLite triggers and revision checks preserve consistency across deletion and state transitions.
 
