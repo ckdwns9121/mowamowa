@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   initialContextSources,
-  resolveChatAgentApproval,
-  streamAnswerWithOrbitContext,
   type ContextSourceStatus,
 } from "../../entities/work-context/api/chat-ai-repository";
+import {
+  cancelGeneration,
+  getActiveGeneration,
+  startApprovalResolution,
+  startChatGeneration,
+  subscribeGeneration,
+} from "../../entities/work-context/api/chat-generation-manager";
 import { appendChatMessage, createChatThread, deleteChatThread, listChatMessages, listChatThreads } from "../../entities/work-context/api/chat-repository";
-import { attachAgentApprovalsToMessage, listThreadAgentApprovals } from "../../entities/work-context/api/chat-agent-repository";
+import { listThreadAgentApprovals } from "../../entities/work-context/api/chat-agent-repository";
 import {
   chatProviders,
   chatSubmitBlockReason,
@@ -25,21 +30,47 @@ import type { ChatAgentApproval, ChatAgentStepView } from "../../entities/work-c
 import VirtualMessageList, { type DisplayMessage } from "./VirtualMessageList";
 import "./ChatPage.scss";
 
-function ContextStatusPanel({ sources, active }: { sources: ContextSourceStatus[]; active: boolean }) {
+function ContextStatusPanel({
+  sources,
+  active,
+  generateId,
+}: {
+  sources: ContextSourceStatus[];
+  active: boolean;
+  generateId?: string | null;
+}) {
   const completed = sources.filter((source) => source.state === "complete");
   const collecting = sources.find((source) => source.state === "collecting");
-  return <section className={`chat-context-panel ${active ? "active" : ""}`} aria-label="컨텍스트 수집 상태">
-    <div className="chat-context-summary">
-      <span className="chat-context-mark">⌘</span>
-      <div><strong>연결 컨텍스트</strong><small>{collecting ? `${collecting.label} ${collecting.detail}` : active ? `${completed.length}개 소스 수집 완료` : "질문을 보내면 최신 로컬 컨텍스트를 확인합니다"}</small></div>
-    </div>
-    <div className="chat-context-sources">
-      {sources.map((source) => <div className={`chat-context-source ${source.state}`} key={source.id}>
-        <span>{source.state === "collecting" ? "" : source.state === "complete" ? "✓" : source.state === "error" ? "!" : "·"}</span>
-        <div><strong>{source.label}</strong><small>{source.state === "pending" ? "응답 시 확인" : source.detail}</small></div>
-      </div>)}
-    </div>
-  </section>;
+  return (
+    <section className={`chat-context-panel ${active ? "active" : ""}`} aria-label="컨텍스트 수집 상태">
+      <div className="chat-context-summary">
+        <span className="chat-context-mark">⌘</span>
+        <div>
+          <strong>연결 컨텍스트</strong>
+          <small>
+            {collecting
+              ? `${collecting.label} ${collecting.detail}`
+              : active
+                ? `${completed.length}개 소스 수집 완료`
+                : "질문을 보내면 최신 로컬 컨텍스트를 확인합니다"}
+          </small>
+        </div>
+        {generateId && (
+          <span className="chat-stream-badge" title={`세션 스트림 ID: ${generateId}`}>
+            SSE 연결됨
+          </span>
+        )}
+      </div>
+      <div className="chat-context-sources">
+        {sources.map((source) => (
+          <div className={`chat-context-source ${source.state}`} key={source.id}>
+            <span>{source.state === "collecting" ? "" : source.state === "complete" ? "✓" : source.state === "error" ? "!" : "·"}</span>
+            <div><strong>{source.label}</strong><small>{source.state === "pending" ? "응답 시 확인" : source.detail}</small></div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function groupApprovalsByMessage(approvals: ChatAgentApproval[]): Record<string, ChatAgentApproval[]> {
@@ -66,6 +97,7 @@ export default function ChatPage() {
   const [question, setQuestion] = useState("");
   const [isAnswering, setIsAnswering] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const [activeGenerateId, setActiveGenerateId] = useState<string | null>(null);
   const [contextSources, setContextSources] = useState(initialContextSources);
   const [contextStarted, setContextStarted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,15 +109,14 @@ export default function ChatPage() {
   const [modelNotice, setModelNotice] = useState<string | null>(null);
   const [approvalsByMessage, setApprovalsByMessage] = useState<Record<string, ChatAgentApproval[]>>({});
   const [agentSteps, setAgentSteps] = useState<ChatAgentStepView[]>([]);
-  const abortRef = useRef<AbortController | null>(null);
   const streamBufferRef = useRef("");
   const streamFrameRef = useRef<number | null>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
   const approvingTaskIdsRef = useRef(new Set<string>());
-  // provider 전환 요청 순서 토큰. 늦게 도착한 이전 요청이 최신 선택을 덮어쓰지 못하게 합니다.
   const providerRequestRef = useRef(0);
 
   useEffect(() => { void refreshThreads(); }, []);
+
   useEffect(() => {
     let active = true;
     const requestId = ++providerRequestRef.current;
@@ -104,7 +135,6 @@ export default function ChatPage() {
         available = await listAvailableOpenAiModels(provider);
       } catch (cause) {
         if (!active || requestId !== providerRequestRef.current) return;
-        // 목록 조회 실패: 저장된 provider의 폴백 목록으로 내려가되 사용자 선택은 유지합니다.
         const fallback = fallbackModelsFor(provider);
         const selected = chooseOpenAiModel(fallback, stored.model, provider);
         setSelectedProvider(provider);
@@ -148,20 +178,20 @@ export default function ChatPage() {
       const stored = await getStoredChatPreference().catch(() => ({ provider, model: undefined }));
       if (requestId !== providerRequestRef.current) return;
       const selected = chooseOpenAiModel(available, stored.provider === provider ? stored.model : undefined, provider);
-      // 저장이 성공한 뒤에만 목록/선택을 교체해, 실패 시 이전 provider 목록이 그대로 남도록 합니다.
       await setOpenAiModelPreference(provider, selected.id);
       if (requestId !== providerRequestRef.current) return;
       setModels(available);
       setSelectedModelId(selected.id);
     } catch (cause) {
       if (requestId !== providerRequestRef.current) return;
-      // 목록 조회나 저장이 실패하면 탭 상태를 이전 provider로 되돌려 화면과 저장값이 어긋나지 않게 합니다.
       setSelectedProvider(previousProvider);
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       if (requestId === providerRequestRef.current) setIsSwitchingProvider(false);
     }
   }, [selectedProvider]);
+
+  // Load persisted messages for the active thread
   useEffect(() => {
     if (!activeId) { setMessages([]); return; }
     void Promise.all([listChatMessages(activeId), listThreadAgentApprovals(activeId)]).then(([nextMessages, approvals]) => {
@@ -169,10 +199,103 @@ export default function ChatPage() {
       setApprovalsByMessage(groupApprovalsByMessage(approvals));
     }).catch((cause) => setError(String(cause)));
   }, [activeId]);
+
+  // Reconnection: on mount or thread change, check for ongoing generation
+  useEffect(() => {
+    if (!activeId) {
+      setActiveGenerateId(null);
+      return;
+    }
+    const activeGen = getActiveGeneration(activeId);
+    if (activeGen && (activeGen.status === "running" || activeGen.status === "awaiting_approval")) {
+      setActiveGenerateId(activeGen.generateId);
+      setIsAnswering(activeGen.status === "running");
+      setStreamingContent(activeGen.accumulatedContent);
+      streamBufferRef.current = activeGen.accumulatedContent;
+      setAgentSteps(activeGen.agentSteps);
+      setContextSources(activeGen.contextSources);
+      setContextStarted(true);
+    } else {
+      setActiveGenerateId(null);
+    }
+  }, [activeId]);
+
+  function enqueueDelta(delta: string) {
+    streamBufferRef.current += delta;
+    if (streamFrameRef.current !== null) return;
+    streamFrameRef.current = requestAnimationFrame(() => {
+      setStreamingContent(streamBufferRef.current);
+      streamFrameRef.current = null;
+    });
+  }
+
+  // Subscribe to live generation events (SSE reconnection & stream updates)
+  useEffect(() => {
+    if (!activeGenerateId) return;
+    const unsubscribe = subscribeGeneration(activeGenerateId, (event) => {
+      if (event.type === "sync") {
+        setIsAnswering(event.session.status === "running");
+        setStreamingContent(event.session.accumulatedContent);
+        streamBufferRef.current = event.session.accumulatedContent;
+        setAgentSteps(event.session.agentSteps);
+        setContextSources(event.session.contextSources);
+        setContextStarted(true);
+        if (event.session.approvals.length && activeId) {
+          void Promise.all([listChatMessages(activeId), listThreadAgentApprovals(activeId)]).then(([nextMessages, approvals]) => {
+            setMessages(nextMessages);
+            setApprovalsByMessage(groupApprovalsByMessage(approvals));
+          });
+        }
+      } else if (event.type === "delta") {
+        enqueueDelta(event.delta);
+      } else if (event.type === "step") {
+        setAgentSteps(event.steps);
+      } else if (event.type === "source") {
+        setContextSources(event.sources);
+      } else if (event.type === "completed") {
+        if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
+        streamFrameRef.current = null;
+        setIsAnswering(false);
+        setStreamingContent("");
+        streamBufferRef.current = "";
+        setActiveGenerateId(null);
+        if (activeId) {
+          void Promise.all([listChatMessages(activeId), listThreadAgentApprovals(activeId)]).then(([nextMessages, approvals]) => {
+            setMessages(nextMessages);
+            setApprovalsByMessage(groupApprovalsByMessage(approvals));
+          });
+          void refreshThreads(activeId);
+        }
+      } else if (event.type === "failed") {
+        if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
+        streamFrameRef.current = null;
+        setIsAnswering(false);
+        setStreamingContent("");
+        streamBufferRef.current = "";
+        setError(event.error);
+        setActiveGenerateId(null);
+      } else if (event.type === "cancelled") {
+        if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
+        streamFrameRef.current = null;
+        setIsAnswering(false);
+        setStreamingContent("");
+        streamBufferRef.current = "";
+        setActiveGenerateId(null);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
+      streamFrameRef.current = null;
+    };
+  }, [activeGenerateId, activeId]);
+
+  // Clean up animation frame on unmount without aborting background generation!
   useEffect(() => () => {
-    abortRef.current?.abort();
     if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
   }, []);
+
   useEffect(() => {
     if (!isModelPickerOpen) return;
     const close = (event: PointerEvent) => {
@@ -184,10 +307,6 @@ export default function ChatPage() {
 
   const selectedModel = models.find((model) => model.id === selectedModelId) || chooseOpenAiModel(models, undefined, selectedProvider);
   const submitBlockReason = chatSubmitBlockReason({ question, isAnswering, isSwitchingProvider, selectedProvider, selectedModel });
-
-  const updateSource = useCallback((source: ContextSourceStatus) => {
-    setContextSources((current) => current.map((item) => item.id === source.id ? source : item));
-  }, []);
 
   const displayMessages = useMemo<DisplayMessage[]>(() => {
     const result: DisplayMessage[] = messages.map(({ id, role, content }) => ({
@@ -213,43 +332,25 @@ export default function ChatPage() {
     ])));
   }, []);
 
-  const persistAgentContinuation = useCallback(async (threadId: string, answer: Awaited<ReturnType<typeof resolveChatAgentApproval>>) => {
-    if (!answer) return;
-    const content = answer.content.trim() || (answer.approvals.length ? "다음 변경 작업을 진행하려면 아래 승인 요청을 확인해주세요." : "");
-    if (content) {
-      const messageId = await appendChatMessage(threadId, "assistant", content, answer.responseId);
-      if (answer.approvals.length) await attachAgentApprovalsToMessage(answer.runId, messageId);
-    }
-    const [nextMessages, approvals] = await Promise.all([listChatMessages(threadId), listThreadAgentApprovals(threadId)]);
-    setMessages(nextMessages);
-    setApprovalsByMessage(groupApprovalsByMessage(approvals));
-  }, []);
-
-  const approveTask = useCallback(async (proposalId: string) => {
-    if (approvingTaskIdsRef.current.has(proposalId)) return;
+  const approveTask = useCallback((proposalId: string) => {
+    if (approvingTaskIdsRef.current.has(proposalId) || !activeId) return;
     const proposal = Object.values(approvalsByMessage).flat().find((item) => item.id === proposalId);
     if (!proposal || (proposal.status !== "pending" && proposal.status !== "failed")) return;
     approvingTaskIdsRef.current.add(proposalId);
     updateTaskProposal(proposalId, (item) => ({ ...item, status: "executing", error: null }));
-    try {
-      setIsAnswering(true); setAgentSteps([]);
-      const answer = await resolveChatAgentApproval(proposal, true, { onDelta: enqueueDelta, onSource: updateSource, onSteps: setAgentSteps });
-      updateTaskProposal(proposalId, (item) => ({ ...item, status: "approved", error: null }));
-      if (activeId) await persistAgentContinuation(activeId, answer);
-    } catch (cause) {
-      updateTaskProposal(proposalId, (item) => ({
-        ...item,
-        status: "failed",
-        error: cause instanceof Error ? cause.message : String(cause),
-      }));
-    } finally {
-      approvingTaskIdsRef.current.delete(proposalId);
-      setIsAnswering(false); setStreamingContent(""); streamBufferRef.current = "";
-    }
-  }, [activeId, approvalsByMessage, persistAgentContinuation, updateSource, updateTaskProposal]);
+    setIsAnswering(true);
+    setAgentSteps([]);
+    const generateId = startApprovalResolution({
+      threadId: activeId,
+      proposal,
+      approved: true,
+      onThreadUpdated: refreshThreads,
+    });
+    setActiveGenerateId(generateId);
+  }, [activeId, approvalsByMessage, updateTaskProposal]);
 
   const rejectTask = useCallback((proposalId: string) => {
-    if (approvingTaskIdsRef.current.has(proposalId)) return;
+    if (approvingTaskIdsRef.current.has(proposalId) || !activeId) return;
     const proposal = Object.values(approvalsByMessage).flat().find((item) => item.id === proposalId);
     if (!proposal) return;
     approvingTaskIdsRef.current.add(proposalId);
@@ -258,32 +359,19 @@ export default function ChatPage() {
     updateTaskProposal(proposalId, (item) => item.status === "pending" || item.status === "failed"
       ? { ...item, status: "executing", error: null }
       : item);
-    void resolveChatAgentApproval(proposal, false, { onDelta: enqueueDelta, onSource: updateSource, onSteps: setAgentSteps })
-      .then(async (answer) => {
-        updateTaskProposal(proposalId, (item) => ({ ...item, status: "rejected", error: null }));
-        if (activeId) await persistAgentContinuation(activeId, answer);
-      }).catch((cause) => updateTaskProposal(proposalId, (item) => ({ ...item, status: "failed", error: String(cause) })))
-      .finally(() => {
-        approvingTaskIdsRef.current.delete(proposalId);
-        setIsAnswering(false);
-        setStreamingContent("");
-        streamBufferRef.current = "";
-      });
-  }, [activeId, approvalsByMessage, persistAgentContinuation, updateSource, updateTaskProposal]);
+    const generateId = startApprovalResolution({
+      threadId: activeId,
+      proposal,
+      approved: false,
+      onThreadUpdated: refreshThreads,
+    });
+    setActiveGenerateId(generateId);
+  }, [activeId, approvalsByMessage, updateTaskProposal]);
 
   async function refreshThreads(selectId?: string) {
     const next = await listChatThreads();
     setThreads(next);
     setActiveId((current) => selectId ?? current ?? next[0]?.id ?? null);
-  }
-
-  function enqueueDelta(delta: string) {
-    streamBufferRef.current += delta;
-    if (streamFrameRef.current !== null) return;
-    streamFrameRef.current = requestAnimationFrame(() => {
-      setStreamingContent(streamBufferRef.current);
-      streamFrameRef.current = null;
-    });
   }
 
   async function submit(event: FormEvent) {
@@ -301,8 +389,8 @@ export default function ChatPage() {
     streamBufferRef.current = "";
     setContextSources(initialContextSources);
     setContextStarted(true);
-    const controller = new AbortController();
-    abortRef.current = controller;
+    setAgentSteps([]);
+
     try {
       let threadId = activeId;
       if (!threadId) {
@@ -313,41 +401,36 @@ export default function ChatPage() {
       await appendChatMessage(threadId, "user", text);
       const withUser = await listChatMessages(threadId);
       setMessages(withUser);
-      setAgentSteps([]);
-      const answer = await streamAnswerWithOrbitContext(text, withUser.slice(0, -1), selectedModel.id, threadId, {
-        signal: controller.signal,
-        onDelta: enqueueDelta,
-        onSource: updateSource,
-        onSteps: setAgentSteps,
+
+      const generateId = startChatGeneration({
+        threadId,
+        question: text,
+        modelId: selectedModel.id,
+        messages: withUser.slice(0, -1),
+        onThreadUpdated: refreshThreads,
       });
-      if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
-      streamFrameRef.current = null;
-      const assistantContent = answer.content.trim()
-        ? answer.content
-        : answer.approvals.length > 0
-          ? "변경 작업을 진행하려면 아래 승인 요청을 확인해주세요."
-          : "";
-      setStreamingContent(assistantContent);
-      if (assistantContent) {
-        const assistantMessageId = await appendChatMessage(threadId, "assistant", assistantContent, answer.responseId ?? undefined);
-        if (answer.approvals.length) await attachAgentApprovalsToMessage(answer.runId, assistantMessageId);
-      }
-      const nextMessages = await listChatMessages(threadId);
-      setMessages(nextMessages);
-      if (answer.approvals.length && nextMessages.length) setApprovalsByMessage((current) => ({ ...current, [nextMessages[nextMessages.length - 1].id]: answer.approvals }));
-      await refreshThreads(threadId);
+      setActiveGenerateId(generateId);
     } catch (cause) {
-      if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      abortRef.current = null;
       setIsAnswering(false);
-      setStreamingContent("");
-      streamBufferRef.current = "";
+      setError(cause instanceof Error ? cause.message : String(cause));
     }
   }
 
+  function handleCancel() {
+    if (activeGenerateId) {
+      cancelGeneration(activeGenerateId);
+    }
+    setIsAnswering(false);
+    setStreamingContent("");
+    streamBufferRef.current = "";
+    setActiveGenerateId(null);
+  }
+
   function startNewChat() {
-    abortRef.current?.abort();
+    if (activeGenerateId) {
+      cancelGeneration(activeGenerateId);
+    }
+    setActiveGenerateId(null);
     setActiveId(null);
     setMessages([]);
     setContextSources(initialContextSources);
@@ -355,90 +438,146 @@ export default function ChatPage() {
     setError(null);
   }
 
-  return <div className="chat-page">
-    <aside className="chat-threads">
-      <button className="new-chat-button" type="button" onClick={startNewChat}>＋ 새 대화</button>
-      <div className="chat-thread-list">
-        {threads.map((thread) => <div className={`chat-thread ${activeId === thread.id ? "active" : ""}`} key={thread.id}>
-          <button type="button" onClick={() => setActiveId(thread.id)}><strong>{thread.title}</strong><small>{new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(thread.updatedAt))}</small></button>
-          <button type="button" aria-label="대화 삭제" onClick={async () => { await deleteChatThread(thread.id); if (activeId === thread.id) setActiveId(null); await refreshThreads(); }}>×</button>
-        </div>)}
-      </div>
-    </aside>
-    <section className="chat-conversation">
-      <ContextStatusPanel sources={contextSources} active={contextStarted} />
-      {displayMessages.length === 0
-        ? <div className="chat-empty"><span>✦</span><h2>Orbit에게 물어보세요</h2><p>Task, Calendar, Jira, GitHub, Slack, Confluence를 연결한 Knowledge Graph로 답합니다.</p><div><button onClick={() => setQuestion("오늘 일정과 우선순위를 정리해줘")}>오늘 일정과 우선순위</button><button onClick={() => setQuestion("2024년 온콜 관련 문서와 대화를 찾아줘")}>문서·대화 검색</button></div></div>
-        : <VirtualMessageList messages={displayMessages} onApproveTask={approveTask} onRejectTask={rejectTask} />}
-      {error && <div className="chat-error">{error}</div>}
-      <form className="chat-composer" onSubmit={submit}>
-        <div className="chat-composer-toolbar">
-          <div className="chat-provider-tabs" role="tablist" aria-label="채팅 제공자 선택">
-            {chatProviders.map((provider) => (
-              <button
-                key={provider}
-                type="button"
-                role="tab"
-                aria-selected={selectedProvider === provider}
-                className={`chat-provider-tab ${selectedProvider === provider ? "active" : ""}`}
-                title={isExecutableProvider(provider) ? undefined : `${providerLabels[provider]} 실행 경로는 준비 중입니다. 모델 목록만 볼 수 있습니다.`}
-                onClick={() => void switchProvider(provider)}
-                disabled={isAnswering || isSwitchingProvider}
-              >
-                {providerLabels[provider]}
-                {!isExecutableProvider(provider) && <small>준비 중</small>}
+  return (
+    <div className="chat-page">
+      <aside className="chat-threads">
+        <button className="new-chat-button" type="button" onClick={startNewChat}>＋ 새 대화</button>
+        <div className="chat-thread-list">
+          {threads.map((thread) => (
+            <div className={`chat-thread ${activeId === thread.id ? "active" : ""}`} key={thread.id}>
+              <button type="button" onClick={() => setActiveId(thread.id)}>
+                <strong>{thread.title}</strong>
+                <small>{new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(thread.updatedAt))}</small>
               </button>
-            ))}
-          </div>
-          <div className="chat-model-picker" ref={modelPickerRef}>
-            <button type="button" aria-haspopup="listbox" aria-expanded={isModelPickerOpen} disabled={isAnswering || isSwitchingProvider} onClick={() => setIsModelPickerOpen((current) => !current)}>
-              <span>✦</span><strong>{isSwitchingProvider ? "모델 목록 불러오는 중…" : selectedModel.label}</strong>{!isSwitchingProvider && <small>{selectedModel.description}</small>}<i>⌄</i>
-            </button>
-            {isModelPickerOpen && (
-              <div className="chat-model-menu" role="listbox" aria-label={`${providerLabels[selectedProvider]} 모델 선택`}>
-                <header>
-                  <strong>응답 모델</strong>
-                  <span>{selectedProvider === "openai" ? "API 키에서 사용 가능한 모델" : `${providerLabels[selectedProvider]} 기본 목록 (실행 경로 준비 중)`}</span>
-                </header>
-                {models.map((model) => (
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={model.id === selectedModel.id}
-                    className={model.id === selectedModel.id ? "selected" : ""}
-                    key={model.id}
-                    onClick={async () => {
-                      setModelNotice(null);
-                      try {
-                        await setOpenAiModelPreference(model.provider, model.id);
-                        setSelectedProvider(model.provider);
-                        setSelectedModelId(model.id);
-                        setIsModelPickerOpen(false);
-                      } catch (cause) {
-                        setError(cause instanceof Error ? cause.message : String(cause));
-                      }
-                    }}
-                  >
-                    <span><strong>{model.label}</strong><small>{model.id}</small></span>
-                    <em>{model.description}</em>
-                    {model.id === selectedModel.id && <b>✓</b>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {modelNotice && <span className="chat-model-notice" title={modelNotice}>{modelNotice}</span>}
+              <button
+                type="button"
+                aria-label="대화 삭제"
+                onClick={async () => {
+                  await deleteChatThread(thread.id);
+                  if (activeId === thread.id) setActiveId(null);
+                  await refreshThreads();
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
-        <textarea value={question} disabled={isAnswering} onChange={(event) => setQuestion(event.target.value)} placeholder="오늘 일정 뭐야?" rows={2} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />
-        {isAnswering
-          ? <button className="chat-cancel-button" type="button" onClick={() => abortRef.current?.abort()}><span /> 중단</button>
-          : <button className="primary-button" disabled={submitBlockReason !== null} title={submitBlockReason ?? undefined}>↑</button>}
-        <small>{isAnswering
-          ? "에이전트가 필요한 도구를 실행하고 결과를 확인하고 있습니다."
-          : isExecutableProvider(selectedProvider)
-            ? "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
-            : `${providerLabels[selectedProvider]} 실행 경로는 준비 중입니다. 전송하려면 OpenAI 탭을 선택해 주세요.`}</small>
-      </form>
-    </section>
-  </div>;
+      </aside>
+      <section className="chat-conversation">
+        <ContextStatusPanel sources={contextSources} active={contextStarted} generateId={activeGenerateId} />
+        {displayMessages.length === 0 ? (
+          <div className="chat-empty">
+            <span>✦</span>
+            <h2>Orbit에게 물어보세요</h2>
+            <p>Task, Calendar, Jira, GitHub, Slack, Confluence를 연결한 Knowledge Graph로 답합니다.</p>
+            <div>
+              <button onClick={() => setQuestion("오늘 일정과 우선순위를 정리해줘")}>오늘 일정과 우선순위</button>
+              <button onClick={() => setQuestion("2024년 온콜 관련 문서와 대화를 찾아줘")}>문서·대화 검색</button>
+            </div>
+          </div>
+        ) : (
+          <VirtualMessageList messages={displayMessages} onApproveTask={approveTask} onRejectTask={rejectTask} />
+        )}
+        {error && <div className="chat-error">{error}</div>}
+        <form className="chat-composer" onSubmit={submit}>
+          <div className="chat-composer-toolbar">
+            <div className="chat-provider-tabs" role="tablist" aria-label="채팅 제공자 선택">
+              {chatProviders.map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedProvider === provider}
+                  className={`chat-provider-tab ${selectedProvider === provider ? "active" : ""}`}
+                  title={isExecutableProvider(provider) ? undefined : `${providerLabels[provider]} 실행 경로는 준비 중입니다. 모델 목록만 볼 수 있습니다.`}
+                  onClick={() => void switchProvider(provider)}
+                  disabled={isAnswering || isSwitchingProvider}
+                >
+                  {providerLabels[provider]}
+                  {!isExecutableProvider(provider) && <small>준비 중</small>}
+                </button>
+              ))}
+            </div>
+            <div className="chat-model-picker" ref={modelPickerRef}>
+              <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={isModelPickerOpen}
+                disabled={isAnswering || isSwitchingProvider}
+                onClick={() => setIsModelPickerOpen((current) => !current)}
+              >
+                <span>✦</span>
+                <strong>{isSwitchingProvider ? "모델 목록 불러오는 중…" : selectedModel.label}</strong>
+                {!isSwitchingProvider && <small>{selectedModel.description}</small>}
+                <i>⌄</i>
+              </button>
+              {isModelPickerOpen && (
+                <div className="chat-model-menu" role="listbox" aria-label={`${providerLabels[selectedProvider]} 모델 선택`}>
+                  <header>
+                    <strong>응답 모델</strong>
+                    <span>{selectedProvider === "openai" ? "API 키에서 사용 가능한 모델" : `${providerLabels[selectedProvider]} 기본 목록 (실행 경로 준비 중)`}</span>
+                  </header>
+                  {models.map((model) => (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={model.id === selectedModel.id}
+                      className={model.id === selectedModel.id ? "selected" : ""}
+                      key={model.id}
+                      onClick={async () => {
+                        setModelNotice(null);
+                        try {
+                          await setOpenAiModelPreference(model.provider, model.id);
+                          setSelectedProvider(model.provider);
+                          setSelectedModelId(model.id);
+                          setIsModelPickerOpen(false);
+                        } catch (cause) {
+                          setError(cause instanceof Error ? cause.message : String(cause));
+                        }
+                      }}
+                    >
+                      <span><strong>{model.label}</strong><small>{model.id}</small></span>
+                      <em>{model.description}</em>
+                      {model.id === selectedModel.id && <b>✓</b>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {modelNotice && <span className="chat-model-notice" title={modelNotice}>{modelNotice}</span>}
+          </div>
+          <textarea
+            value={question}
+            disabled={isAnswering}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="오늘 일정 뭐야?"
+            rows={2}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+          />
+          {isAnswering ? (
+            <button className="chat-cancel-button" type="button" onClick={handleCancel}>
+              <span /> 중단
+            </button>
+          ) : (
+            <button className="primary-button" disabled={submitBlockReason !== null} title={submitBlockReason ?? undefined}>
+              ↑
+            </button>
+          )}
+          <small>
+            {isAnswering
+              ? "에이전트가 필요한 도구를 실행하고 결과를 확인하고 있습니다."
+              : isExecutableProvider(selectedProvider)
+                ? "연결된 업무 컨텍스트가 OpenAI로 전송됩니다. 답변은 캐시된 데이터 기준입니다."
+                : `${providerLabels[selectedProvider]} 실행 경로는 준비 중입니다. 전송하려면 OpenAI 탭을 선택해 주세요.`}
+          </small>
+        </form>
+      </section>
+    </div>
+  );
 }
