@@ -103,14 +103,11 @@ import { saveSlackMessageToInbox } from "../entities/work-context/api/inbox-repo
 import { collectDailyBriefing } from "../entities/work-context/api/daily-briefing-repository";
 import { prepareEnabledCheckpointDraft, recordAutomationApproval } from "../entities/work-context/api/automation-repository";
 import { recoverDurableJiraOutbox } from "../features/sources/jira-outbox-recovery";
-import AppSidebar from "./ui/AppSidebar";
 import AppHeader from "./ui/AppHeader";
-import AppTabBar from "./ui/AppTabBar";
-import { isPrimarySection, restoreOpenSections, type PrimarySection } from "./model/navigation";
+import AppBottomBar from "./ui/AppBottomBar";
+import { isPrimarySection, type PrimarySection } from "./model/navigation";
 
 const TASK_SORT_STORAGE_KEY = "orbit.task-sort";
-const SIDEBAR_COLLAPSED_STORAGE_KEY = "orbit.sidebar-collapsed";
-const OPEN_SECTIONS_STORAGE_KEY = "orbit.open-sections";
 const ACTIVE_SECTION_STORAGE_KEY = "orbit.active-section";
 const TaskWorkflow = lazy(() => import("../features/tasks/task-workflow"));
 
@@ -151,21 +148,15 @@ function App() {
   const [plannerCategories, setPlannerCategories] = useState<PlannerCategory[]>([]);
   const [interruptionEvidence, setInterruptionEvidence] = useState<Array<{ label: string; url?: string }>>([]);
   const [interruptionDraft, setInterruptionDraft] = useState<{ checkpoint?: string; nextAction?: string }>({});
-  const [openSections, setOpenSections] = useState<PrimarySection[]>(() =>
-    restoreOpenSections(window.localStorage.getItem(OPEN_SECTIONS_STORAGE_KEY)),
-  );
   const [activeSection, setActiveSection] = useState<PrimarySection>(() => {
     const stored = window.localStorage.getItem(ACTIVE_SECTION_STORAGE_KEY);
-    return isPrimarySection(stored) && openSections.includes(stored) ? stored : openSections[0];
+    return isPrimarySection(stored) ? stored : "dashboard";
   });
   const [contextItem, setContextItem] = useState<WorkItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<WorkItem | null>(null);
   const [sessionProgress, setSessionProgress] = useState<Record<string, WorkItemSessionProgress>>({});
   const [isQuickPanelOpen, setIsQuickPanelOpen] = useState(false);
   const [shortcutError, setShortcutError] = useState<string | null>(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
-    () => window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "true",
-  );
   const [taskSortMode, setTaskSortMode] = useState<TaskSortMode>(() => {
     const stored = window.localStorage.getItem(TASK_SORT_STORAGE_KEY);
     return isTaskSortMode(stored) ? stored : "manual";
@@ -186,29 +177,7 @@ function App() {
   const navigateTo = useCallback((section: PrimarySection) => {
     setActiveSection(section);
     window.localStorage.setItem(ACTIVE_SECTION_STORAGE_KEY, section);
-    setOpenSections((current) => {
-      if (current.includes(section)) return current;
-      const next = [...current, section];
-      window.localStorage.setItem(OPEN_SECTIONS_STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
   }, []);
-
-  const closeSection = useCallback((section: PrimarySection) => {
-    setOpenSections((current) => {
-      const index = current.indexOf(section);
-      if (index < 0) return current;
-      const remaining = current.filter((candidate) => candidate !== section);
-      const next: PrimarySection[] = remaining.length > 0 ? remaining : ["dashboard"];
-      window.localStorage.setItem(OPEN_SECTIONS_STORAGE_KEY, JSON.stringify(next));
-      if (activeSection === section) {
-        const nextActive = next[Math.min(index, next.length - 1)];
-        setActiveSection(nextActive);
-        window.localStorage.setItem(ACTIVE_SECTION_STORAGE_KEY, nextActive);
-      }
-      return next;
-    });
-  }, [activeSection]);
 
   useEffect(() => {
     workspaceRef.current?.scrollTo({ top: 0, left: 0 });
@@ -443,13 +412,11 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${isSidebarCollapsed ? "sidebar-collapsed" : ""} ${focusItem ? "has-focus-lock" : ""}`}>
-      <AppTabBar
+    <div className={`app-shell ${focusItem ? "has-focus-lock" : ""}`}>
+      <AppHeader
         activeSection={activeSection}
-        openSections={openSections}
         isFocusLocked={Boolean(focusItem)}
-        onActivate={navigateTo}
-        onClose={closeSection}
+        onAddTask={() => setIsComposerOpen(true)}
       />
       {shortcutError && (
         <div className="global-shortcut-error" role="alert">
@@ -458,25 +425,8 @@ function App() {
           <button type="button" aria-label="알림 닫기" onClick={() => setShortcutError(null)}><X size={14} /></button>
         </div>
       )}
-      <AppSidebar
-        activeSection={activeSection}
-        collapsed={isSidebarCollapsed}
-        isFocusLocked={Boolean(focusItem)}
-        items={items}
-        sourceSyncStates={sourceSyncStates}
-        onNavigate={navigateTo}
-        onToggleCollapsed={() => setIsSidebarCollapsed((current) => {
-          window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(!current));
-          return !current;
-        })}
-      />
 
       <main ref={workspaceRef} className="workspace">
-        <AppHeader
-          activeSection={activeSection}
-          isFocusLocked={Boolean(focusItem)}
-          onAddTask={() => setIsComposerOpen(true)}
-        />
 
         {activeSection === "dashboard" ? (
           <DashboardPage
@@ -549,9 +499,16 @@ function App() {
           onSortModeChange={handleTaskSortMode}
           onReorder={handleTaskReorder}
         />
-          </>
-        )}
-      </main>
+      </>
+    )}
+  </main>
+      <AppBottomBar
+        activeSection={activeSection}
+        isFocusLocked={Boolean(focusItem)}
+        items={items}
+        sourceSyncStates={sourceSyncStates}
+        onNavigate={navigateTo}
+      />
 
       {isComposerOpen && (
         <TaskComposer
