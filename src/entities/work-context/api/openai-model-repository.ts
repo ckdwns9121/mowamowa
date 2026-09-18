@@ -5,8 +5,8 @@ export type ChatProvider = "openai" | "claude" | "glm";
 
 export const chatProviders: readonly ChatProvider[] = ["openai", "claude", "glm"];
 
-/** 실제 채팅 실행 경로가 구현된 provider. 나머지는 목록 표시만 가능합니다. */
-export const executableChatProviders: readonly ChatProvider[] = ["openai", "claude"];
+/** 실제 채팅 실행 경로가 구현된 provider. */
+export const executableChatProviders: readonly ChatProvider[] = ["openai", "claude", "glm"];
 
 export interface OpenAiModelOption {
   provider: ChatProvider;
@@ -21,8 +21,6 @@ export const fallbackOpenAiModels: OpenAiModelOption[] = [
   { provider: "openai", id: "gpt-5.6-luna", label: "GPT-5.6 Luna", description: "빠르고 경제적" },
 ];
 
-// Claude/GLM 목록은 백엔드 조회 경로가 아직 없어 표시 전용 폴백입니다.
-// 이 ID는 chat_model에 저장되므로, 백엔드가 해당 provider를 지원하는 시점에 서버 측 허용목록으로 재검증해야 합니다.
 const fallbackClaudeModels: OpenAiModelOption[] = [
   { provider: "claude", id: "claude-3-7-sonnet-20250219", label: "Claude 3.7 Sonnet", description: "문맥 추론 중심" },
   { provider: "claude", id: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet", description: "균형형" },
@@ -30,9 +28,12 @@ const fallbackClaudeModels: OpenAiModelOption[] = [
 ];
 
 const fallbackGlmModels: OpenAiModelOption[] = [
-  { provider: "glm", id: "glm-4.5", label: "GLM-4.5", description: "범용 작업 처리" },
-  { provider: "glm", id: "glm-4v-plus", label: "GLM-4V Plus", description: "멀티모달(이미지+텍스트)" },
+  { provider: "glm", id: "glm-4-plus", label: "GLM-4 Plus", description: "Zhipu 플래그십 최고 성능" },
+  { provider: "glm", id: "glm-4-air", label: "GLM-4 Air", description: "고속 추론 및 균형형" },
+  { provider: "glm", id: "glm-4-flash", label: "GLM-4 Flash", description: "초고속 응답 경량 모델" },
   { provider: "glm", id: "glm-4", label: "GLM-4", description: "기본 안정형" },
+  { provider: "glm", id: "glm-4.5", label: "GLM-4.5", description: "범용 작업 처리" },
+  { provider: "glm", id: "glm-4v-plus", label: "GLM-4V Plus", description: "멀티모달 (이미지+텍스트)" },
 ];
 
 const fallbackModelsByProvider: Record<ChatProvider, OpenAiModelOption[]> = {
@@ -145,7 +146,10 @@ export function chatSubmitBlockReason(input: ChatSubmitGuardInput): string | nul
   if (input.isSwitchingProvider) return "모델 목록을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.";
   if (!input.selectedModel?.id) return "사용할 모델을 선택해 주세요.";
   if (!isExecutableProvider(input.selectedProvider) || !isExecutableProvider(input.selectedModel.provider)) {
-    return "현재 Orbit는 OpenAI와 Claude 채팅 파이프라인을 지원합니다. 지원되는 제공자의 모델을 선택해 주세요.";
+    return "지원되는 제공자의 모델을 선택해 주세요.";
+  }
+  if (input.selectedProvider !== input.selectedModel.provider) {
+    return "선택된 모델의 제공자와 현재 탭이 일치하지 않습니다.";
   }
   if (!input.question.trim()) return "질문을 입력해 주세요.";
   return null;
