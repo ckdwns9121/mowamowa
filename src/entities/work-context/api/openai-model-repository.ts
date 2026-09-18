@@ -6,7 +6,7 @@ export type ChatProvider = "openai" | "claude" | "glm";
 export const chatProviders: readonly ChatProvider[] = ["openai", "claude", "glm"];
 
 /** 실제 채팅 실행 경로가 구현된 provider. 나머지는 목록 표시만 가능합니다. */
-export const executableChatProviders: readonly ChatProvider[] = ["openai"];
+export const executableChatProviders: readonly ChatProvider[] = ["openai", "claude"];
 
 export interface OpenAiModelOption {
   provider: ChatProvider;
@@ -145,7 +145,7 @@ export function chatSubmitBlockReason(input: ChatSubmitGuardInput): string | nul
   if (input.isSwitchingProvider) return "모델 목록을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.";
   if (!input.selectedModel?.id) return "사용할 모델을 선택해 주세요.";
   if (!isExecutableProvider(input.selectedProvider) || !isExecutableProvider(input.selectedModel.provider)) {
-    return "현재 Orbit는 OpenAI 채팅 파이프라인만 지원합니다. 모델을 OpenAI로 변경해 주세요.";
+    return "현재 Orbit는 OpenAI와 Claude 채팅 파이프라인을 지원합니다. 지원되는 제공자의 모델을 선택해 주세요.";
   }
   if (!input.question.trim()) return "질문을 입력해 주세요.";
   return null;
