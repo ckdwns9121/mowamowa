@@ -2,12 +2,10 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   Blocks,
-  Calendar,
   CheckSquare,
   GitPullRequest,
   LayoutDashboard,
   MessageCircle,
-  Network,
   Plus,
   Settings,
   TicketCheck,
@@ -19,12 +17,10 @@ import { primarySections, sectionTitle, type PrimarySection } from "../model/nav
 const sectionIcon: Record<PrimarySection, LucideIcon> = {
   dashboard: LayoutDashboard,
   tasks: CheckSquare,
-  calendar: Calendar,
-  chat: MessageCircle,
-  graph: Network,
   sessions: Blocks,
   jira: TicketCheck,
   pull_requests: GitPullRequest,
+  chat: MessageCircle,
   settings: Settings,
 };
 

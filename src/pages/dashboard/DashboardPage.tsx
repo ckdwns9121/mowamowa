@@ -23,7 +23,6 @@ import {
   X,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { listCalendarEvents } from "../../entities/work-context/api/calendar-event-repository";
 import {
   addDailyPriority,
   addWorkItemToDailyPlan,
@@ -49,7 +48,7 @@ import {
   listCachedPullRequests,
   refreshPullRequestsFromSessions,
 } from "../../entities/work-context/api/github-pull-request-repository";
-import { isSameDay, type CalendarEvent } from "../../entities/work-context/model/calendar-event";
+import { isSameDay } from "../../entities/work-context/model/calendar-event";
 import { localDateKey, reorderDailyPriorityIds, unplannedWorkItems, type DailyPlanEntry, type DailyPriority } from "../../entities/work-context/model/daily-plan";
 import { monthGridDays, type PlannerCategory, type PlannerRoutine } from "../../entities/work-context/model/planner";
 import type { WorkItem } from "../../entities/work-context/model/work-item";
@@ -90,7 +89,6 @@ export default function DashboardPage({
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [entries, setEntries] = useState<DailyPlanEntry[]>([]);
   const [priorities, setPriorities] = useState<DailyPriority[]>([]);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [categories, setCategories] = useState<PlannerCategory[]>([]);
   const [routines, setRoutines] = useState<PlannerRoutine[]>([]);
   const [manager, setManager] = useState<ManagerKind>(null);
@@ -121,15 +119,13 @@ export default function DashboardPage({
       const nextPriorities = await listDailyPriorities(selectedKey);
       await ensureTargetedWorkItemsInDailyPlan(workItems, rangeStart, rangeEnd);
       for (const priority of nextPriorities) await addWorkItemToDailyPlan(priority.workItemId, selectedKey);
-      const [nextEntries, nextEvents, nextPlannedWorkItemIds] = await Promise.all([
+      const [nextEntries, nextPlannedWorkItemIds] = await Promise.all([
         listDailyPlanRange(rangeStart, rangeEnd),
-        listCalendarEvents(days[0], new Date(days[days.length - 1].getFullYear(), days[days.length - 1].getMonth(), days[days.length - 1].getDate() + 1)),
         listActivePlannedWorkItemIds(),
       ]);
       setCategories(nextCategories);
       setRoutines(nextRoutines);
       setEntries(nextEntries);
-      setEvents(nextEvents);
       setPriorities(nextPriorities);
       setPlannedWorkItemIds(nextPlannedWorkItemIds);
     } catch (cause) {
@@ -187,7 +183,6 @@ export default function DashboardPage({
   ];
   const availableTasks = unplannedWorkItems(workItems, plannedWorkItemIds);
   const priorityCandidates = workItems.filter((item) => item.status !== "done" && !priorityWorkItemIds.has(item.id));
-  const selectedEvents = events.filter((event) => isSameDay(new Date(event.startAt), selectedDate));
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const selectedCompleted = selectedEntries.filter((entry) => entry.workItem.status === "done").length;
   const reminders = workItems
@@ -346,7 +341,6 @@ export default function DashboardPage({
             {days.map((day) => {
               const key = localDateKey(day);
               const dayEntries = entries.filter((entry) => entry.planDate === key);
-              const dayEvents = events.filter((event) => isSameDay(new Date(event.startAt), day));
               const isCurrentMonth = day.getMonth() === month.getMonth();
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDate);
@@ -355,12 +349,11 @@ export default function DashboardPage({
                   className={`planner-day ${isCurrentMonth ? "" : "is-outside"} ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}`}
                   type="button"
                   key={key}
-                  aria-label={`${selectedDateLabel.format(day)}, 할 일 ${dayEntries.length}개, 일정 ${dayEvents.length}개`}
+                  aria-label={`${selectedDateLabel.format(day)}, 할 일 ${dayEntries.length}개`}
                   onClick={() => { setSelectedDate(day); if (!isCurrentMonth) setMonth(new Date(day.getFullYear(), day.getMonth(), 1)); }}
                 >
                   <div className="planner-day-markers" aria-hidden="true">
                     {dayEntries.length > 0 && <b>{dayEntries.length}</b>}
-                    {dayEvents.length > 0 && <i className="is-event" />}
                   </div>
                   <span className="planner-day-number">{day.getDate()}</span>
                 </button>
@@ -443,7 +436,6 @@ export default function DashboardPage({
                   <QuickTaskForm
                     key={`${selectedKey}-${group.id}`}
                     categoryId={group.id === "uncategorized" ? null : group.id}
-                    selectedDate={selectedDate}
                     onSubmit={createPlannedTask}
                     onClose={() => setQuickCategoryId(null)}
                   />
@@ -470,13 +462,6 @@ export default function DashboardPage({
               </section>
             ))}
           </div>
-
-          {selectedEvents.length > 0 && (
-            <section className="planner-events">
-              <header><strong>일정</strong><span>{selectedEvents.length}</span></header>
-              {selectedEvents.map((event) => <div key={event.id}><i /><span><strong>{event.title}</strong><small>{event.allDay ? "종일" : timeLabel.format(new Date(event.startAt))}{event.location ? ` · ${event.location}` : ""}</small></span></div>)}
-            </section>
-          )}
 
           <section className="planner-review-requests" aria-label="현재 리뷰 대기 Pull Request">
             <header>
@@ -547,14 +532,12 @@ function PriorityReplacement({ priorities, candidate, onReplace, onClose }: { pr
   );
 }
 
-function QuickTaskForm({ categoryId, selectedDate, onSubmit, onClose }: {
+function QuickTaskForm({ categoryId, onSubmit, onClose }: {
   categoryId: string | null;
-  selectedDate: Date;
   onSubmit: (input: { title: string; categoryId: string | null; targetAt: string | null }) => Promise<void>;
   onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
-  const [reminderTime, setReminderTime] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -564,14 +547,12 @@ function QuickTaskForm({ categoryId, selectedDate, onSubmit, onClose }: {
     setIsSaving(true);
     setSaveError(null);
     try {
-      const dateKey = localDateKey(selectedDate);
       await onSubmit({
         title: title.trim(),
         categoryId: categoryId || null,
-        targetAt: reminderTime ? new Date(`${dateKey}T${reminderTime}:00`).toISOString() : null,
+        targetAt: null,
       });
       setTitle("");
-      setReminderTime("");
       onClose();
     } catch (cause) {
       setSaveError(cause instanceof Error ? cause.message : String(cause));
@@ -584,7 +565,6 @@ function QuickTaskForm({ categoryId, selectedDate, onSubmit, onClose }: {
     <form className="planner-quick-form" onSubmit={submit}>
       <div><Circle size={15} /><input aria-label="할 일 제목" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="할 일 입력" autoFocus /><button type="button" aria-label="입력 취소" onClick={onClose}><X size={14} /></button></div>
       <div className="planner-quick-options">
-        <label><AlarmClock size={13} /><span className="sr-only">리마인더 시간</span><input type="time" value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} /></label>
         <button className="primary-button" type="submit" disabled={!title.trim() || isSaving}>{isSaving ? "추가 중" : "추가"}</button>
       </div>
       {saveError && <p className="planner-quick-error" role="alert">{saveError}</p>}

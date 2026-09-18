@@ -67,7 +67,6 @@ import type { DailyBriefing } from "../entities/work-context/model/daily-briefin
 import type { JiraIssue, JiraTaskLink } from "../entities/work-context/model/jira-issue";
 import { taskStatusSuggestionForSessions } from "../entities/work-context/model/task-flow";
 import { isTaskSortMode, type TaskSortMode } from "../entities/work-context/model/work-item-sort";
-import CalendarPage from "../pages/calendar";
 import SettingsPage from "../pages/settings";
 import WorkspacePage from "../pages/workspace";
 import PullRequestsPage, { type PullRequestView } from "../pages/pull-requests";
@@ -76,7 +75,6 @@ import TaskContextDiscoveryModal from "../features/tasks/task-context-discovery"
 import ChatPage from "../pages/chat";
 import DashboardPage from "../pages/dashboard";
 import DailyBriefingPanel from "../features/daily-briefing";
-import GraphPage from "../pages/graph";
 import { SearchCombobox, ServiceIcon, serviceIconForProvider, type SearchComboboxOption } from "../shared/ui";
 import QuickPanel from "../features/navigation/quick-panel";
 import { getAppSettings } from "../entities/work-context/api/settings-repository";
@@ -496,12 +494,8 @@ function App() {
               if (!dailyBriefing) void refreshDailyBriefing();
             }}
           />
-        ) : activeSection === "calendar" ? (
-          <CalendarPage />
         ) : activeSection === "chat" ? (
           <ChatPage />
-        ) : activeSection === "graph" ? (
-          <GraphPage />
         ) : activeSection === "sessions" ? (
           <WorkspacePage
             workItems={items}

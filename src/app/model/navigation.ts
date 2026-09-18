@@ -1,9 +1,7 @@
 export type PrimarySection =
   | "dashboard"
   | "tasks"
-  | "calendar"
   | "chat"
-  | "graph"
   | "sessions"
   | "jira"
   | "pull_requests"
@@ -12,24 +10,20 @@ export type PrimarySection =
 export const primarySections: readonly PrimarySection[] = [
   "dashboard",
   "tasks",
-  "calendar",
-  "chat",
-  "graph",
   "sessions",
   "jira",
   "pull_requests",
+  "chat",
   "settings",
 ];
 
 export const sectionTitle: Record<PrimarySection, string> = {
   dashboard: "Planner",
   tasks: "Task",
-  calendar: "Calendar",
-  chat: "Chat",
-  graph: "Graph",
   sessions: "Workspace",
   jira: "Jira Tickets",
   pull_requests: "Pull Requests",
+  chat: "Chat",
   settings: "Settings",
 };
 

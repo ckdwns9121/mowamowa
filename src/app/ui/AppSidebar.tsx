@@ -1,5 +1,4 @@
 import {
-  Calendar,
   CheckSquare,
   Blocks,
   LayoutDashboard,
@@ -44,7 +43,6 @@ export default function AppSidebar({
   const navigation: NavigationItem[] = [
     { section: "dashboard", label: "Planner", icon: LayoutDashboard },
     { section: "tasks", label: "Task", icon: CheckSquare, count: items.filter((item) => item.status !== "done").length },
-    { section: "calendar", label: "Calendar", icon: Calendar },
     { section: "sessions", label: "Workspace", icon: Blocks },
     { section: "jira", label: "Tickets", icon: TicketCheck },
     { section: "chat", label: "Chat", icon: MessageCircle },
