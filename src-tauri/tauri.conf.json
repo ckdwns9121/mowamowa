@@ -44,6 +44,26 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "shadow": true
+      },
+      {
+        "label": "pet",
+        "title": "Orbit Pomodoro Pet",
+        "width": 220,
+        "height": 96,
+        "minWidth": 220,
+        "minHeight": 96,
+        "maxWidth": 220,
+        "maxHeight": 96,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "closable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false
       }
     ],
     "security": {

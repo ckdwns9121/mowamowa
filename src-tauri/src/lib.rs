@@ -315,6 +315,45 @@ fn hide_tray_window(app: AppHandle) {
     }
 }
 
+#[tauri::command]
+fn show_pet_window(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("pet") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+#[tauri::command]
+fn hide_pet_window(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("pet") {
+        let _ = window.hide();
+    }
+}
+
+#[tauri::command]
+fn toggle_pet_window(app: AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("pet") {
+        let is_visible = window.is_visible().unwrap_or(false);
+        if is_visible {
+            let _ = window.hide();
+            Ok(false)
+        } else {
+            let _ = window.show();
+            let _ = window.set_focus();
+            Ok(true)
+        }
+    } else {
+        Err("Pet 윈도우를 찾을 수 없습니다.".into())
+    }
+}
+
+#[tauri::command]
+fn is_pet_window_visible(app: AppHandle) -> bool {
+    app.get_webview_window("pet")
+        .and_then(|w| w.is_visible().ok())
+        .unwrap_or(false)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -579,6 +618,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             show_main_window,
             hide_tray_window,
+            show_pet_window,
+            hide_pet_window,
+            toggle_pet_window,
+            is_pet_window_visible,
             secret_status,
             secret_storage_mode,
             set_secret_storage_mode,

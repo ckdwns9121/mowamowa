@@ -1,0 +1,181 @@
+.pet-window-shell {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Geist", "Segoe UI", Roboto, sans-serif;
+  -webkit-app-region: drag; /* allows dragging from anywhere or marked regions */
+}
+
+.pet-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 18px;
+  background: rgba(22, 22, 24, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+  color: #f4f4f5;
+  box-sizing: border-box;
+  cursor: grab;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+
+    .pet-hover-controls {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  }
+
+  &.is-break {
+    background: rgba(30, 24, 18, 0.85);
+    border-color: rgba(251, 133, 0, 0.25);
+    .pet-timer-val {
+      color: #ffb703;
+    }
+  }
+
+  &.is-focus {
+    background: rgba(18, 24, 34, 0.85);
+    border-color: rgba(58, 134, 255, 0.25);
+    .pet-timer-val {
+      color: #60a5fa;
+    }
+  }
+}
+
+.pet-left-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.pet-info-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.pet-status-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+}
+
+.pet-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e4e4e7;
+
+  &.badge-focus {
+    background: rgba(58, 134, 255, 0.2);
+    color: #93c5fd;
+  }
+  &.badge-break {
+    background: rgba(251, 133, 0, 0.2);
+    color: #fcd34d;
+  }
+}
+
+.pet-timer-val {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: #fafafa;
+}
+
+.pet-task-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #d4d4d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 115px;
+}
+
+/* Hover mini control toolbar */
+.pet-hover-controls {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  -webkit-app-region: no-drag;
+}
+
+.pet-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e4e4e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.pet-btn-close {
+    &:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+  }
+}
