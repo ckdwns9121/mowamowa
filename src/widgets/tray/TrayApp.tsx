@@ -5,10 +5,6 @@ import {
   ChevronRight,
   ExternalLink,
   Flame,
-  Layers,
-  Pause,
-  Play,
-  RotateCcw,
   Sparkles,
 } from "lucide-react";
 import { listWorkItems } from "../../entities/work-context/api/work-item-repository";
