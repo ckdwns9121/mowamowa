@@ -2,7 +2,7 @@
   width: 100vw;
   height: 100vh;
   margin: 0;
-  padding: 4px;
+  padding: 10px;
   box-sizing: border-box;
   background: transparent !important;
   background-color: transparent !important;
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   user-select: none;
-  overflow: hidden;
+  overflow: visible;
   font-family: -apple-system, BlinkMacSystemFont, "Geist", "Segoe UI", Roboto, sans-serif;
   -webkit-app-region: drag; /* allows dragging from anywhere or marked regions */
 }
@@ -22,13 +22,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  background: rgba(22, 22, 26, 0.88);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+  padding: 8px 14px;
+  border-radius: 18px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   color: #f4f4f5;
   box-sizing: border-box;
   cursor: grab;
@@ -39,8 +37,8 @@
   }
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
 
     .pet-hover-controls {
       opacity: 1;
@@ -50,16 +48,16 @@
   }
 
   &.is-break {
-    background: rgba(30, 24, 18, 0.85);
-    border-color: rgba(251, 133, 0, 0.25);
+    background: #1c1917;
+    border-color: rgba(251, 133, 0, 0.35);
     .pet-timer-val {
       color: #ffb703;
     }
   }
 
   &.is-focus {
-    background: rgba(18, 24, 34, 0.85);
-    border-color: rgba(58, 134, 255, 0.25);
+    background: #0f172a;
+    border-color: rgba(58, 134, 255, 0.35);
     .pet-timer-val {
       color: #60a5fa;
     }
