@@ -131,7 +131,26 @@
 
 * { box-sizing: border-box; }
 html, body, #root { width: 100%; height: 100%; overflow: hidden; }
-body { margin: 0; min-width: 800px; background: var(--canvas); font-size: 12px; letter-spacing: .01em; }
+body {
+  margin: 0;
+  min-width: 800px;
+  background: var(--canvas);
+  font-size: 12px;
+  letter-spacing: .01em;
+}
+
+html.window-pet,
+html.window-pet body,
+html.window-pet #root,
+html.window-tray,
+html.window-tray body,
+html.window-tray #root {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 

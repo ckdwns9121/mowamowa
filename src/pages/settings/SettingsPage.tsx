@@ -611,6 +611,23 @@ function GeneralSettings({
         </div>
         <p className="stretch-reminder-status" role="status" aria-live="polite">{reminderMessage}</p>
       </div>
+
+      <div className="settings-card">
+        <div className="settings-card-title">
+          <strong>뽀모도로 데스크톱 펫</strong>
+          <span>화면 위에 항상 떠 있는 미니 뽀모도로 위젯을 열거나 닫습니다.</span>
+        </div>
+        <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => void invoke("toggle_pet_window")}
+          >
+            데스크톱 펫 토글
+          </button>
+        </div>
+      </div>
+
       <div className="security-note"><span><KeyRound size={15} strokeWidth={1.8} aria-hidden="true" /></span><div><strong>자격 증명 보안</strong><p>API 키와 토큰은 입력 중에만 폼에 존재하며, 저장할 때 SQLite가 아닌 macOS Keychain으로 전달됩니다.</p></div></div>
     </div>
   );

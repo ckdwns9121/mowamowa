@@ -7,7 +7,11 @@ import { applyTheme, getStoredTheme } from "./shared/config/theme/theme";
 applyTheme(getStoredTheme());
 
 const windowLabel = getCurrentWindow().label;
-if (windowLabel !== "tray") {
+if (windowLabel === "pet" || windowLabel === "tray") {
+  document.documentElement.style.background = "transparent";
+  document.body.style.background = "transparent";
+  document.documentElement.classList.add(`window-${windowLabel}`);
+} else {
   void getCurrentWebview().setZoom(1.2).catch((cause) => {
     console.warn("Orbit UI 배율을 적용하지 못했습니다.", cause);
   });
@@ -15,7 +19,9 @@ if (windowLabel !== "tray") {
 
 const componentPromise = windowLabel === "tray"
   ? import("./widgets/tray")
-  : import("./app/App");
+  : windowLabel === "pet"
+    ? import("./widgets/pet")
+    : import("./app/App");
 
 void componentPromise.then(({ default: RootComponent }) => {
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

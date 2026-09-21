@@ -1,0 +1,122 @@
+.pet-mascot-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+  pointer-events: none;
+
+  .pet-mascot-svg {
+    overflow: visible;
+  }
+
+  .pet-shadow {
+    fill: rgba(0, 0, 0, 0.18);
+    transition: transform 0.3s ease;
+  }
+
+  /* Idle Bouncing */
+  &.pet-mood-idle .pet-body-group {
+    animation: pet-bounce 2.4s ease-in-out infinite alternate;
+    transform-origin: 24px 40px;
+  }
+
+  /* Focus mode animations */
+  &.pet-mood-focus {
+    &.is-running {
+      .pet-body-group {
+        animation: pet-focus-pulse 2s ease-in-out infinite alternate;
+        transform-origin: 24px 40px;
+      }
+      .paw-left {
+        animation: pet-typing-left 0.28s infinite alternate ease-in-out;
+      }
+      .paw-right {
+        animation: pet-typing-right 0.28s infinite alternate ease-in-out 0.14s;
+      }
+      .pet-bulb {
+        animation: bulb-pulse 1.2s infinite ease-in-out;
+      }
+      .code-line-1 {
+        animation: code-pulse 1s infinite alternate;
+      }
+      .code-line-2 {
+        animation: code-pulse 1.2s infinite alternate 0.3s;
+      }
+    }
+  }
+
+  /* Break sleeping mode animations */
+  &.pet-mood-break {
+    .pet-sleeping {
+      animation: pet-breathe 3s ease-in-out infinite;
+      transform-origin: 24px 38px;
+    }
+    .zzz-1 {
+      animation: zzz-float 2.4s infinite ease-in;
+    }
+    .zzz-2 {
+      animation: zzz-float 2.4s infinite ease-in 1.2s;
+    }
+  }
+}
+
+@keyframes pet-bounce {
+  0% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-2px) scale(0.98, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes pet-focus-pulse {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1px); }
+}
+
+@keyframes pet-typing-left {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-2px); }
+}
+
+@keyframes pet-typing-right {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-2px); }
+}
+
+@keyframes bulb-pulse {
+  0%, 100% { opacity: 0.6; fill: #FF006E; filter: drop-shadow(0 0 1px #FF006E); }
+  50% { opacity: 1; fill: #FF3385; filter: drop-shadow(0 0 4px #FF006E); }
+}
+
+@keyframes code-pulse {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@keyframes pet-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.02, 0.98) translateY(1px); }
+}
+
+@keyframes zzz-float {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(6px, -12px) scale(1.1);
+  }
+}
+
+.zzz-text {
+  font-family: monospace;
+  font-weight: 800;
+  fill: #8338EC;
+  font-size: 8px;
+}
