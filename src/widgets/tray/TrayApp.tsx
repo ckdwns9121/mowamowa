@@ -144,7 +144,7 @@ export default function TrayApp() {
           <section className="tray-focus-section">
             <div className="tray-pet-card">
               <div className="tray-pet-visual">
-                <PetMascot mood={focusItem ? "focus" : "idle"} isRunning={Boolean(focusItem)} size={56} />
+                <PetMascot mood={focusItem ? "focus" : "idle"} isRunning={Boolean(focusItem)} size={64} />
               </div>
 
               <div className="tray-pet-meta">

@@ -48,9 +48,9 @@
   /* Mood accessory floating badge (strawberry / sword) */
   .rakko-mood-badge {
     position: absolute;
-    bottom: -2px;
-    right: -4px;
-    font-size: 14px;
+    bottom: 0px;
+    right: -2px;
+    font-size: 16px;
     line-height: 1;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
     pointer-events: none;
