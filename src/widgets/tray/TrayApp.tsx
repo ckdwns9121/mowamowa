@@ -92,6 +92,12 @@ export default function TrayApp() {
     () => items.filter((item) => item.status === "done"),
     [items],
   );
+  const todayDoneCount = useMemo(() => {
+    const today = new Date().toDateString();
+    return doneItems.filter(
+      (item) => item.completedAt && new Date(item.completedAt).toDateString() === today,
+    ).length;
+  }, [doneItems]);
 
   async function handleCreateTask(event: React.FormEvent) {
     event.preventDefault();
@@ -370,7 +376,7 @@ export default function TrayApp() {
         <footer className="tray-bottom-bar">
           <div className="tray-footer-left">
             <span className="footer-done-label">오늘 달성</span>
-            <span className="footer-done-count">{doneItems.length}개</span>
+            <span className="footer-done-count">{todayDoneCount}개</span>
           </div>
 
           <div className="tray-footer-right">

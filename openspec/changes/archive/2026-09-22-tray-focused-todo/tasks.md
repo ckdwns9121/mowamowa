@@ -11,6 +11,7 @@
 - [x] 2.2 `src/widgets/tray/TrayApp.tsx`의 NOW 몰입 섹션 구현: 현재 집중 중인 1개 작업 노출, 타이머, [완료] 및 [일시정지] 액션 연동 검증
 - [x] 2.3 `src/widgets/tray/TrayApp.tsx`의 TODO 대기 목록 및 DONE 완료 섹션 구현: TODO 목록에서 [시작]/[삭제], 완료 시 취소선이 그어지며 하단 DONE 영역으로 이동하는 렌더링 검증
 - [x] 2.4 `src/widgets/tray/TrayApp.scss` 스타일링: 360x520 창에 최적화된 마이크로 레이아웃, 인풋 스타일, 취소선(`text-decoration: line-through`) 및 컴팩트 스타일 적용
+- [x] 2.5 `src/widgets/tray/TrayApp.tsx`에서 DONE 완료 항목을 다시 체크 해제 시 TODO 대기 목록으로 복원하고 NOW 슬롯에 영향이 없음을 검증
 
 ## 3. Window Configuration & Verification
 

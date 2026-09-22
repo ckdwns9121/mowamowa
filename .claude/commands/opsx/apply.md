@@ -104,7 +104,7 @@ In both branches, never create the root as a side effect: do not run `openspec i
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
+   - Mark task complete in the tasks file (using the path from contextFiles/instruction) according to the schema's tracking format (e.g., `- [ ]` → `- [x]` for Markdown checkboxes)
    - Continue to next task
 
    **Pause if:**

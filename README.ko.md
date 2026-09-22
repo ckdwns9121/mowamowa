@@ -45,7 +45,7 @@
 
 ### 🔌 보조 업무 인텔리전스 & MCP 연동
 * **로컬 우선 (Local First)**: 모든 작업 데이터는 외부 서버가 아닌 내 맥의 로컬 SQLite에 안전하게 보관됩니다.
-* **AI 에이전트 연동 (Orbit MCP)**: Claude Code, Cursor 등 다양한 AI 어시스턴트가 Orbit의 할 일과 컨텍스트를 직접 조회하고 생성할 수 있는 Model Context Protocol(MCP) 서버를 지원합니다.
+* **AI 에이전트 연동 (Orbit MCP)**: Claude Code, Cursor 등 다양한 AI 어시스턴트가 Orbit의 할 일을 직접 조회하고 생성할 수 있는 Model Context Protocol(MCP) 서버를 지원합니다.
 
 ---
 

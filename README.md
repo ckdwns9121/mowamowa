@@ -46,7 +46,7 @@ Quickly offload tasks in one line, eliminate priority decision fatigue, and lock
 
 ### 🔌 Background Intelligence & MCP Support
 * **Local-First Architecture**: All your work items remain on your machine in local SQLite (`tauri-plugin-sql`).
-* **Model Context Protocol (MCP)**: Embedded MCP server allowing Claude Code, Cursor, and other AI agents to inspect, manage, and create tasks directly.
+* **Model Context Protocol (MCP)**: Embedded MCP server allowing Claude Code, Cursor, and other AI agents to inspect and create Orbit tasks directly.
 
 ---
 

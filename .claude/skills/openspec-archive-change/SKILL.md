@@ -86,13 +86,12 @@ In both branches, never create the root as a side effect: do not run `openspec i
 
 3. **Check task completion status**
 
-   Read the tasks file (typically `tasks.md`) to check for incomplete tasks.
+   Read the tasks tracking file (or `openspec status --json` tasks status) to check for incomplete tasks.
 
-   A checkbox is complete when its only content is `x` or `X`; spacing inside
+   For schemas using Markdown checkboxes, a checkbox is complete when its only content is `x` or `X`; spacing inside
    the brackets does not matter, so `- [ x]` counts as complete too. Every
    other marker is incomplete - `- [ ]`, an empty `- []`, and markers OpenSpec
-   assigns no meaning to such as `- [~]` or `- [-]`. Never read an unfamiliar
-   marker as complete.
+   assigns no meaning to such as `- [~]` or `- [-]`. For custom schemas, rely on the schema's task completion state.
 
    **If incomplete tasks found:**
    - Display warning showing count of incomplete tasks

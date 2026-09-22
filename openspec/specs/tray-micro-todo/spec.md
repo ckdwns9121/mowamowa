@@ -46,6 +46,14 @@ The system SHALL apply a visual strikethrough to the completed task title and di
 - **WHEN** the user clicks the completion action for a task
 - **THEN** the task status transitions to completed, its title is rendered with a strikethrough style, and it appears in the DONE section.
 
+### Requirement: Restore completed task to TODO
+The system SHALL allow users to uncheck a completed task to return it to the waiting (TODO) list.
+The system SHALL remove the strikethrough styling upon restoration and render the task in the TODO section without altering the active NOW slot.
+
+#### Scenario: Restore completed task
+- **WHEN** the user clicks the completion checkmark on an item in the DONE section
+- **THEN** the task status transitions to 'todo', its title is rendered without strikethrough in the TODO list, and the active NOW slot remains unaffected.
+
 ### Requirement: Standalone tray window operation
 The system SHALL operate as a menu-bar accessory service where the tray window is the primary interface and does not require opening a main desktop window.
 
