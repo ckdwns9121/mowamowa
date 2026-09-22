@@ -315,9 +315,33 @@ fn hide_tray_window(app: AppHandle) {
     }
 }
 
+#[cfg(target_os = "macos")]
+fn configure_pet_window_for_all_spaces(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
+
+    let _ = window.set_visible_on_all_workspaces(true);
+
+    if let Ok(ns_window_ptr) = window.ns_window() {
+        unsafe {
+            let ns_window: &NSWindow = &*ns_window_ptr.cast();
+            let mut behavior = ns_window.collectionBehavior();
+            behavior |= NSWindowCollectionBehavior::CanJoinAllSpaces
+                | NSWindowCollectionBehavior::FullScreenAuxiliary
+                | NSWindowCollectionBehavior::Stationary;
+            ns_window.setCollectionBehavior(behavior);
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn configure_pet_window_for_all_spaces(window: &tauri::WebviewWindow) {
+    let _ = window.set_visible_on_all_workspaces(true);
+}
+
 #[tauri::command]
 fn show_pet_window(app: AppHandle) {
     if let Some(window) = app.get_webview_window("pet") {
+        configure_pet_window_for_all_spaces(&window);
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -338,6 +362,7 @@ fn toggle_pet_window(app: AppHandle) -> Result<bool, String> {
             let _ = window.hide();
             Ok(false)
         } else {
+            configure_pet_window_for_all_spaces(&window);
             let _ = window.show();
             let _ = window.set_focus();
             Ok(true)
@@ -582,6 +607,10 @@ pub fn run() {
                         let _ = window_to_hide.hide();
                     }
                 });
+            }
+
+            if let Some(pet_window) = app.get_webview_window("pet") {
+                configure_pet_window_for_all_spaces(&pet_window);
             }
 
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
