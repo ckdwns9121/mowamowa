@@ -6,143 +6,92 @@
   user-select: none;
   pointer-events: none;
 
-  .pet-mascot-svg {
-    overflow: visible;
+  .pet-rakko-avatar-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .pet-shadow {
-    fill: rgba(0, 0, 0, 0.22);
-    transition: transform 0.3s ease;
+  .pet-rakko-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+    transition: transform 0.25s ease, filter 0.25s ease;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
-  /* Tail subtle flick */
-  .rakko-tail {
-    transform-origin: 16px 36px;
-    animation: tail-wag 3s ease-in-out infinite alternate;
-  }
-
-  /* Cape flutter */
-  .rakko-cape {
-    transform-origin: 24px 26px;
-    animation: cape-flutter 2.5s ease-in-out infinite alternate;
-  }
-
-  /* Idle Mode: Dignified bouncing & calm presence */
-  &.pet-mood-idle .pet-body-group {
+  /* Idle Mode: Dignified subtle bounce */
+  &.pet-mood-idle .pet-rakko-img {
     animation: rakko-idle-bounce 2.6s ease-in-out infinite alternate;
-    transform-origin: 24px 42px;
   }
 
-  /* Focus Mode: Intense warrior focus & sword training */
+  /* Focus Mode: Intense warrior focus */
   &.pet-mood-focus {
-    .pet-body-group {
-      transform-origin: 24px 42px;
-    }
-
     &.is-running {
-      .pet-body-group {
-        animation: rakko-focus-pulse 1.8s ease-in-out infinite alternate;
-      }
-      .rakko-sword {
-        animation: sword-gleam-sway 1.4s ease-in-out infinite alternate;
-        transform-origin: 34px 28px;
-      }
-      .sword-gem {
-        animation: gem-glow 1.2s infinite ease-in-out;
-      }
-      .sword-blade {
-        animation: blade-shine 2s infinite ease-in-out;
+      .pet-rakko-img {
+        animation: rakko-focus-pulse 1.4s ease-in-out infinite alternate;
+        filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
       }
     }
   }
 
-  /* Break Mode: Relishing sweet strawberry parfait */
+  /* Break Mode: Sweet relaxing vibe */
   &.pet-mood-break {
-    .pet-body-group {
-      animation: rakko-parfait-happy 2.8s ease-in-out infinite alternate;
-      transform-origin: 24px 42px;
+    .pet-rakko-img {
+      animation: rakko-parfait-happy 2.4s ease-in-out infinite alternate;
     }
-    .rakko-parfait {
-      animation: parfait-bob 2s ease-in-out infinite alternate;
-      transform-origin: 24px 34px;
-    }
-    .rakko-heart {
-      animation: heart-float 2.2s infinite ease-out;
-    }
+  }
+
+  /* Mood accessory floating badge (strawberry / sword) */
+  .rakko-mood-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -4px;
+    font-size: 14px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+    user-select: none;
+    z-index: 5;
+  }
+
+  .rakko-badge-break {
+    animation: berry-bounce 1.6s ease-in-out infinite alternate;
+  }
+
+  .rakko-badge-focus {
+    animation: sword-spin-pulse 1.2s ease-in-out infinite alternate;
   }
 }
 
 @keyframes rakko-idle-bounce {
   0% { transform: translateY(0) scale(1, 1); }
-  50% { transform: translateY(-1.5px) scale(0.99, 1.01); }
+  50% { transform: translateY(-1.5px) scale(0.98, 1.02); }
   100% { transform: translateY(0) scale(1, 1); }
 }
 
 @keyframes rakko-focus-pulse {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-1px); }
-}
-
-@keyframes sword-gleam-sway {
-  0% { transform: rotate(0deg); }
-  50% { transform: rotate(-3deg) translateY(-0.5px); }
-  100% { transform: rotate(1deg); }
-}
-
-@keyframes gem-glow {
-  0%, 100% {
-    fill: #38BDF8;
-    filter: drop-shadow(0 0 1px #0284C7);
-  }
-  50% {
-    fill: #7DD3FC;
-    filter: drop-shadow(0 0 4px #38BDF8);
-  }
-}
-
-@keyframes blade-shine {
-  0%, 100% {
-    filter: drop-shadow(0 0 0px transparent);
-  }
-  50% {
-    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
-  }
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
 }
 
 @keyframes rakko-parfait-happy {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1.2px) scale(1.01, 0.99); }
+  50% { transform: translateY(-1.2px) scale(1.02, 0.98); }
 }
 
-@keyframes parfait-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-0.8px); }
+@keyframes berry-bounce {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-3px) scale(1.15); }
 }
 
-@keyframes heart-float {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.6);
-  }
-  25% {
-    opacity: 0.9;
-  }
-  80% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(3px, -10px) scale(1.05);
-  }
+@keyframes sword-spin-pulse {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.2) rotate(10deg); }
 }
 
-@keyframes tail-wag {
-  0% { transform: rotate(-20deg); }
-  100% { transform: rotate(-10deg); }
-}
-
-@keyframes cape-flutter {
-  0% { transform: scaleX(1); }
-  100% { transform: scaleX(1.03) translateY(-0.5px); }
-}
 
