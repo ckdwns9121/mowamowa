@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import rakkoSvg from "./assets/rakko.svg";
+import rakkoBackSvg from "./assets/rakko-back.svg";
 
 export type PetMood = "focus" | "break" | "idle" | "done";
 
@@ -11,8 +12,8 @@ interface PetMascotProps {
 
 /**
  * 먼작귀(ちいかわ) 랭커 1위 랏코(ラッコ) 선생 마스코트
- * - 원작 공식 일러스트 기반
- * - 점프 + 공중 2회전(720도) + 대검 발도 발도술 액션
+ * - 원작 공식 일러스트 앞모습 & 뒷모습(망토) 기반
+ * - 점프 + 3D Y축 회오리 스핀(Cyclone Whirlwind 1080°) + 회전 발도술
  * - 집중 모드: 발도된 대검 파지 + 검기 오라
  * - 휴식 모드: 딸기 디저트 힐링
  */
@@ -21,17 +22,17 @@ export const PetMascot: React.FC<PetMascotProps> = ({
   isRunning,
   size = 64,
 }) => {
-  const [isJumpSpinning, setIsJumpSpinning] = useState(false);
+  const [isWhirlwindSpinning, setIsWhirlwindSpinning] = useState(false);
   const [showSlash, setShowSlash] = useState(false);
   const [showShockwave, setShowShockwave] = useState(false);
   const prevRunningRef = useRef(isRunning);
 
-  const triggerEpicJumpSlash = useCallback(() => {
-    setIsJumpSpinning(true);
+  const triggerEpicWhirlwindSlash = useCallback(() => {
+    setIsWhirlwindSpinning(true);
     setShowSlash(false);
     setShowShockwave(false);
 
-    // 공중 2회전 정점(약 550ms): 대검 발도 및 검기 슬래시 아크 번쩍임
+    // 회오리 스핀 정점(약 550ms): 대검 발도 및 360도 원형 검기 링 번쩍임
     const slashTimer = setTimeout(() => {
       setShowSlash(true);
     }, 550);
@@ -43,7 +44,7 @@ export const PetMascot: React.FC<PetMascotProps> = ({
 
     // 액션 시퀀스 완료 후 전투 자세로 전환
     const endTimer = setTimeout(() => {
-      setIsJumpSpinning(false);
+      setIsWhirlwindSpinning(false);
       setShowSlash(false);
       setShowShockwave(false);
     }, 1300);
@@ -55,47 +56,61 @@ export const PetMascot: React.FC<PetMascotProps> = ({
     };
   }, []);
 
-  // 타이머 집중 시작 시 폭풍 점프 2회전 발도술 발동
+  // 타이머 집중 시작 시 회오리 스핀 발도술 발동
   useEffect(() => {
     if (isRunning && !prevRunningRef.current && mood === "focus") {
-      triggerEpicJumpSlash();
+      triggerEpicWhirlwindSlash();
     }
     prevRunningRef.current = isRunning;
-  }, [isRunning, mood, triggerEpicJumpSlash]);
+  }, [isRunning, mood, triggerEpicWhirlwindSlash]);
 
-  const isSwordActive = (mood === "focus" && isRunning) || isJumpSpinning;
+  const isSwordActive = (mood === "focus" && isRunning) || isWhirlwindSpinning;
 
   return (
     <div
       className={`pet-mascot-container pet-mood-${mood} ${isRunning ? "is-running" : "is-paused"} ${
-        isJumpSpinning ? "is-jump-spinning" : ""
+        isWhirlwindSpinning ? "is-jump-spinning" : ""
       }`}
       style={{ width: size, height: size }}
       aria-hidden="true"
-      onClick={triggerEpicJumpSlash}
+      onClick={triggerEpicWhirlwindSlash}
     >
       {/* 바닥 착지 시 충격파 이펙트 */}
       {showShockwave && <div className="rakko-landing-shockwave" />}
 
       <div
-        className={`pet-rakko-avatar-wrapper ${isJumpSpinning ? "anim-jump-flip" : ""}`}
+        className={`pet-rakko-avatar-wrapper ${isWhirlwindSpinning ? "anim-whirlwind-jump" : ""}`}
         style={{ width: size, height: size }}
       >
-        {/* 공중 2회전 정점 대검 발도 광선 (Slash Beam Arc) */}
+        {/* 회오리바람 토네이도 볼텍스 이펙트 */}
+        {isWhirlwindSpinning && (
+          <div className="rakko-cyclone-vortex">
+            <div className="cyclone-wind-ring ring-1" />
+            <div className="cyclone-wind-ring ring-2" />
+            <div className="cyclone-wind-ring ring-3" />
+          </div>
+        )}
+
+        {/* 회오리 360도 원형 참격 검기 링 (Whirlwind Slash Ring) */}
         {showSlash && (
           <div className="rakko-slash-effect">
-            <svg className="slash-arc-svg" viewBox="0 0 100 100">
-              <path
-                d="M 15 85 Q 50 15 90 25"
+            <svg className="slash-arc-svg whirlwind-slash-svg" viewBox="0 0 100 100">
+              <ellipse
+                cx="50"
+                cy="50"
+                rx="44"
+                ry="22"
                 fill="none"
-                stroke="url(#slash-gradient)"
+                stroke="url(#whirlwind-slash-gradient)"
                 strokeWidth="7"
                 strokeLinecap="round"
+                transform="rotate(-15 50 50)"
               />
               <defs>
-                <linearGradient id="slash-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                <linearGradient id="whirlwind-slash-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="rgba(56, 189, 248, 0)" />
-                  <stop offset="50%" stopColor="#ffffff" />
+                  <stop offset="35%" stopColor="#38bdf8" />
+                  <stop offset="70%" stopColor="#ffffff" />
                   <stop offset="100%" stopColor="#34d399" />
                 </linearGradient>
               </defs>
@@ -105,13 +120,28 @@ export const PetMascot: React.FC<PetMascotProps> = ({
           </div>
         )}
 
-        {/* 랏코 공식 원작 캐릭터 이미지 */}
-        <img
-          src={rakkoSvg}
-          alt="먼작귀 랏코 선생"
-          className={`pet-rakko-img ${isSwordActive ? "rakko-warrior-aura" : ""}`}
-          draggable={false}
-        />
+        {/* 3D Y축 회오리 회전 컨테이너 (앞모습/뒷모습 3D 공간 교차) */}
+        <div className={`rakko-3d-flipper ${isWhirlwindSpinning ? "spinning-flipper" : ""}`}>
+          {/* 앞면: 공식 랏코 원작 앞모습 */}
+          <div className="rakko-card rakko-card-front">
+            <img
+              src={rakkoSvg}
+              alt="먼작귀 랏코 선생 앞모습"
+              className={`pet-rakko-img ${isSwordActive ? "rakko-warrior-aura" : ""}`}
+              draggable={false}
+            />
+          </div>
+
+          {/* 뒷면: 공식 랏코 망토 뒷모습 */}
+          <div className="rakko-card rakko-card-back">
+            <img
+              src={rakkoBackSvg}
+              alt="먼작귀 랏코 선생 뒷모습"
+              className={`pet-rakko-img ${isSwordActive ? "rakko-warrior-aura" : ""}`}
+              draggable={false}
+            />
+          </div>
+        </div>
 
         {/* 발도된 대검 (집중 모드 시 손에 파지) */}
         {isSwordActive && (
