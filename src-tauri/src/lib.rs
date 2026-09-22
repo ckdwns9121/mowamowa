@@ -317,7 +317,7 @@ fn hide_tray_window(app: AppHandle) {
 
 #[cfg(target_os = "macos")]
 fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
-    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
+    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior, NSPopUpMenuWindowLevel};
 
     let _ = window.set_visible_on_all_workspaces(true);
 
@@ -329,6 +329,8 @@ fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
                 | NSWindowCollectionBehavior::FullScreenAuxiliary
                 | NSWindowCollectionBehavior::Stationary;
             ns_window.setCollectionBehavior(behavior);
+            ns_window.setLevel(NSPopUpMenuWindowLevel);
+            ns_window.orderFrontRegardless();
         }
     }
 }
