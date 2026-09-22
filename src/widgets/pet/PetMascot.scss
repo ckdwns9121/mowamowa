@@ -11,112 +11,138 @@
   }
 
   .pet-shadow {
-    fill: rgba(0, 0, 0, 0.18);
+    fill: rgba(0, 0, 0, 0.22);
     transition: transform 0.3s ease;
   }
 
-  /* Idle Bouncing */
-  &.pet-mood-idle .pet-body-group {
-    animation: pet-bounce 2.4s ease-in-out infinite alternate;
-    transform-origin: 24px 40px;
+  /* Tail subtle flick */
+  .rakko-tail {
+    transform-origin: 16px 36px;
+    animation: tail-wag 3s ease-in-out infinite alternate;
   }
 
-  /* Focus mode animations */
+  /* Cape flutter */
+  .rakko-cape {
+    transform-origin: 24px 26px;
+    animation: cape-flutter 2.5s ease-in-out infinite alternate;
+  }
+
+  /* Idle Mode: Dignified bouncing & calm presence */
+  &.pet-mood-idle .pet-body-group {
+    animation: rakko-idle-bounce 2.6s ease-in-out infinite alternate;
+    transform-origin: 24px 42px;
+  }
+
+  /* Focus Mode: Intense warrior focus & sword training */
   &.pet-mood-focus {
+    .pet-body-group {
+      transform-origin: 24px 42px;
+    }
+
     &.is-running {
       .pet-body-group {
-        animation: pet-focus-pulse 2s ease-in-out infinite alternate;
-        transform-origin: 24px 40px;
+        animation: rakko-focus-pulse 1.8s ease-in-out infinite alternate;
       }
-      .paw-left {
-        animation: pet-typing-left 0.28s infinite alternate ease-in-out;
+      .rakko-sword {
+        animation: sword-gleam-sway 1.4s ease-in-out infinite alternate;
+        transform-origin: 34px 28px;
       }
-      .paw-right {
-        animation: pet-typing-right 0.28s infinite alternate ease-in-out 0.14s;
+      .sword-gem {
+        animation: gem-glow 1.2s infinite ease-in-out;
       }
-      .pet-bulb {
-        animation: bulb-pulse 1.2s infinite ease-in-out;
-      }
-      .code-line-1 {
-        animation: code-pulse 1s infinite alternate;
-      }
-      .code-line-2 {
-        animation: code-pulse 1.2s infinite alternate 0.3s;
+      .sword-blade {
+        animation: blade-shine 2s infinite ease-in-out;
       }
     }
   }
 
-  /* Break sleeping mode animations */
+  /* Break Mode: Relishing sweet strawberry parfait */
   &.pet-mood-break {
-    .pet-sleeping {
-      animation: pet-breathe 3s ease-in-out infinite;
-      transform-origin: 24px 38px;
+    .pet-body-group {
+      animation: rakko-parfait-happy 2.8s ease-in-out infinite alternate;
+      transform-origin: 24px 42px;
     }
-    .zzz-1 {
-      animation: zzz-float 2.4s infinite ease-in;
+    .rakko-parfait {
+      animation: parfait-bob 2s ease-in-out infinite alternate;
+      transform-origin: 24px 34px;
     }
-    .zzz-2 {
-      animation: zzz-float 2.4s infinite ease-in 1.2s;
+    .rakko-heart {
+      animation: heart-float 2.2s infinite ease-out;
     }
   }
 }
 
-@keyframes pet-bounce {
+@keyframes rakko-idle-bounce {
   0% { transform: translateY(0) scale(1, 1); }
-  50% { transform: translateY(-2px) scale(0.98, 1.02); }
+  50% { transform: translateY(-1.5px) scale(0.99, 1.01); }
   100% { transform: translateY(0) scale(1, 1); }
 }
 
-@keyframes pet-focus-pulse {
+@keyframes rakko-focus-pulse {
   0% { transform: translateY(0); }
   100% { transform: translateY(-1px); }
 }
 
-@keyframes pet-typing-left {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-2px); }
+@keyframes sword-gleam-sway {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(-3deg) translateY(-0.5px); }
+  100% { transform: rotate(1deg); }
 }
 
-@keyframes pet-typing-right {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-2px); }
+@keyframes gem-glow {
+  0%, 100% {
+    fill: #38BDF8;
+    filter: drop-shadow(0 0 1px #0284C7);
+  }
+  50% {
+    fill: #7DD3FC;
+    filter: drop-shadow(0 0 4px #38BDF8);
+  }
 }
 
-@keyframes bulb-pulse {
-  0%, 100% { opacity: 0.6; fill: #FF006E; filter: drop-shadow(0 0 1px #FF006E); }
-  50% { opacity: 1; fill: #FF3385; filter: drop-shadow(0 0 4px #FF006E); }
+@keyframes blade-shine {
+  0%, 100% {
+    filter: drop-shadow(0 0 0px transparent);
+  }
+  50% {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
+  }
 }
 
-@keyframes code-pulse {
-  0% { opacity: 0.4; }
-  100% { opacity: 1; }
+@keyframes rakko-parfait-happy {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.2px) scale(1.01, 0.99); }
 }
 
-@keyframes pet-breathe {
-  0%, 100% { transform: scale(1, 1); }
-  50% { transform: scale(1.02, 0.98) translateY(1px); }
+@keyframes parfait-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.8px); }
 }
 
-@keyframes zzz-float {
+@keyframes heart-float {
   0% {
     opacity: 0;
     transform: translate(0, 0) scale(0.6);
   }
-  30% {
+  25% {
     opacity: 0.9;
   }
   80% {
-    opacity: 0.8;
+    opacity: 0.7;
   }
   100% {
     opacity: 0;
-    transform: translate(6px, -12px) scale(1.1);
+    transform: translate(3px, -10px) scale(1.05);
   }
 }
 
-.zzz-text {
-  font-family: monospace;
-  font-weight: 800;
-  fill: #8338EC;
-  font-size: 8px;
+@keyframes tail-wag {
+  0% { transform: rotate(-20deg); }
+  100% { transform: rotate(-10deg); }
 }
+
+@keyframes cape-flutter {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(1.03) translateY(-0.5px); }
+}
+

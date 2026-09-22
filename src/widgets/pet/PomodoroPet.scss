@@ -62,6 +62,16 @@
       color: #60a5fa;
     }
   }
+
+  &.is-running {
+    background: radial-gradient(circle at 85% 20%, #065f46 0%, #064e3b 70%, #022c22 100%);
+    border-color: rgba(52, 211, 153, 0.45);
+    box-shadow: 0 4px 18px rgba(6, 78, 59, 0.5), 0 0 10px rgba(16, 185, 129, 0.25);
+
+    .pet-timer-val {
+      color: #34d399;
+    }
+  }
 }
 
 .pet-left-avatar {
@@ -110,6 +120,33 @@
   &.badge-break {
     background: rgba(251, 133, 0, 0.2);
     color: #fcd34d;
+  }
+  &.badge-running {
+    background: rgba(16, 185, 129, 0.25);
+    color: #6ee7b7;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+  }
+}
+
+.pet-timer-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  -webkit-app-region: no-drag;
+  transition: opacity 0.15s, transform 0.12s ease;
+
+  &:hover {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+
+  &:active {
+    transform: scale(0.97);
   }
 }
 
@@ -178,3 +215,96 @@
     }
   }
 }
+
+/* Duration picker popover inside pet card */
+.pet-picker-popover {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+  animation: fadeInPop 0.15s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeInPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pet-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #a1a1aa;
+  letter-spacing: 0.02em;
+}
+
+.pet-picker-close {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+
+  &:hover {
+    color: #f4f4f5;
+  }
+}
+
+.pet-picker-chips {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.pet-chip-btn {
+  flex: 1;
+  padding: 5px 0;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #d4d4d8;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  &.is-selected {
+    background: #059669;
+    border-color: #34d399;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  }
+}
+
