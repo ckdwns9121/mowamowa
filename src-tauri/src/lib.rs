@@ -611,6 +611,7 @@ pub fn run() {
 
             if let Some(pet_window) = app.get_webview_window("pet") {
                 configure_pet_window_for_all_spaces(&pet_window);
+                let _ = pet_window.show();
             }
 
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
