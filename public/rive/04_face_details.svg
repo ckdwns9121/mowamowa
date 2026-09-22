@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+
+  <g id="Face_Details">
+    <!-- Determined Eyebrows / Furrow Lines -->
+    <g id="Eyebrows">
+      <path d="M 148,145 Q 162,150 172,146" fill="none" stroke="#231F20" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M 252,145 Q 238,150 228,146" fill="none" stroke="#231F20" stroke-width="3.2" stroke-linecap="round"/>
+      <!-- Brow concentration creases -->
+      <path d="M 188,144 Q 192,140 196,144" fill="none" stroke="#231F20" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 204,144 Q 208,140 212,144" fill="none" stroke="#231F20" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- Signature Cross Scar (Above and beside right eye) -->
+    <g id="Scar">
+      <line x1="248" y1="135" x2="256" y2="151" stroke="#231F20" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="242" y1="143" x2="262" y2="143" stroke="#231F20" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- Nose and Otter 'w' Mouth -->
+    <g id="Nose_Mouth">
+      <!-- Tiny Dot Nose -->
+      <ellipse cx="200" cy="176" rx="3.5" ry="2.5" fill="#231F20"/>
+      <!-- 'w' Shaped Mouth -->
+      <path d="M 188,185 C 190,192 198,193 200,187 C 202,193 210,192 212,185" 
+            fill="none" stroke="#231F20" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Pink Cheek Blushes (/// marks) -->
+    <g id="Blush">
+      <!-- Left Cheek -->
+      <line x1="138" y1="182" x2="142" y2="190" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="144" y1="181" x2="148" y2="189" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="150" y1="182" x2="154" y2="190" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Right Cheek -->
+      <line x1="246" y1="182" x2="250" y2="190" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="252" y1="181" x2="256" y2="189" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="258" y1="182" x2="262" y2="190" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+</svg>

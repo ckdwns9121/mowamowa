@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+
+  <g id="Eyes">
+    <!-- Left Eye (Viewer's left) -->
+    <g id="Eye_Left">
+      <ellipse cx="162" cy="165" rx="8" ry="10" fill="#231F20"/>
+      <circle cx="159" cy="161" r="3" fill="#FFFFFF"/>
+    </g>
+    <!-- Right Eye (Viewer's right) -->
+    <g id="Eye_Right">
+      <ellipse cx="238" cy="165" rx="8" ry="10" fill="#231F20"/>
+      <circle cx="235" cy="161" r="3" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+</svg>
