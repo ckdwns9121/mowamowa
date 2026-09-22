@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+
+  <g id="Greatsword">
+    <!-- Greatsword Blade (Behind back & peeking over shoulder) -->
+    <g id="Sword_Blade">
+      <path d="M 75,130 L 115,220 L 98,228 L 58,138 Z" fill="#E2E8F0" stroke="#231F20" stroke-width="3" stroke-linejoin="round"/>
+      <!-- Blade tip and fuller groove -->
+      <polygon points="58,138 75,130 68,110" fill="#CBD5E1" stroke="#231F20" stroke-width="3" stroke-linejoin="round"/>
+      <line x1="72" y1="140" x2="98" y2="210" stroke="#94A3B8" stroke-width="2"/>
+    </g>
+    <!-- Guard -->
+    <rect x="90" y="218" width="32" height="8" rx="3" fill="#F59E0B" stroke="#231F20" stroke-width="2.5" transform="rotate(25 106 222)"/>
+    <!-- Hilt / Handle -->
+    <rect x="106" y="226" width="9" height="26" rx="2" fill="#78350F" stroke="#231F20" stroke-width="2.5" transform="rotate(25 110 239)"/>
+    <!-- Pommel -->
+    <circle cx="122" cy="258" r="6" fill="#F59E0B" stroke="#231F20" stroke-width="2.5"/>
+  </g>
+
+</svg>

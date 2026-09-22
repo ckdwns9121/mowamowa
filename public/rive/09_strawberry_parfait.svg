@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+
+  <g id="Strawberry_Parfait">
+    <!-- Parfait Glass -->
+    <path d="M 235,260 L 265,260 L 258,295 L 254,310 L 262,312 L 238,312 L 246,310 L 242,295 Z" 
+          fill="#E0F2FE" fill-opacity="0.75" stroke="#0284C7" stroke-width="2" stroke-linejoin="round"/>
+    <!-- Parfait cream & syrup layers -->
+    <ellipse cx="250" cy="265" rx="14" ry="4" fill="#FFFFFF"/>
+    <ellipse cx="250" cy="275" rx="11" ry="3" fill="#FB7185"/>
+    <ellipse cx="250" cy="285" rx="9" ry="3" fill="#FEF08A"/>
+    <!-- Whipped Cream Swirl -->
+    <path d="M 240,260 Q 250,245 260,260 Q 250,252 240,260 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <!-- Fresh Strawberry on top -->
+    <path d="M 246,242 C 243,246 244,254 250,256 C 256,254 257,246 254,242 Z" fill="#EF4444" stroke="#991B1B" stroke-width="1.5"/>
+    <!-- Strawberry leaf -->
+    <polygon points="250,242 248,239 252,239" fill="#22C55E"/>
+    <!-- Tiny Spoon -->
+    <line x1="262" y1="245" x2="252" y2="285" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+</svg>
