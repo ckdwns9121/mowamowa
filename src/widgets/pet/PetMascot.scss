@@ -144,45 +144,7 @@
   }
 
   /* =========================================================
-     ⚔️ DRAWN GREATSWORD (발도된 대검)
-     ========================================================= */
-  .rakko-drawn-sword {
-    position: absolute;
-    bottom: 2px;
-    right: -10px;
-    width: 38px;
-    height: 54px;
-    z-index: 15;
-    transform: rotate(18deg);
-    transform-origin: bottom center;
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
-    pointer-events: none;
-    animation: sword-wield-idle 1.4s ease-in-out infinite alternate;
-
-    &.sword-drawing {
-      animation: sword-draw-flash 0.4s ease-out forwards;
-    }
-
-    .drawn-greatsword-svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-    }
-
-    /* Blade gleaming reflection line */
-    .sword-blade-shine {
-      position: absolute;
-      top: 6px;
-      left: 17px;
-      width: 3px;
-      height: 28px;
-      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.95), transparent);
-      animation: blade-shine-glide 1.8s ease-in-out infinite;
-    }
-  }
-
-  /* =========================================================
-     ⚡ SWORD SLASH ARC BEAM (공중 2회전 발도 검기)
+     ⚡ SWORD SLASH ARC BEAM (회오리 발도 검기)
      ========================================================= */
   .rakko-slash-effect {
     position: absolute;
@@ -237,27 +199,6 @@
     pointer-events: none;
     z-index: 5;
     animation: shockwave-ripple 0.55s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-  }
-
-  /* Mood accessory floating badges */
-  .rakko-mood-badge {
-    position: absolute;
-    bottom: 0px;
-    right: -2px;
-    font-size: 16px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-    pointer-events: none;
-    user-select: none;
-    z-index: 10;
-  }
-
-  .rakko-badge-break {
-    animation: berry-bounce 1.6s ease-in-out infinite alternate;
-  }
-
-  .rakko-badge-idle {
-    animation: idle-star-twinkle 2s ease-in-out infinite alternate;
   }
 }
 
