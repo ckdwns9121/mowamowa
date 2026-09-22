@@ -48,12 +48,12 @@
     transform-style: preserve-3d;
 
     &.rakko-card-front {
-      transform: rotateY(0deg);
+      transform: rotateY(0deg) translateZ(2px);
       z-index: 2;
     }
 
     &.rakko-card-back {
-      transform: rotateY(180deg);
+      transform: rotateY(180deg) translateZ(2px);
       z-index: 1;
     }
   }

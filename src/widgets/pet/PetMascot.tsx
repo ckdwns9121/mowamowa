@@ -132,15 +132,17 @@ export const PetMascot: React.FC<PetMascotProps> = ({
             />
           </div>
 
-          {/* 뒷면: 공식 랏코 망토 뒷모습 */}
-          <div className="rakko-card rakko-card-back">
-            <img
-              src={rakkoBackSvg}
-              alt="먼작귀 랏코 선생 뒷모습"
-              className={`pet-rakko-img ${isSwordActive ? "rakko-warrior-aura" : ""}`}
-              draggable={false}
-            />
-          </div>
+          {/* 뒷면: 회전 중에만 렌더링하여 평상시 겹침/찌꺼기 원천 차단 */}
+          {isWhirlwindSpinning && (
+            <div className="rakko-card rakko-card-back">
+              <img
+                src={rakkoBackSvg}
+                alt="먼작귀 랏코 선생 뒷모습"
+                className={`pet-rakko-img ${isSwordActive ? "rakko-warrior-aura" : ""}`}
+                draggable={false}
+              />
+            </div>
+          )}
         </div>
 
         {/* 발도된 대검 (집중 모드 시 손에 파지) */}
