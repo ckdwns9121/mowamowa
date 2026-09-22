@@ -105,7 +105,7 @@ export async function createWorkItem(input: CreateWorkItemInput): Promise<string
   }
 
   const [{ next_position }] = await database.select<Array<{ next_position: number }>>(
-    "SELECT COALESCE(MAX(position), -1) + 1 AS next_position FROM work_items WHERE status = $1",
+    "SELECT COALESCE(MIN(position), 0) - 1 AS next_position FROM work_items WHERE status = $1",
     [input.status],
   );
 
