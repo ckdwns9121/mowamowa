@@ -199,7 +199,7 @@ export default function PomodoroPet() {
           onClick={toggleRun}
           title={isRunning ? "클릭하여 일시정지" : "클릭하여 집중 시작"}
         >
-          <PetMascot mood={mood} isRunning={isRunning} size={44} />
+          <PetMascot mood={mood} isRunning={isRunning} size={64} />
         </div>
 
         {/* Status and Timer column */}
