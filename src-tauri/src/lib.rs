@@ -316,7 +316,7 @@ fn hide_tray_window(app: AppHandle) {
 }
 
 #[cfg(target_os = "macos")]
-fn configure_pet_window_for_all_spaces(window: &tauri::WebviewWindow) {
+fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
     use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
 
     let _ = window.set_visible_on_all_workspaces(true);
@@ -334,14 +334,14 @@ fn configure_pet_window_for_all_spaces(window: &tauri::WebviewWindow) {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn configure_pet_window_for_all_spaces(window: &tauri::WebviewWindow) {
+fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
     let _ = window.set_visible_on_all_workspaces(true);
 }
 
 #[tauri::command]
 fn show_pet_window(app: AppHandle) {
     if let Some(window) = app.get_webview_window("pet") {
-        configure_pet_window_for_all_spaces(&window);
+        configure_window_for_all_spaces(&window);
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -362,7 +362,7 @@ fn toggle_pet_window(app: AppHandle) -> Result<bool, String> {
             let _ = window.hide();
             Ok(false)
         } else {
-            configure_pet_window_for_all_spaces(&window);
+            configure_window_for_all_spaces(&window);
             let _ = window.show();
             let _ = window.set_focus();
             Ok(true)
@@ -601,6 +601,7 @@ pub fn run() {
         .setup(|app| {
             let _ = APP_HANDLE.set(app.handle().clone());
             if let Some(window) = app.get_webview_window("tray") {
+                configure_window_for_all_spaces(&window);
                 let window_to_hide = window.clone();
                 window.on_window_event(move |event| {
                     if matches!(event, WindowEvent::Focused(false)) {
@@ -610,7 +611,7 @@ pub fn run() {
             }
 
             if let Some(pet_window) = app.get_webview_window("pet") {
-                configure_pet_window_for_all_spaces(&pet_window);
+                configure_window_for_all_spaces(&pet_window);
                 let _ = pet_window.show();
             }
 
@@ -634,6 +635,7 @@ pub fn run() {
                             if window.is_visible().unwrap_or(false) {
                                 let _ = window.hide();
                             } else {
+                                configure_window_for_all_spaces(&window);
                                 let _ = window.move_window_constrained(Position::TrayCenter);
                                 let _ = window.show();
                                 let _ = window.set_focus();
