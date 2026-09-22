@@ -4,13 +4,15 @@
   justify-content: center;
   position: relative;
   user-select: none;
-  pointer-events: none;
+  cursor: pointer;
 
   .pet-rakko-avatar-wrapper {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    transform-origin: center bottom;
+    transition: transform 0.2s ease;
   }
 
   .pet-rakko-img {
@@ -21,31 +23,138 @@
     transition: transform 0.25s ease, filter 0.25s ease;
     user-select: none;
     -webkit-user-drag: none;
+
+    &.rakko-warrior-aura {
+      filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.8)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    }
   }
 
   /* Idle Mode: Dignified subtle bounce */
-  &.pet-mood-idle .pet-rakko-img {
+  &.pet-mood-idle:not(.is-jump-spinning) .pet-rakko-img {
     animation: rakko-idle-bounce 2.6s ease-in-out infinite alternate;
   }
 
-  /* Focus Mode: Intense warrior focus */
+  /* Focus Mode: Intense warrior battle pulse */
   &.pet-mood-focus {
-    &.is-running {
+    &.is-running:not(.is-jump-spinning) {
       .pet-rakko-img {
         animation: rakko-focus-pulse 1.4s ease-in-out infinite alternate;
-        filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
       }
     }
   }
 
   /* Break Mode: Sweet relaxing vibe */
-  &.pet-mood-break {
+  &.pet-mood-break:not(.is-jump-spinning) {
     .pet-rakko-img {
       animation: rakko-parfait-happy 2.4s ease-in-out infinite alternate;
     }
   }
 
-  /* Mood accessory floating badge (strawberry / sword) */
+  /* =========================================================
+     🔥 EPIC ACTION: JUMP + DOUBLE 720-DEGREE FLIP ANIMATION
+     ========================================================= */
+  .anim-jump-flip {
+    animation: rakko-super-jump-720 1.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    z-index: 20;
+  }
+
+  /* =========================================================
+     ⚔️ DRAWN GREATSWORD (발도된 대검)
+     ========================================================= */
+  .rakko-drawn-sword {
+    position: absolute;
+    bottom: 2px;
+    right: -10px;
+    width: 38px;
+    height: 54px;
+    z-index: 15;
+    transform: rotate(18deg);
+    transform-origin: bottom center;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
+    pointer-events: none;
+    animation: sword-wield-idle 1.4s ease-in-out infinite alternate;
+
+    &.sword-drawing {
+      animation: sword-draw-flash 0.4s ease-out forwards;
+    }
+
+    .drawn-greatsword-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Blade gleaming reflection line */
+    .sword-blade-shine {
+      position: absolute;
+      top: 6px;
+      left: 17px;
+      width: 3px;
+      height: 28px;
+      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.95), transparent);
+      animation: blade-shine-glide 1.8s ease-in-out infinite;
+    }
+  }
+
+  /* =========================================================
+     ⚡ SWORD SLASH ARC BEAM (공중 2회전 발도 검기)
+     ========================================================= */
+  .rakko-slash-effect {
+    position: absolute;
+    top: -24px;
+    left: -18px;
+    width: 95px;
+    height: 95px;
+    pointer-events: none;
+    z-index: 25;
+    animation: slash-fade-out 0.55s ease-out forwards;
+
+    .slash-arc-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.95)) drop-shadow(0 0 4px #ffffff);
+    }
+
+    .slash-sparkle-1 {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      color: #38bdf8;
+      font-size: 20px;
+      animation: sparkle-pop 0.45s ease-out forwards;
+      filter: drop-shadow(0 0 6px #38bdf8);
+    }
+
+    .slash-sparkle-2 {
+      position: absolute;
+      bottom: 25px;
+      left: 6px;
+      font-size: 16px;
+      animation: sparkle-pop 0.5s ease-out 0.05s forwards;
+      filter: drop-shadow(0 0 6px #34d399);
+    }
+  }
+
+  /* =========================================================
+     💥 LANDING SHOCKWAVE (히어로 랜딩 바닥 충격파)
+     ========================================================= */
+  .rakko-landing-shockwave {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(52, 211, 153, 0.85);
+    background: radial-gradient(ellipse at center, rgba(52, 211, 153, 0.35) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 5;
+    animation: shockwave-ripple 0.55s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  }
+
+  /* Mood accessory floating badges */
   .rakko-mood-badge {
     position: absolute;
     bottom: 0px;
@@ -55,18 +164,147 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
     pointer-events: none;
     user-select: none;
-    z-index: 5;
+    z-index: 10;
   }
 
   .rakko-badge-break {
     animation: berry-bounce 1.6s ease-in-out infinite alternate;
   }
 
-  .rakko-badge-focus {
-    animation: sword-spin-pulse 1.2s ease-in-out infinite alternate;
+  .rakko-badge-idle {
+    animation: idle-star-twinkle 2s ease-in-out infinite alternate;
   }
 }
 
+/* =========================================================
+   KEYFRAME ANIMATIONS
+   ========================================================= */
+
+/* 점프 + 공중 2회전(720도) + 히어로 랜딩 */
+@keyframes rakko-super-jump-720 {
+  0% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+  }
+  10% {
+    /* 바닥을 차기 위한 웅크리기(Anticipation) */
+    transform: translateY(4px) scale(1.16, 0.82) rotate(-6deg);
+  }
+  24% {
+    /* 수직 폭풍 점프 이륙 */
+    transform: translateY(-28px) scale(0.9, 1.15) rotate(-110deg);
+  }
+  44% {
+    /* 공중 1회전 완료 (-360도) */
+    transform: translateY(-38px) scale(1, 1) rotate(-360deg);
+  }
+  64% {
+    /* 공중 2회전 정점 도달 (-720도) */
+    transform: translateY(-32px) scale(1.05, 1.05) rotate(-720deg);
+  }
+  74% {
+    /* 정점에서 대검 발도 모션 정지 */
+    transform: translateY(-26px) scale(1.12, 0.94) rotate(-720deg);
+  }
+  86% {
+    /* 바닥 쾅! 히어로 랜딩 충격 */
+    transform: translateY(3px) scale(1.22, 0.78) rotate(-720deg);
+  }
+  93% {
+    /* 탄력적 리바운드 반동 */
+    transform: translateY(-3px) scale(0.96, 1.04) rotate(-720deg);
+  }
+  100% {
+    /* 늠름한 전사 전투 자세 복귀 */
+    transform: translateY(0) scale(1, 1) rotate(-720deg);
+  }
+}
+
+/* 검기 슬래시 페이드 */
+@keyframes slash-fade-out {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-15deg);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.15) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25) rotate(15deg);
+  }
+}
+
+/* 대검 발도 시 반짝임 */
+@keyframes sword-draw-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-30deg) translate(-10px, 15px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.25) rotate(22deg) translate(2px, -3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(18deg) translate(0, 0);
+  }
+}
+
+/* 대검 파지 중 전투 호흡 */
+@keyframes sword-wield-idle {
+  0% {
+    transform: rotate(16deg) translateY(0);
+  }
+  100% {
+    transform: rotate(20deg) translateY(-2px);
+  }
+}
+
+/* 칼날 빛줄기 활공 */
+@keyframes blade-shine-glide {
+  0%, 20% {
+    top: 40px;
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  80%, 100% {
+    top: 6px;
+    opacity: 0;
+  }
+}
+
+/* 바닥 충격파 퍼짐 */
+@keyframes shockwave-ripple {
+  0% {
+    transform: translateX(-50%) scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.85);
+    opacity: 0;
+  }
+}
+
+/* 불꽃 파티클 팝 */
+@keyframes sparkle-pop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.4) rotate(45deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(90deg);
+    opacity: 0;
+  }
+}
+
+/* 대기 및 기본 애니메이션 */
 @keyframes rakko-idle-bounce {
   0% { transform: translateY(0) scale(1, 1); }
   50% { transform: translateY(-1.5px) scale(0.98, 1.02); }
@@ -89,9 +327,7 @@
   100% { transform: translateY(-3px) scale(1.15); }
 }
 
-@keyframes sword-spin-pulse {
-  0% { transform: scale(1) rotate(0deg); }
-  100% { transform: scale(1.2) rotate(10deg); }
+@keyframes idle-star-twinkle {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+  100% { transform: scale(1.2) rotate(15deg); opacity: 1; }
 }
-
-
