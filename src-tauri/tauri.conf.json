@@ -55,7 +55,7 @@
         "minHeight": 108,
         "maxWidth": 240,
         "maxHeight": 108,
-        "visible": false,
+        "visible": true,
         "decorations": false,
         "transparent": true,
         "resizable": false,
