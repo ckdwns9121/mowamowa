@@ -1,3 +1,19 @@
+html.window-tray,
+body.window-tray {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  background: transparent !important;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
 .tray-window-container {
   width: 100vw;
   height: 100vh;
@@ -11,8 +27,15 @@
   align-items: center;
   user-select: none;
   overflow: hidden;
+  scrollbar-width: none;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Geist", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
 }
 
 /* Top menu notch arrow matching macOS popovers */
@@ -242,6 +265,25 @@
   flex: 1;
   overflow-y: auto;
   padding: 10px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.32);
+    }
+  }
 }
 
 .tray-task-list {
