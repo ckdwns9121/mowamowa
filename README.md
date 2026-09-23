@@ -32,7 +32,7 @@ Quickly offload tasks in one line, eliminate priority decision fatigue, and lock
 ### 🦦 Rakko Pomodoro Floating Pet Companion
 * **Always on Screen**: Floats unobtrusively on all macOS virtual spaces (Spaces) without interrupting your editor or terminal.
 * **Animated Interactions**: Reacts dynamically to your focus states and timer progress with sword slashes, 1080° cyclone spins, and idle animations.
-* **1-Click Toggle**: Summon or hide Rakko instantly via tray button or shortcut.
+* **1-Click Toggle**: Summon or hide Rakko instantly via the tray button.
 
 ### ⚡️ Tray Micro To-Do (Menu Bar Only)
 * **Accessory Mode**: Runs quietly in the macOS menu bar—no bulky desktop window. Opens in 0.2 seconds and dismisses with `Esc` or an outside click.
@@ -44,6 +44,11 @@ Quickly offload tasks in one line, eliminate priority decision fatigue, and lock
   * `DONE`: Completed tasks remain visible with a strikethrough (`~~`) in the compact bottom section, giving a satisfying feeling of accomplishment.
 * **Undo Completion**: Easily uncheck to restore tasks if marked by mistake.
 
+### Jira & PR reviews
+* Three compact tabs: tasks, assigned Jira tickets, and GitHub review requests. Jira and PR status badges sit beside the ticket number; tasks stay uncluttered.
+* Jira connection settings live in the Jira tab. PR reviews use the active GitHub CLI account, without scanning AI sessions or local repositories.
+* No separate main window, AI chat/session UI, or Google Calendar integration. Right-click the tray icon to quit.
+
 ### 🔌 Background Intelligence & MCP Support
 * **Local-First Architecture**: All your work items remain on your machine in local SQLite (`tauri-plugin-sql`).
 * **Model Context Protocol (MCP)**: Embedded MCP server allowing Claude Code, Cursor, and other AI agents to inspect and create Orbit tasks directly.
@@ -53,7 +58,7 @@ Quickly offload tasks in one line, eliminate priority decision fatigue, and lock
 ## Workflow
 
 ```text
-1. Click menu bar icon (or global shortcut)
+1. Click menu bar icon
         ↓
 2. Type task title and press [Enter] (immediately prepended to list)
         ↓

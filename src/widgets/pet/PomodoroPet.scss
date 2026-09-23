@@ -1,3 +1,5 @@
+html.window-pet, html.window-pet body, html.window-pet #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+
 .pet-window-shell {
   width: 100vw;
   height: 100vh;
@@ -26,11 +28,11 @@
   border-radius: 18px;
   background: #18181b;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
   color: #f4f4f5;
   box-sizing: border-box;
   cursor: grab;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
+  transition: border-color 0.2s, transform 0.15s ease;
 
   &:active {
     cursor: grabbing;
@@ -38,7 +40,6 @@
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.28);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
 
     .pet-hover-controls {
       opacity: 1;
@@ -66,7 +67,6 @@
   &.is-running {
     background: radial-gradient(circle at 85% 20%, #065f46 0%, #064e3b 70%, #022c22 100%);
     border-color: rgba(52, 211, 153, 0.45);
-    box-shadow: 0 4px 18px rgba(6, 78, 59, 0.5), 0 0 10px rgba(16, 185, 129, 0.25);
 
     .pet-timer-val {
       color: #34d399;
@@ -172,6 +172,7 @@
 /* Hover mini control toolbar */
 .pet-hover-controls {
   position: absolute;
+  z-index: 10;
   top: 4px;
   right: 6px;
   display: flex;
@@ -232,7 +233,7 @@
   -webkit-app-region: no-drag;
   animation: fadeInPop 0.15s ease-out;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 @keyframes fadeInPop {

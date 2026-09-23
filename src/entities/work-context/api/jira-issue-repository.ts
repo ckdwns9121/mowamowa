@@ -70,7 +70,7 @@ export async function refreshAssignedJiraIssues(options: { force?: boolean } = {
 async function performRefresh(): Promise<AssignedJiraIssuesResult> {
   const settings = await getAppSettings();
   if (!settings.jira_url || !settings.jira_email) {
-    throw new Error("Settings에서 Jira 사이트 URL과 계정 이메일을 설정해주세요.");
+    throw new Error("Jira 탭의 연결 설정에서 사이트 URL과 계정 이메일을 입력해주세요.");
   }
   const result = await invoke<AssignedJiraIssuesResult>("fetch_assigned_jira_issues", {
     jiraUrl: settings.jira_url,

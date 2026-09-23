@@ -27,13 +27,21 @@ import { notifyDueWorkItems } from "../../features/tasks/task-reminders";
 import { notifyDueStretchReminder } from "../../features/wellbeing/stretch-reminders";
 import { PetMascot } from "../pet/PetMascot";
 import "./TrayApp.scss";
+import WorkInbox from "./WorkInbox";
+import DayHistory from "./DayHistory";
+import { controlFocusTimer, getDayRecord, getFocusTimer, type DayRecord } from "../../entities/work-context/api/focus-history-repository";
+import { formatFocusDuration, type FocusTimer } from "../../entities/work-context/model/focus-history";
 
 export default function TrayApp() {
+  const [tab, setTab] = useState<"tasks" | "jira" | "reviews">("tasks");
   const [items, setItems] = useState<WorkItem[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [, setTick] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [timer, setTimer] = useState<FocusTimer | null>(null);
+  const [today, setToday] = useState<DayRecord | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -61,12 +69,14 @@ export default function TrayApp() {
     };
   }, [refresh]);
 
-  // Live timer tick for active focus item
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setTick((t) => (t + 1) % 1_000_000);
-    }, 1_000);
-    return () => window.clearInterval(timer);
+    let active = true;
+    const refreshTime = () => void Promise.all([getFocusTimer(), getDayRecord(new Date())]).then(([nextTimer, nextDay]) => {
+      if (active) { setTimer(nextTimer); setToday(nextDay); setHistoryError(null); }
+    }).catch((cause) => active && setHistoryError(String(cause)));
+    refreshTime();
+    const interval = window.setInterval(refreshTime, 1000);
+    return () => { active = false; window.clearInterval(interval); };
   }, []);
 
   useEffect(() => {
@@ -85,20 +95,13 @@ export default function TrayApp() {
 
   const focusItem = useMemo(() => items.find((item) => item.status === "focus"), [items]);
   const todoItems = useMemo(
-    () => items.filter((item) => item.status === "todo" || item.status === "review"),
+    () => items.filter((item) => item.status !== "focus" && item.status !== "done"),
     [items],
   );
   const doneItems = useMemo(
     () => items.filter((item) => item.status === "done"),
     [items],
   );
-  const todayDoneCount = useMemo(() => {
-    const today = new Date().toDateString();
-    return doneItems.filter(
-      (item) => item.completedAt && new Date(item.completedAt).toDateString() === today,
-    ).length;
-  }, [doneItems]);
-
   async function handleCreateTask(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = newTitle.trim();
@@ -126,6 +129,8 @@ export default function TrayApp() {
           expectedCurrentRevision: focusItem.revision,
           expectedRequestedRevision: item.revision,
           releaseStatus: "todo",
+          checkpoint: focusItem.checkpoint || "트레이에서 작업 전환",
+          nextAction: focusItem.nextAction || `${focusItem.title} 이어서 진행`,
         });
       } else {
         await switchFocusedWorkItem({
@@ -147,21 +152,9 @@ export default function TrayApp() {
     }
   }
 
-  async function handlePause(item: WorkItem) {
-    try {
-      const slot = await getFocusSlot();
-      await switchFocusedWorkItem({
-        currentWorkItemId: item.id,
-        requestedWorkItemId: null,
-        expectedSlotRevision: slot.revision,
-        expectedCurrentRevision: item.revision,
-        expectedRequestedRevision: null,
-        releaseStatus: "todo",
-      });
-      await refresh();
-    } catch (cause) {
-      console.error("일시정지 실패:", cause);
-    }
+  async function handlePause() {
+    try { setTimer(await controlFocusTimer("toggle")); setError(false); }
+    catch { setError(true); }
   }
 
   async function handleComplete(item: WorkItem) {
@@ -201,22 +194,19 @@ export default function TrayApp() {
     }
   }
 
-  function formatDuration(fromIso: string | null | undefined): string {
-    if (!fromIso) return "0분";
-    const start = new Date(fromIso).getTime();
-    if (isNaN(start)) return "0분";
-    const diffSec = Math.max(0, Math.floor((Date.now() - start) / 1000));
-    const min = Math.floor(diffSec / 60);
-    const sec = diffSec % 60;
-    if (min === 0) return `${sec}초`;
-    return `${min}분 ${sec}초`;
-  }
-
   return (
     <div className="tray-window-container">
       <div className="tray-arrow-notch" />
 
       <main className="tray-shell">
+        <nav className="tray-tabs" aria-label="Orbit">
+          {([{ id: "tasks", label: "할 일" }, { id: "jira", label: "Jira" }, { id: "reviews", label: "PR 리뷰" }] as const).map((item) => (
+            <button type="button" key={item.id} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setHistoryOpen(false); }}>{item.label}</button>
+          ))}
+        </nav>
+        {historyOpen && <DayHistory />}
+        {!historyOpen && tab !== "tasks" && <WorkInbox key={tab} source={tab} />}
+        <div className="tray-task-view" hidden={tab !== "tasks" || historyOpen}>
         {/* Quick Add Form */}
         <header className="tray-quick-header">
           <form className="tray-quick-form" onSubmit={handleCreateTask}>
@@ -238,7 +228,7 @@ export default function TrayApp() {
           {/* NOW: Active Focus Slot */}
           <section className="tray-section tray-now-section">
             <div className="section-label">
-              <span className="label-text">NOW</span>
+              <span className="label-text">진행 중</span>
               {focusItem && <span className="now-pulsing-dot" />}
             </div>
 
@@ -246,13 +236,13 @@ export default function TrayApp() {
               <div className="now-card">
                 <div className="now-header">
                   <div className="now-icon-wrapper">
-                    <PetMascot mood="focus" isRunning size={36} />
+                    <PetMascot mood={timer?.mode === "shortBreak" ? "break" : "focus"} isRunning={Boolean(timer?.running)} size={36} />
                   </div>
                   <div className="now-info">
                     <h3 className="now-title">{focusItem.title}</h3>
                     <div className="now-timer">
                       <Clock size={11} strokeWidth={2.2} />
-                      <span>{formatDuration(focusItem.lastFocusedAt)} 몰입 중</span>
+                      <span>{formatFocusDuration(today?.tasks.find((task) => task.id === focusItem.id)?.focusMs ?? 0)} · {timer?.mode === "shortBreak" ? "휴식" : timer?.running ? "집중 중" : "일시정지"}</span>
                     </div>
                   </div>
                 </div>
@@ -269,11 +259,11 @@ export default function TrayApp() {
                   <button
                     type="button"
                     className="now-btn now-btn-pause"
-                    onClick={() => handlePause(focusItem)}
-                    title="일시정지"
+                    onClick={() => void handlePause()}
+                    title={timer?.running ? "일시정지" : "타이머 시작"}
                   >
-                    <Pause size={13} strokeWidth={2.4} />
-                    <span>일시정지</span>
+                    {timer?.running ? <Pause size={13} strokeWidth={2.4} /> : <Play size={13} strokeWidth={2.4} />}
+                    <span>{timer?.running ? "일시정지" : timer?.mode === "shortBreak" ? "휴식 시작" : "다시 시작"}</span>
                   </button>
                 </div>
               </div>
@@ -288,7 +278,7 @@ export default function TrayApp() {
           {/* TODO: Waiting Tasks */}
           <section className="tray-section tray-todo-section">
             <div className="section-label">
-              <span className="label-text">TODO</span>
+              <span className="label-text">할 일</span>
               <span className="count-badge">{todoItems.length}</span>
             </div>
 
@@ -306,9 +296,9 @@ export default function TrayApp() {
                     >
                       <Circle size={15} strokeWidth={1.8} />
                     </button>
-                    <span className="task-row-title" title={item.title}>
-                      {item.title}
-                    </span>
+                    <div className="tray-task-copy">
+                      <span className="task-row-title" title={item.title}>{item.title}</span>
+                    </div>
                     <div className="task-row-actions">
                       <button
                         type="button"
@@ -340,7 +330,7 @@ export default function TrayApp() {
           {doneItems.length > 0 && (
             <section className="tray-section tray-done-section">
               <div className="section-label">
-                <span className="label-text">DONE</span>
+                <span className="label-text">완료</span>
                 <span className="count-badge done-badge">{doneItems.length}</span>
               </div>
               <div className="task-item-list">
@@ -354,14 +344,14 @@ export default function TrayApp() {
                     >
                       <CheckCircle2 size={15} strokeWidth={2.2} />
                     </button>
-                    <span className="task-row-title is-strikethrough" title={item.title}>
-                      {item.title}
-                    </span>
+                    <div className="tray-task-copy">
+                      <span className="task-row-title is-strikethrough" title={item.title}>{item.title}</span>
+                    </div>
                     <button
                       type="button"
                       className="task-action-btn btn-delete-done"
                       onClick={() => handleDelete(item.id)}
-                      title="기록 삭제"
+                      title="목록에서 삭제"
                     >
                       <X size={12} strokeWidth={2} />
                     </button>
@@ -372,12 +362,13 @@ export default function TrayApp() {
           )}
         </div>
 
+        </div>
+
         {/* Footer */}
         <footer className="tray-bottom-bar">
-          <div className="tray-footer-left">
-            <span className="footer-done-label">오늘 달성</span>
-            <span className="footer-done-count">{todayDoneCount}개</span>
-          </div>
+          <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => setHistoryOpen(!historyOpen)} title={historyError || "날짜별 집중 시간과 완료한 일 보기"}>
+            {historyError ? "기록 확인 필요" : today ? `오늘 집중 ${formatFocusDuration(today.focusMs)} · 완료 ${today.completedCount}개` : "오늘 기록 불러오는 중…"}
+          </button>
 
           <div className="tray-footer-right">
             <button

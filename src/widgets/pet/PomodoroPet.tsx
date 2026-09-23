@@ -2,68 +2,42 @@ import React, { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Play, Pause, RotateCcw, ExternalLink, X, Coffee, Clock } from "lucide-react";
-import { listWorkItems } from "../../entities/work-context/api/work-item-repository";
-import type { WorkItem } from "../../entities/work-context/model/work-item";
-import {
-  formatTimeDisplay,
-  getStoredPomodoroSettings,
-  saveStoredPomodoroSettings,
-  FOCUS_PRESET_MINUTES,
-  BREAK_PRESET_MINUTES,
-  type PomodoroSettings,
-  type PomodoroState,
-} from "../../entities/work-context/model/pomodoro";
+import { getFocusTimer, controlFocusTimer } from "../../entities/work-context/api/focus-history-repository";
+import type { FocusTimer } from "../../entities/work-context/model/focus-history";
+import { formatTimeDisplay, FOCUS_PRESET_MINUTES, BREAK_PRESET_MINUTES } from "../../entities/work-context/model/pomodoro";
 import { PetMascot, type PetMood } from "./PetMascot";
 import "./PetMascot.scss";
 import "./PomodoroPet.scss";
 
 export default function PomodoroPet() {
-  const [settings, setSettings] = useState<PomodoroSettings>(() => getStoredPomodoroSettings());
-  const [state, setState] = useState<PomodoroState>("focus");
-  const [isRunning, setIsRunning] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(() => settings.focusDurationMinutes * 60);
-  const [currentTask, setCurrentTask] = useState<WorkItem | null>(null);
+  const [timer, setTimer] = useState<FocusTimer | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [isDurationPickerOpen, setIsDurationPickerOpen] = useState(false);
+  const state = timer?.mode ?? "focus";
+  const isRunning = Boolean(timer?.running);
+  const remainingSeconds = Math.ceil((timer?.remaining_ms ?? 25 * 60_000) / 1000);
 
-  // Sync current focused task from Orbit repository
-  const refreshTask = useCallback(async () => {
-    try {
-      const items = await listWorkItems();
-      const focused = items.find((item) => item.status === "focus") || null;
-      setCurrentTask(focused);
-    } catch {
-      // Ignore database poll errors during background
-    }
+  const applyTimer = useCallback((next: FocusTimer) => {
+    setTimer((previous) => previous && previous.revision > next.revision ? previous : next);
   }, []);
-
   useEffect(() => {
-    void refreshTask();
-    const interval = window.setInterval(() => void refreshTask(), 3000);
-    return () => window.clearInterval(interval);
-  }, [refreshTask]);
+    let active = true;
+    const refresh = () => void getFocusTimer().then((next) => {
+      if (active) { applyTimer(next); setError(null); }
+    }).catch((cause) => active && setError(String(cause)));
+    refresh();
+    const interval = window.setInterval(refresh, 1000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [applyTimer]);
 
-  // Pomodoro countdown timer tick
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const timer = window.setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          // Switch between Focus and Break automatically or pause
-          if (state === "focus") {
-            setState("shortBreak");
-            return settings.shortBreakDurationMinutes * 60;
-          } else {
-            setState("focus");
-            return settings.focusDurationMinutes * 60;
-          }
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [isRunning, state, settings.focusDurationMinutes, settings.shortBreakDurationMinutes]);
+  async function control(action: "toggle" | "reset" | "switch", minutes?: number) {
+    if (busy || !timer) return;
+    setBusy(true); setIsDurationPickerOpen(false);
+    try { applyTimer(await controlFocusTimer(action, minutes)); setError(null); }
+    catch (cause) { setError(String(cause)); }
+    finally { setBusy(false); }
+  }
 
   // Drag window handler
   const handleDrag = (e: React.PointerEvent) => {
@@ -73,57 +47,22 @@ export default function PomodoroPet() {
     void getCurrentWindow().startDragging().catch(() => {});
   };
 
-  const toggleRun = () => {
-    setIsDurationPickerOpen(false);
-    setIsRunning((prev) => !prev);
-  };
+  const toggleRun = () => { void control("toggle"); };
+  const resetTimer = () => { void control("reset"); };
+  const switchMode = () => { void control("switch"); };
 
-  const resetTimer = () => {
-    setIsRunning(false);
-    setIsDurationPickerOpen(false);
-    setRemainingSeconds(
-      state === "focus"
-        ? settings.focusDurationMinutes * 60
-        : settings.shortBreakDurationMinutes * 60,
-    );
-  };
-
-  const switchMode = () => {
-    setIsRunning(false);
-    setIsDurationPickerOpen(false);
-    if (state === "focus") {
-      setState("shortBreak");
-      setRemainingSeconds(settings.shortBreakDurationMinutes * 60);
-    } else {
-      setState("focus");
-      setRemainingSeconds(settings.focusDurationMinutes * 60);
-    }
-  };
-
-  const openMainWindow = async () => {
-    await invoke("show_main_window");
+  const openTrayWindow = async () => {
+    await invoke("show_tray_window");
   };
 
   const closePet = async () => {
     await invoke("hide_pet_window");
   };
 
-  const selectDuration = (minutes: number) => {
-    const updated: PomodoroSettings = {
-      ...settings,
-      ...(state === "focus"
-        ? { focusDurationMinutes: minutes }
-        : { shortBreakDurationMinutes: minutes }),
-    };
-    setSettings(updated);
-    saveStoredPomodoroSettings(updated);
-    setIsRunning(false);
-    setRemainingSeconds(minutes * 60);
-    setIsDurationPickerOpen(false);
-  };
+  const selectDuration = (minutes: number) => { void control("reset", minutes); };
 
   // Determine pet visual mood
-  const mood: PetMood = state === "shortBreak" || state === "longBreak"
+  const mood: PetMood = state === "shortBreak"
     ? "break"
     : isRunning
       ? "focus"
@@ -147,6 +86,7 @@ export default function PomodoroPet() {
             type="button"
             className="pet-btn"
             onClick={toggleRun}
+            disabled={busy || !timer}
             title={isRunning ? "일시정지" : "시작"}
           >
             {isRunning ? <Pause size={11} strokeWidth={2.4} /> : <Play size={11} strokeWidth={2.4} />}
@@ -163,6 +103,7 @@ export default function PomodoroPet() {
             type="button"
             className="pet-btn"
             onClick={resetTimer}
+            disabled={busy || !timer}
             title="타이머 초기화"
           >
             <RotateCcw size={11} strokeWidth={2.2} />
@@ -171,6 +112,7 @@ export default function PomodoroPet() {
             type="button"
             className="pet-btn"
             onClick={switchMode}
+            disabled={busy || !timer}
             title={state === "focus" ? "휴식 모드로 전환" : "집중 모드로 전환"}
           >
             <Coffee size={11} strokeWidth={2.2} />
@@ -178,8 +120,8 @@ export default function PomodoroPet() {
           <button
             type="button"
             className="pet-btn"
-            onClick={openMainWindow}
-            title="Orbit 메인 창 열기"
+            onClick={openTrayWindow}
+            title="Orbit 트레이 열기"
           >
             <ExternalLink size={11} strokeWidth={2.2} />
           </button>
@@ -214,7 +156,7 @@ export default function PomodoroPet() {
                     : "badge-break"
               }`}
             >
-              {isRunning ? "FOCUSING" : state === "focus" ? "FOCUS" : "REST"}
+              {state !== "focus" ? "REST" : isRunning ? "FOCUSING" : "PAUSED"}
             </span>
             <button
               type="button"
@@ -228,11 +170,11 @@ export default function PomodoroPet() {
 
           <div
             className="pet-task-title"
-            title={currentTask ? currentTask.title : "클릭하여 Orbit에서 작업 선택"}
-            onClick={openMainWindow}
+            title={error || timer?.task_title || "클릭하여 Orbit에서 작업 선택"}
+            onClick={openTrayWindow}
             style={{ cursor: "pointer" }}
           >
-            {currentTask ? currentTask.title : "자유 몰입"}
+            {error ? "타이머 확인 필요" : timer?.task_title || "자유 집중"}
           </div>
         </div>
 
@@ -252,8 +194,8 @@ export default function PomodoroPet() {
             <div className="pet-picker-chips">
               {(state === "focus" ? FOCUS_PRESET_MINUTES : BREAK_PRESET_MINUTES).map((min) => {
                 const currentSetting = state === "focus"
-                  ? settings.focusDurationMinutes
-                  : settings.shortBreakDurationMinutes;
+                  ? (timer?.focus_ms ?? 1500000) / 60_000
+                  : (timer?.break_ms ?? 300000) / 60_000;
                 const isSelected = currentSetting === min;
                 return (
                   <button

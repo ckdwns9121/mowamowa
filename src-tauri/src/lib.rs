@@ -3,30 +3,18 @@ use std::{
     fs,
     path::PathBuf,
     sync::{Arc, Mutex, OnceLock},
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 use tauri::{
     image::Image,
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, WindowEvent,
+    AppHandle, Emitter, Manager, WindowEvent,
 };
 use tauri_plugin_positioner::{Position, WindowExt};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-mod codex_auth;
-mod claude_chat;
-mod glm_chat;
-mod confluence;
-mod context_discovery;
-mod github_pull_requests;
-mod google_calendar;
 mod jira_issue;
-mod jira_transition;
-mod local_ai_sessions;
-mod openai_chat;
-mod slack;
-mod task_prioritization;
-mod task_workflow;
+mod github_reviews;
 
 const KEYCHAIN_SERVICE: &str = "com.orbit.desktop";
 static SECRET_CACHE: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
@@ -204,7 +192,7 @@ fn get_secret(secret_id: &str) -> Result<String, String> {
 }
 
 fn key_missing_message() -> String {
-    "저장된 자격 증명이 없습니다. Settings에서 한 번 저장해주세요.".into()
+    "저장된 자격 증명이 없습니다. Jira 연결 설정에서 API 토큰을 저장해주세요.".into()
 }
 
 fn get_optional_secret(secret_id: &str) -> Result<Option<String>, String> {
@@ -297,17 +285,18 @@ mod secret_cache_tests {
 }
 
 #[tauri::command]
-fn show_main_window(app: AppHandle) {
-    if let Some(tray_window) = app.get_webview_window("tray") {
-        let _ = tray_window.hide();
-    }
-
-    if let Some(main_window) = app.get_webview_window("main") {
-        let _ = main_window.unminimize();
-        let _ = main_window.show();
-        let _ = main_window.set_focus();
-        bring_window_to_front(&main_window, true);
-    }
+fn show_tray_window(app: AppHandle) -> Result<(), String> {
+    let handle = app.clone();
+    app.run_on_main_thread(move || {
+        if let Some(window) = handle.get_webview_window("tray") {
+            *handle.state::<Arc<Mutex<Instant>>>().lock().unwrap() = Instant::now();
+            configure_window_for_all_spaces(&window);
+            let _ = window.move_window_constrained(Position::TrayCenter);
+            let _ = window.show();
+            bring_window_to_front(&window, true);
+            let _ = window.set_focus();
+        }
+    }).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -631,12 +620,17 @@ pub fn run() {
             sql: include_str!("../migrations/0034_allow_direct_task_completion.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 35,
+            description: "daily_focus_history",
+            sql: include_str!("../migrations/0035_daily_focus_history.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_positioner::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -648,10 +642,29 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let last_tray_shown = Arc::new(Mutex::new(Instant::now()));
+            app.manage(last_tray_shown.clone());
             let last_tray_shown_blur = last_tray_shown.clone();
             let last_tray_shown_click = last_tray_shown.clone();
 
             let _ = APP_HANDLE.set(app.handle().clone());
+            let clock = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut awake = Instant::now();
+                let mut wall = SystemTime::now();
+                loop {
+                    std::thread::sleep(Duration::from_secs(1));
+                    let next_awake = Instant::now();
+                    let next_wall = SystemTime::now();
+                    // On macOS Instant uses the awake clock. Wall/awake divergence
+                    // detects even short system sleeps; clock changes also pause safely.
+                    let slept = next_wall.duration_since(wall).map_or(true, |elapsed| {
+                        elapsed > next_awake.duration_since(awake) + Duration::from_millis(250)
+                    });
+                    let _ = clock.emit_to("tray", "focus-clock", slept);
+                    awake = next_awake;
+                    wall = next_wall;
+                }
+            });
             if let Some(window) = app.get_webview_window("tray") {
                 configure_window_for_all_spaces(&window);
                 let _ = window.hide();
@@ -686,7 +699,17 @@ pub fn run() {
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
                 .expect("valid Orbit tray icon");
 
+            let quit = tauri::menu::MenuItem::with_id(app, "quit", "Orbit 종료", true, None::<&str>)?;
+            let menu = tauri::menu::Menu::with_items(app, &[&quit])?;
+
             TrayIconBuilder::with_id("orbit")
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| {
+                    if event.id.as_ref() == "quit" {
+                        app.exit(0);
+                    }
+                })
                 .icon(tray_icon)
                 .icon_as_template(true)
                 .tooltip("Orbit · 작업 빠른 보기")
@@ -728,7 +751,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            show_main_window,
+            show_tray_window,
             hide_tray_window,
             show_pet_window,
             hide_pet_window,
@@ -739,29 +762,8 @@ pub fn run() {
             set_secret_storage_mode,
             set_secret,
             delete_secret,
-            codex_auth::codex_login_status,
-            local_ai_sessions::scan_local_ai_sessions,
-            context_discovery::rank_task_context,
-            github_pull_requests::scan_session_pull_requests,
-            github_pull_requests::scan_session_git_work,
-            jira_issue::fetch_jira_issue_development,
             jira_issue::fetch_assigned_jira_issues,
-            jira_transition::preview_jira_status_transition,
-            jira_transition::execute_approved_jira_status_transition,
-            jira_transition::reconcile_jira_status_transition,
-            google_calendar::connect_google_calendar,
-            google_calendar::sync_google_calendar,
-            google_calendar::disconnect_google_calendar,
-            slack::verify_slack_connection,
-            slack::search_slack_messages,
-            confluence::search_confluence_pages,
-            openai_chat::list_openai_chat_models,
-            openai_chat::stream_chat_with_orbit_context,
-            openai_chat::plan_chat_tools,
-            openai_chat::run_chat_agent_step,
-            task_workflow::generate_task_workflow_plan,
-            openai_chat::cancel_chat_stream,
-            task_prioritization::prioritize_work_items
+            github_reviews::fetch_github_review_requests
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

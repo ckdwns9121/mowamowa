@@ -12,22 +12,6 @@
   "app": {
     "windows": [
       {
-        "label": "main",
-        "title": "Orbit",
-        "width": 1280,
-        "height": 820,
-        "minWidth": 960,
-        "minHeight": 640,
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true,
-        "visible": false,
-        "acceptFirstMouse": true,
-        "trafficLightPosition": {
-          "x": 16,
-          "y": 16
-        }
-      },
-      {
         "label": "tray",
         "title": "Orbit Quick View",
         "width": 360,
