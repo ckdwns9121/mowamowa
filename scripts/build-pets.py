@@ -8,6 +8,7 @@ from pet_motion import animate, MODES
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT = ROOT / 'assets/pets'
 CATALOG = json.loads((ROOT/'src/entities/pet/model/catalog.json').read_text())
+TURNAROUND = json.loads((PROJECT/'turnaround/rakko-views.json').read_text())
 serial = 100
 
 def uid():
@@ -26,12 +27,12 @@ def varint(value):
     while value>127: data.append((value&127)|128); value >>= 7
     return bytes(data+[value])
 
-def keyed(anim, obj, prop, points):
+def keyed(anim, obj, prop, points, linear=False, hold=False):
     node=el('KeyedObject',anim,objectId=obj)
     channel=el('KeyedProperty',node,propertyKey=prop)
     for frame,value in points:
-        key=el('KeyFrameDouble',channel,frame=frame,value=round(value,5),interpolationType='cubic')
-        el('CubicEaseInterpolator',key,x1=.42,y1=0,x2=.58,y2=1)
+        key=el('KeyFrameDouble',channel,frame=frame,value=round(value,5),interpolationType='hold' if hold else 'linear' if linear else 'cubic')
+        if not linear and not hold:el('CubicEaseInterpolator',key,x1=.42,y1=0,x2=.58,y2=1)
 
 def paint(shape,fill,stroke='#503e38',width=3.3):
     if stroke:
@@ -268,17 +269,62 @@ def add_prop(root,pet):
     group[:]=reversed(list(group))
     return {'root':group.get('id'),'y':y}
 
+def rakko_action_effects(art):
+    result=[]
+    wind=el('Node',name='Air spiral',x=128,y=113,opacity=0);art.insert(1,wind)
+    draw_path(wind,'Gold wind ribbon','M -84 1 C -67 -26 61 -29 87 -2 C 100 17 47 29 -5 27',None,'#f5dda0',3)
+    draw_path(wind,'White wind edge','M -72 -9 C -38 -31 62 -23 81 -5',None,'#fff8e4',1.8)
+    draw_path(wind,'Blue trailing ribbon','M -73 13 C -44 32 57 28 79 9',None,'#a6dbe9',2)
+    result.append({'kind':'wind','id':wind.get('id')})
+    ripple=el('Shape',art,name='Landing ripple',x=128,y=226,opacity=0)
+    el('Ellipse',ripple,width=91,height=18);paint(ripple,None,'#f5dda0',2)
+    result.append({'kind':'ripple','id':ripple.get('id')})
+    for index,angle in enumerate([.22,.65,1.12,1.95,2.5,2.92]):
+        star=el('Shape',name='Landing spark',x=128,y=220,opacity=0);art.insert(1,star)
+        el('Star',star,width=9 if index%2 else 6,height=9 if index%2 else 6,points=4,innerRadius=.3,cornerRadius=.8)
+        paint(star,'#fff4c8' if index%2 else '#a6dbe9',None)
+        result.append({'kind':'spark','id':star.get('id'),'angle':angle,'radius':47+index%3*9})
+    # Peripheral light trails leave the face readable in the compact pet window.
+    for index in range(3):
+        trail=el('Node',name=f'Spin light trail {index}',x=128,y=142,opacity=0);art.insert(1,trail)
+        draw_path(trail,'Sweeping light','M -101 8 C -112 -12 -80 -35 -47 -37 M 58 32 C 90 28 112 12 102 -7',None,['#a6e7ff','#fff4be','#ffffff'][index],3-index*.5)
+        result.append({'kind':'trail','id':trail.get('id'),'index':index})
+    for index in range(8):
+        star=el('Shape',name=f'Orbit glint {index}',opacity=0);art.insert(1,star)
+        el('Star',star,width=11 if index%2 else 7,height=11 if index%2 else 7,points=4,innerRadius=.22,cornerRadius=.5)
+        paint(star,'#fff1aa' if index%2 else '#b5eaff',None)
+        result.append({'kind':'glint','id':star.get('id'),'index':index})
+    ring=el('Shape',name='Delayed landing shockwave',x=128,y=227,opacity=0);art.insert(1,ring)
+    el('Ellipse',ring,width=95,height=21);paint(ring,None,'#b5eaff',2.5)
+    result.append({'kind':'shockwave','id':ring.get('id')})
+    return result
+
 def make_pet(doc,pet,index):
     artid,styleid,rootid,smid,vmid,instid,propid=[uid() for _ in range(7)]
     art=el('Artboard',doc,id=artid,name=pet['id'],width=256,height=256,x=index*288,y=0,styleId=styleid,defaultStateMachineId=smid,viewModelId=vmid,viewModelInstanceId=instid)
     el('LayoutComponentStyle',art,id=styleid,name='Pet canvas')
-    root=el('Node',art,id=rootid,name='Body root',x=128,y=228)
+    spin=el('Node',art,name='Rakko jump pivot',x=128,y=128) if pet['id']=='rakko' else None
+    facing=el('Node',spin,name='Vertical-axis facing') if spin is not None else None
+    root=el('Node',facing if facing is not None else art,id=rootid,name='Body root',x=0 if spin is not None else 128,y=100 if spin is not None else 228)
+    action_fx=rakko_action_effects(art) if spin is not None else []
     vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
     if 'crop' in pet:
         bones,bonepivots,width,height=add_mesh(root,pet)
         eyehead,eyes,closed=add_eyes(root,pet,width,height)
     else:vectors,pivots=add_vector(root,pet)
     prop=add_prop(root,pet) if pet.get('prop') else None
+    angle_frames=[rootid]
+    if facing is not None:
+        for frame in TURNAROUND['frames'][1:]:
+            view=el('Node',facing,name=f"Rakko view {frame['angle']:03}",x=0,y=100,opacity=0)
+            angle_frames.append(view.get('id'))
+            image=el('Image',view,assetId='0:2',name='Drawn directional view')
+            mesh=el('Mesh',image,name='Direction image quad',triangleIndexBytes='AAECAAID')
+            x0,y0,x1,y1=frame['vertices'];cx,cy,cw,ch=frame['crop']
+            u0,v0=cx/TURNAROUND['width'],cy/TURNAROUND['height']
+            u1,v1=(cx+cw)/TURNAROUND['width'],(cy+ch)/TURNAROUND['height']
+            for x,y,u,v in [(x0,y0,u0,v0),(x1,y0,u1,v0),(x1,y1,u1,v1),(x0,y1,u0,v1)]:
+                el('ContourMeshVertex',mesh,x=x,y=y,u=u,v=v)
     effects=el('Node',name='Celebration accents',opacity=0);art.insert(1,effects)
     spark_ids=[]
     for sx,sy,sz in [(46,105,12),(210,79,16),(196,182,9)]:
@@ -287,6 +333,8 @@ def make_pet(doc,pet,index):
         paint(spark,pet['accent'],None);spark_ids.append(spark.get('id'))
     stateids=[uid() for _ in MODES]
     rig={'root':rootid,'width':width,'height':height,'bones':bones,'bonePivots':bonepivots,'groups':vectors,'pivots':pivots,
+         'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,
+         'facing':facing.get('id') if facing is not None else None,'angleFrames':angle_frames,
          'eyes':eyes,'closedEyes':closed,'eyeHead':eyehead,'prop':prop,'effects':effects.get('id'),'sparks':spark_ids}
     animids=animate(art,pet,index,rig,el,keyed)
     vm=el('ViewModel',doc,id=vmid,name='PetState',defaultInstanceId=instid)
@@ -300,7 +348,7 @@ def make_pet(doc,pet,index):
         # Outgoing conditional transitions avoid perpetual self-transition resets.
         for j in range(len(MODES)):
             if i==j:continue
-            tr=el('StateTransition',state,stateToId=stateids[j],duration=110 if j>=3 else 220)
+            tr=el('StateTransition',state,stateToId=stateids[j],duration=0 if pet['id']=='rakko' and (i==4 or j==4) else 110 if j>=3 else 220)
             condition=el('TransitionViewModelCondition',tr,opValue='equal')
             bind=el('BindablePropertyNumber',el('TransitionPropertyViewModelComparator',condition))
             el('DataBindContext',bind,sourcePathIds=f'{vmid}-{propid}',propertyKey=636)
@@ -309,6 +357,7 @@ def make_pet(doc,pet,index):
 if __name__=='__main__':
     doc=ET.Element('Rive',version='1',kind='fragment')
     el('ImageAsset',doc,id='0:1',file='reference/characters.png',name='Official character reference atlas')
+    el('ImageAsset',doc,id='0:2',file='turnaround/rakko-eight-views.png',name='Rakko directional illustrations')
     for index,pet in enumerate(CATALOG):make_pet(doc,pet,index)
     ET.indent(doc,space='  ')
     (PROJECT/'scene.rml').write_text(ET.tostring(doc,encoding='unicode')+'\n')

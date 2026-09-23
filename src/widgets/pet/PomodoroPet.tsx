@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emitTo, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, ExternalLink, X, Coffee, Clock, PawPrint } from
 import { getFocusTimer, controlFocusTimer } from "../../entities/work-context/api/focus-history-repository";
 import type { FocusTimer } from "../../entities/work-context/model/focus-history";
 import { formatTimeDisplay, FOCUS_PRESET_MINUTES, BREAK_PRESET_MINUTES } from "../../entities/work-context/model/pomodoro";
+import { createRakkoActionQueue } from "../../entities/pet/model/rakko-action";
 import { useSelectedPet } from "../../entities/pet";
 import { PetMascot, type PetMood } from "./PetMascot";
 import "./PetMascot.scss";
@@ -13,6 +14,8 @@ import "./PomodoroPet.scss";
 
 export default function PomodoroPet() {
   const selectedPet = useSelectedPet();
+  const [performing, setPerforming] = useState(false);
+  const actionQueue = useRef<ReturnType<typeof createRakkoActionQueue> | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [timer, setTimer] = useState<FocusTimer | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +24,13 @@ export default function PomodoroPet() {
   const state = timer?.mode ?? "focus";
   const isRunning = Boolean(timer?.running);
   const remainingSeconds = Math.ceil((timer?.remaining_ms ?? 25 * 60_000) / 1000);
+
+  useEffect(() => {
+    setPerforming(false);
+    const queue = createRakkoActionQueue(setPerforming);
+    actionQueue.current = queue;
+    return () => { queue.dispose(); actionQueue.current = null; };
+  }, [selectedPet.id]);
 
   const applyTimer = useCallback((next: FocusTimer) => {
     setTimer((previous) => previous && previous.revision > next.revision ? previous : next);
@@ -76,13 +86,16 @@ export default function PomodoroPet() {
   };
 
   const closePet = async () => {
+    actionQueue.current?.dispose();
+    actionQueue.current = createRakkoActionQueue(setPerforming);
+    setPerforming(false);
     await invoke("hide_pet_window");
   };
 
   const selectDuration = (minutes: number) => { void control("reset", minutes); };
 
   // Determine pet visual mood
-  const mood: PetMood = celebrating ? "done" : state === "shortBreak"
+  const mood: PetMood = selectedPet.id === "rakko" && performing ? "react" : celebrating ? "done" : state === "shortBreak"
     ? "break"
     : isRunning
       ? "focus"
@@ -160,10 +173,11 @@ export default function PomodoroPet() {
         <button
           type="button"
           className="pet-left-avatar"
-          onClick={toggleRun}
-          disabled={busy || !timer}
-          aria-label={`${selectedPet.name} · ${isRunning ? "일시정지" : "집중 시작"}`}
-          title={`${selectedPet.name} · ${isRunning ? "클릭하여 일시정지" : "클릭하여 집중 시작"}`}
+          onClick={() => { if (selectedPet.id === "rakko") actionQueue.current?.request(); else toggleRun(); }}
+          disabled={selectedPet.id !== "rakko" && (busy || !timer)}
+          data-performing={performing ? "true" : "false"}
+          aria-label={selectedPet.id === "rakko" ? "랏코 점프와 회전" : `${selectedPet.name} · ${isRunning ? "일시정지" : "집중 시작"}`}
+          title={selectedPet.id === "rakko" ? "클릭하면 점프와 회전 · 타이머는 위 재생 버튼" : `${selectedPet.name} · ${isRunning ? "클릭하여 일시정지" : "클릭하여 집중 시작"}`}
         >
           <PetMascot mood={mood} isRunning={isRunning} size={76} />
         </button>
