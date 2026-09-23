@@ -2,7 +2,8 @@ use std::{
     collections::HashMap,
     fs,
     path::PathBuf,
-    sync::{Mutex, OnceLock},
+    sync::{Arc, Mutex, OnceLock},
+    time::{Duration, Instant},
 };
 use tauri::{
     image::Image,
@@ -305,6 +306,7 @@ fn show_main_window(app: AppHandle) {
         let _ = main_window.unminimize();
         let _ = main_window.show();
         let _ = main_window.set_focus();
+        bring_window_to_front(&main_window, true);
     }
 }
 
@@ -325,10 +327,24 @@ fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
         unsafe {
             let ns_window: &NSWindow = &*ns_window_ptr.cast();
             let mut behavior = ns_window.collectionBehavior();
-            behavior &= !NSWindowCollectionBehavior::Stationary;
+            // FullScreenAuxiliary alone does not opt into other applications'
+            // full-screen spaces. Clear mutually exclusive roles before joining
+            // those spaces (also used by Stage Manager on macOS 13+).
+            behavior.remove(
+                NSWindowCollectionBehavior::Stationary
+                    | NSWindowCollectionBehavior::MoveToActiveSpace
+                    | NSWindowCollectionBehavior::FullScreenPrimary
+                    | NSWindowCollectionBehavior::FullScreenNone
+                    | NSWindowCollectionBehavior::Primary
+                    | NSWindowCollectionBehavior::Auxiliary,
+            );
             behavior |= NSWindowCollectionBehavior::CanJoinAllSpaces
                 | NSWindowCollectionBehavior::FullScreenAuxiliary;
+            if objc2::available!(macos = 13.0) {
+                behavior |= NSWindowCollectionBehavior::CanJoinAllApplications;
+            }
             ns_window.setCollectionBehavior(behavior);
+
             if window.label() == "tray" {
                 ns_window.setLevel(NSPopUpMenuWindowLevel);
             }
@@ -342,19 +358,28 @@ fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
 }
 
 #[cfg(target_os = "macos")]
-fn bring_window_to_front(window: &tauri::WebviewWindow) {
-    use objc2_app_kit::NSWindow;
+fn bring_window_to_front(window: &tauri::WebviewWindow, activate_app: bool) {
+    use objc2::MainThreadMarker;
+    use objc2_app_kit::{NSApplication, NSWindow};
 
     if let Ok(ns_window_ptr) = window.ns_window() {
         unsafe {
+            if activate_app {
+                let mtm = MainThreadMarker::new_unchecked();
+                let app = NSApplication::sharedApplication(mtm);
+                #[allow(deprecated)]
+                app.activateIgnoringOtherApps(true);
+            }
+
             let ns_window: &NSWindow = &*ns_window_ptr.cast();
             ns_window.orderFrontRegardless();
+            ns_window.makeKeyAndOrderFront(None);
         }
     }
 }
 
 #[cfg(not(target_os = "macos"))]
-fn bring_window_to_front(_window: &tauri::WebviewWindow) {}
+fn bring_window_to_front(_window: &tauri::WebviewWindow, _activate_app: bool) {}
 
 #[tauri::command]
 fn show_pet_window(app: AppHandle) {
@@ -362,7 +387,7 @@ fn show_pet_window(app: AppHandle) {
         configure_window_for_all_spaces(&window);
         let _ = window.show();
         let _ = window.set_focus();
-        bring_window_to_front(&window);
+        bring_window_to_front(&window, false);
     }
 }
 
@@ -384,7 +409,7 @@ fn toggle_pet_window(app: AppHandle) -> Result<bool, String> {
             configure_window_for_all_spaces(&window);
             let _ = window.show();
             let _ = window.set_focus();
-            bring_window_to_front(&window);
+            bring_window_to_front(&window, false);
             Ok(true)
         }
     } else {
@@ -619,14 +644,35 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            let last_tray_shown = Arc::new(Mutex::new(Instant::now()));
+            let last_tray_shown_blur = last_tray_shown.clone();
+            let last_tray_shown_click = last_tray_shown.clone();
+
             let _ = APP_HANDLE.set(app.handle().clone());
             if let Some(window) = app.get_webview_window("tray") {
                 configure_window_for_all_spaces(&window);
                 let _ = window.hide();
                 let window_to_hide = window.clone();
                 window.on_window_event(move |event| {
+                    eprintln!("TRAY WINDOW EVENT: {:?}", event);
                     if matches!(event, WindowEvent::Focused(false)) {
-                        let _ = window_to_hide.hide();
+                        let elapsed = last_tray_shown_blur.lock().unwrap().elapsed();
+                        if elapsed < Duration::from_millis(600) {
+                            eprintln!("TRAY BLUR IGNORED (grace period: {:?} < 600ms)", elapsed);
+                            let win = window_to_hide.clone();
+                            let app_handle = win.app_handle().clone();
+                            let _ = app_handle.run_on_main_thread(move || {
+                                if win.is_visible().unwrap_or(false) {
+                                    bring_window_to_front(&win, true);
+                                }
+                            });
+                        } else {
+                            eprintln!("TRAY HIDING DUE TO BLUR (Focused(false), elapsed: {:?})", elapsed);
+                            let _ = window_to_hide.hide();
+                        }
                     }
                 });
             }
@@ -634,7 +680,7 @@ pub fn run() {
             if let Some(pet_window) = app.get_webview_window("pet") {
                 configure_window_for_all_spaces(&pet_window);
                 let _ = pet_window.show();
-                bring_window_to_front(&pet_window);
+                bring_window_to_front(&pet_window, false);
             }
 
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
@@ -644,7 +690,8 @@ pub fn run() {
                 .icon(tray_icon)
                 .icon_as_template(true)
                 .tooltip("Orbit · 작업 빠른 보기")
-                .on_tray_icon_event(|tray, event| {
+                .on_tray_icon_event(move |tray, event| {
+                    eprintln!("ON TRAY ICON EVENT: {:?}", event);
                     tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
 
                     if let TrayIconEvent::Click {
@@ -655,16 +702,23 @@ pub fn run() {
                     {
                         if let Some(window) = tray.app_handle().get_webview_window("tray") {
                             let is_visible = window.is_visible().unwrap_or(false);
-                            let is_focused = window.is_focused().unwrap_or(false);
+                            let elapsed = last_tray_shown_click.lock().unwrap().elapsed();
+                            eprintln!("TRAY CLICK STATE: is_visible={}, elapsed={:?}", is_visible, elapsed);
 
-                            if is_visible && is_focused {
+                            if is_visible && elapsed > Duration::from_millis(300) {
+                                eprintln!("TRAY ACTION: HIDING (toggle)");
                                 let _ = window.hide();
                             } else {
+                                eprintln!("TRAY ACTION: SHOWING");
+                                *last_tray_shown_click.lock().unwrap() = Instant::now();
                                 configure_window_for_all_spaces(&window);
-                                let _ = window.move_window_constrained(Position::TrayCenter);
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                                bring_window_to_front(&window);
+                                let pos_res = window.move_window_constrained(Position::TrayCenter);
+                                eprintln!("TRAY MOVE RESULT: {:?}", pos_res);
+                                let show_res = window.show();
+                                eprintln!("TRAY SHOW RESULT: {:?}", show_res);
+                                bring_window_to_front(&window, true);
+                                let focus_res = window.set_focus();
+                                eprintln!("TRAY FOCUS RESULT: {:?}", focus_res);
                             }
                         }
                     }
