@@ -325,12 +325,13 @@ fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
         unsafe {
             let ns_window: &NSWindow = &*ns_window_ptr.cast();
             let mut behavior = ns_window.collectionBehavior();
+            behavior &= !NSWindowCollectionBehavior::Stationary;
             behavior |= NSWindowCollectionBehavior::CanJoinAllSpaces
-                | NSWindowCollectionBehavior::FullScreenAuxiliary
-                | NSWindowCollectionBehavior::Stationary;
+                | NSWindowCollectionBehavior::FullScreenAuxiliary;
             ns_window.setCollectionBehavior(behavior);
-            ns_window.setLevel(NSPopUpMenuWindowLevel);
-            ns_window.orderFrontRegardless();
+            if window.label() == "tray" {
+                ns_window.setLevel(NSPopUpMenuWindowLevel);
+            }
         }
     }
 }
@@ -340,12 +341,28 @@ fn configure_window_for_all_spaces(window: &tauri::WebviewWindow) {
     let _ = window.set_visible_on_all_workspaces(true);
 }
 
+#[cfg(target_os = "macos")]
+fn bring_window_to_front(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::NSWindow;
+
+    if let Ok(ns_window_ptr) = window.ns_window() {
+        unsafe {
+            let ns_window: &NSWindow = &*ns_window_ptr.cast();
+            ns_window.orderFrontRegardless();
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn bring_window_to_front(_window: &tauri::WebviewWindow) {}
+
 #[tauri::command]
 fn show_pet_window(app: AppHandle) {
     if let Some(window) = app.get_webview_window("pet") {
         configure_window_for_all_spaces(&window);
         let _ = window.show();
         let _ = window.set_focus();
+        bring_window_to_front(&window);
     }
 }
 
@@ -367,6 +384,7 @@ fn toggle_pet_window(app: AppHandle) -> Result<bool, String> {
             configure_window_for_all_spaces(&window);
             let _ = window.show();
             let _ = window.set_focus();
+            bring_window_to_front(&window);
             Ok(true)
         }
     } else {
@@ -604,6 +622,7 @@ pub fn run() {
             let _ = APP_HANDLE.set(app.handle().clone());
             if let Some(window) = app.get_webview_window("tray") {
                 configure_window_for_all_spaces(&window);
+                let _ = window.hide();
                 let window_to_hide = window.clone();
                 window.on_window_event(move |event| {
                     if matches!(event, WindowEvent::Focused(false)) {
@@ -615,6 +634,7 @@ pub fn run() {
             if let Some(pet_window) = app.get_webview_window("pet") {
                 configure_window_for_all_spaces(&pet_window);
                 let _ = pet_window.show();
+                bring_window_to_front(&pet_window);
             }
 
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
@@ -634,13 +654,17 @@ pub fn run() {
                     } = event
                     {
                         if let Some(window) = tray.app_handle().get_webview_window("tray") {
-                            if window.is_visible().unwrap_or(false) {
+                            let is_visible = window.is_visible().unwrap_or(false);
+                            let is_focused = window.is_focused().unwrap_or(false);
+
+                            if is_visible && is_focused {
                                 let _ = window.hide();
                             } else {
                                 configure_window_for_all_spaces(&window);
                                 let _ = window.move_window_constrained(Position::TrayCenter);
                                 let _ = window.show();
                                 let _ = window.set_focus();
+                                bring_window_to_front(&window);
                             }
                         }
                     }
