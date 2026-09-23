@@ -1,15 +1,19 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { emitTo, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Play, Pause, RotateCcw, ExternalLink, X, Coffee, Clock } from "lucide-react";
+import { Play, Pause, RotateCcw, ExternalLink, X, Coffee, Clock, PawPrint } from "lucide-react";
 import { getFocusTimer, controlFocusTimer } from "../../entities/work-context/api/focus-history-repository";
 import type { FocusTimer } from "../../entities/work-context/model/focus-history";
 import { formatTimeDisplay, FOCUS_PRESET_MINUTES, BREAK_PRESET_MINUTES } from "../../entities/work-context/model/pomodoro";
+import { useSelectedPet } from "../../entities/pet";
 import { PetMascot, type PetMood } from "./PetMascot";
 import "./PetMascot.scss";
 import "./PomodoroPet.scss";
 
 export default function PomodoroPet() {
+  const selectedPet = useSelectedPet();
+  const [celebrating, setCelebrating] = useState(false);
   const [timer, setTimer] = useState<FocusTimer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,6 +34,22 @@ export default function PomodoroPet() {
     const interval = window.setInterval(refresh, 1000);
     return () => { active = false; window.clearInterval(interval); };
   }, [applyTimer]);
+
+  useEffect(() => {
+    let active = true;
+    let off: (() => void) | undefined;
+    let timeout: number | undefined;
+    void listen("pet-celebrate", () => {
+      setCelebrating(true); window.clearTimeout(timeout);
+      timeout = window.setTimeout(() => setCelebrating(false), 2700);
+    }).then((unlisten) => { if (active) off = unlisten; else unlisten(); }).catch(() => undefined);
+    return () => { active = false; off?.(); window.clearTimeout(timeout); };
+  }, []);
+
+  async function openPetPicker() {
+    try { await invoke("show_tray_window"); await emitTo("tray", "open-pet-picker"); }
+    catch (cause) { setError(String(cause)); }
+  }
 
   async function control(action: "toggle" | "reset" | "switch", minutes?: number) {
     if (busy || !timer) return;
@@ -62,7 +82,7 @@ export default function PomodoroPet() {
   const selectDuration = (minutes: number) => { void control("reset", minutes); };
 
   // Determine pet visual mood
-  const mood: PetMood = state === "shortBreak"
+  const mood: PetMood = celebrating ? "done" : state === "shortBreak"
     ? "break"
     : isRunning
       ? "focus"
@@ -82,6 +102,7 @@ export default function PomodoroPet() {
       >
         {/* Interactive hover controls toolbar */}
         <div className="pet-hover-controls">
+          <button type="button" className="pet-btn" onClick={() => void openPetPicker()} title="펫 선택" aria-label="펫 선택"><PawPrint size={11} strokeWidth={2.2} /></button>
           <button
             type="button"
             className="pet-btn"
@@ -136,13 +157,16 @@ export default function PomodoroPet() {
         </div>
 
         {/* Mascot Avatar with quick toggle on click */}
-        <div
+        <button
+          type="button"
           className="pet-left-avatar"
           onClick={toggleRun}
-          title={isRunning ? "클릭하여 일시정지" : "클릭하여 집중 시작"}
+          disabled={busy || !timer}
+          aria-label={`${selectedPet.name} · ${isRunning ? "일시정지" : "집중 시작"}`}
+          title={`${selectedPet.name} · ${isRunning ? "클릭하여 일시정지" : "클릭하여 집중 시작"}`}
         >
-          <PetMascot mood={mood} isRunning={isRunning} size={64} />
-        </div>
+          <PetMascot mood={mood} isRunning={isRunning} size={76} />
+        </button>
 
         {/* Status and Timer column */}
         <div className="pet-info-col" data-tauri-drag-region>

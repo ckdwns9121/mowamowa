@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { emit, listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -6,6 +7,7 @@ import {
   Circle,
   Clock,
   Pause,
+  PawPrint,
   Play,
   Plus,
   Sparkles,
@@ -28,6 +30,7 @@ import { notifyDueStretchReminder } from "../../features/wellbeing/stretch-remin
 import { PetMascot } from "../pet/PetMascot";
 import "./TrayApp.scss";
 import WorkInbox from "./WorkInbox";
+import PetPicker from "../pet/PetPicker";
 import DayHistory from "./DayHistory";
 import { controlFocusTimer, getDayRecord, getFocusTimer, type DayRecord } from "../../entities/work-context/api/focus-history-repository";
 import { formatFocusDuration, type FocusTimer } from "../../entities/work-context/model/focus-history";
@@ -38,6 +41,7 @@ export default function TrayApp() {
   const [newTitle, setNewTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [petPickerOpen, setPetPickerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [timer, setTimer] = useState<FocusTimer | null>(null);
   const [today, setToday] = useState<DayRecord | null>(null);
@@ -59,7 +63,10 @@ export default function TrayApp() {
     void refresh();
     const interval = window.setInterval(() => void refresh(), 3_000);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") void invoke("hide_tray_window");
+      if (event.key === "Escape") {
+        if (petPickerOpen) { event.preventDefault(); setPetPickerOpen(false); }
+        else void invoke("hide_tray_window");
+      }
     };
     window.addEventListener("keydown", onKeyDown);
 
@@ -67,7 +74,7 @@ export default function TrayApp() {
       window.clearInterval(interval);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [refresh]);
+  }, [refresh, petPickerOpen]);
 
   useEffect(() => {
     let active = true;
@@ -91,6 +98,14 @@ export default function TrayApp() {
     checkReminders();
     const interval = window.setInterval(checkReminders, 60_000);
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    let off: (() => void) | undefined;
+    void listen("open-pet-picker", () => { setHistoryOpen(false); setPetPickerOpen(true); })
+      .then((unlisten) => { if (active) off = unlisten; else unlisten(); }).catch(() => undefined);
+    return () => { active = false; off?.(); };
   }, []);
 
   const focusItem = useMemo(() => items.find((item) => item.status === "focus"), [items]);
@@ -164,6 +179,7 @@ export default function TrayApp() {
         expectedRevision: item.revision,
         targetStatus: "done",
       });
+      await emit("pet-celebrate").catch(() => undefined);
       await refresh();
     } catch (cause) {
       console.error("완료 실패:", cause);
@@ -201,12 +217,13 @@ export default function TrayApp() {
       <main className="tray-shell">
         <nav className="tray-tabs" aria-label="Orbit">
           {([{ id: "tasks", label: "할 일" }, { id: "jira", label: "Jira" }, { id: "reviews", label: "PR 리뷰" }] as const).map((item) => (
-            <button type="button" key={item.id} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setHistoryOpen(false); }}>{item.label}</button>
+            <button type="button" key={item.id} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setHistoryOpen(false); setPetPickerOpen(false); }}>{item.label}</button>
           ))}
         </nav>
-        {historyOpen && <DayHistory />}
-        {!historyOpen && tab !== "tasks" && <WorkInbox key={tab} source={tab} />}
-        <div className="tray-task-view" hidden={tab !== "tasks" || historyOpen}>
+        {petPickerOpen && <PetPicker onClose={() => setPetPickerOpen(false)} />}
+        {!petPickerOpen && historyOpen && <DayHistory />}
+        {!petPickerOpen && !historyOpen && tab !== "tasks" && <WorkInbox key={tab} source={tab} />}
+        <div className="tray-task-view" hidden={tab !== "tasks" || historyOpen || petPickerOpen}>
         {/* Quick Add Form */}
         <header className="tray-quick-header">
           <form className="tray-quick-form" onSubmit={handleCreateTask}>
@@ -366,7 +383,7 @@ export default function TrayApp() {
 
         {/* Footer */}
         <footer className="tray-bottom-bar">
-          <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => setHistoryOpen(!historyOpen)} title={historyError || "날짜별 집중 시간과 완료한 일 보기"}>
+          <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => { setPetPickerOpen(false); setHistoryOpen(!historyOpen); }} title={historyError || "날짜별 집중 시간과 완료한 일 보기"}>
             {historyError ? "기록 확인 필요" : today ? `오늘 집중 ${formatFocusDuration(today.focusMs)} · 완료 ${today.completedCount}개` : "오늘 기록 불러오는 중…"}
           </button>
 
@@ -374,10 +391,11 @@ export default function TrayApp() {
             <button
               type="button"
               className="tray-footer-btn"
-              onClick={() => void invoke("toggle_pet_window")}
-              title="플로팅 펫 토글"
+              onClick={() => { setHistoryOpen(false); setPetPickerOpen(!petPickerOpen); }}
+              title="펫 선택"
+              aria-expanded={petPickerOpen}
             >
-              🐾 펫
+              <PawPrint size={12} /> 펫 선택
             </button>
             <button
               type="button"

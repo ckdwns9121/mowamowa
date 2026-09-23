@@ -2,6 +2,7 @@ import { getDatabase } from "./database";
 
 export type SettingKey =
   | "theme"
+  | "pet_character"
   | "jira_url"
   | "jira_email"
   | "slack_workspace"

@@ -1,0 +1,546 @@
+[
+  {
+    "id": "chiikawa",
+    "name": "치이카와",
+    "group": "friends",
+    "description": "작은 용기를 모아, 오늘도 한 걸음.",
+    "accent": "#f1aebc",
+    "motion": "shy",
+    "crop": [
+      0,
+      0,
+      335,
+      362
+    ],
+    "eyes": [
+      0.34,
+      0.66,
+      0.39
+    ],
+    "eyeRects": [
+      [
+        94,
+        116,
+        39,
+        37
+      ],
+      [
+        193,
+        116,
+        38,
+        37
+      ]
+    ],
+    "faceColor": "#faf8f7",
+    "arms": [
+      [
+        0.1,
+        0.69,
+        0.14,
+        0.59
+      ],
+      [
+        0.86,
+        0.67,
+        0.83,
+        0.58
+      ]
+    ]
+  },
+  {
+    "id": "hachiware",
+    "name": "하치와레",
+    "group": "friends",
+    "description": "괜찮아! 같이 하면 할 수 있어.",
+    "accent": "#94c5e3",
+    "motion": "sway",
+    "crop": [
+      343,
+      0,
+      335,
+      374
+    ],
+    "eyes": [
+      0.35,
+      0.66,
+      0.4
+    ],
+    "eyeRects": [
+      [
+        93,
+        128,
+        41,
+        40
+      ],
+      [
+        193,
+        128,
+        37,
+        40
+      ]
+    ],
+    "faceColor": "#faf8f7",
+    "arms": [
+      [
+        0.09,
+        0.66,
+        0.15,
+        0.57
+      ],
+      [
+        0.85,
+        0.65,
+        0.79,
+        0.57
+      ]
+    ]
+  },
+  {
+    "id": "usagi",
+    "name": "우사기",
+    "group": "friends",
+    "description": "야하! 에너지 넘치는 집중 친구.",
+    "accent": "#efd480",
+    "motion": "hop",
+    "crop": [
+      690,
+      0,
+      335,
+      463
+    ],
+    "eyes": [
+      0.35,
+      0.65,
+      0.56
+    ],
+    "eyeRects": [
+      [
+        106,
+        218,
+        33,
+        33
+      ],
+      [
+        190,
+        217,
+        34,
+        33
+      ]
+    ],
+    "faceColor": "#fff1cb",
+    "arms": [
+      [
+        0.1,
+        0.79,
+        0.14,
+        0.73
+      ],
+      [
+        0.88,
+        0.78,
+        0.84,
+        0.73
+      ]
+    ]
+  },
+  {
+    "id": "momonga",
+    "name": "모몽가",
+    "group": "friends",
+    "description": "잠깐 쉬어! 귀여움 충전할 시간이야.",
+    "accent": "#b4d6ed",
+    "motion": "flutter",
+    "crop": [
+      1035,
+      0,
+      419,
+      391
+    ],
+    "eyes": [
+      0.3,
+      0.53,
+      0.44
+    ],
+    "eyeRects": [
+      [
+        96,
+        158,
+        48,
+        40
+      ],
+      [
+        195,
+        158,
+        56,
+        40
+      ]
+    ],
+    "faceColor": "#faf8f7",
+    "arms": [
+      [
+        0.08,
+        0.72,
+        0.17,
+        0.6
+      ],
+      [
+        0.62,
+        0.72,
+        0.56,
+        0.62
+      ]
+    ],
+    "tail": [
+      0.82,
+      0.48,
+      0.62,
+      0.79
+    ]
+  },
+  {
+    "id": "kurimanju",
+    "name": "쿠리만쥬",
+    "group": "friends",
+    "description": "차분하게 한 가지씩, 쉬는 시간도 소중해.",
+    "accent": "#c59d7b",
+    "motion": "nod",
+    "crop": [
+      1457,
+      0,
+      308,
+      365
+    ],
+    "eyes": [
+      0.35,
+      0.65,
+      0.4
+    ],
+    "eyeRects": [
+      [
+        97,
+        134,
+        28,
+        27
+      ],
+      [
+        179,
+        135,
+        27,
+        26
+      ]
+    ],
+    "faceColor": "#ffebc7",
+    "arms": [
+      [
+        0.24,
+        0.7,
+        0.23,
+        0.58
+      ],
+      [
+        0.85,
+        0.69,
+        0.81,
+        0.61
+      ]
+    ]
+  },
+  {
+    "id": "rakko",
+    "name": "랏코",
+    "group": "friends",
+    "description": "든든한 선생님과 함께 집중 모드.",
+    "accent": "#dcd2a9",
+    "motion": "hero",
+    "crop": [
+      2289,
+      0,
+      340,
+      362
+    ],
+    "eyes": [
+      0.33,
+      0.67,
+      0.4
+    ],
+    "eyeRects": [
+      [
+        115,
+        129,
+        26,
+        28
+      ],
+      [
+        203,
+        128,
+        40,
+        29
+      ]
+    ],
+    "faceColor": "#fbedc8",
+    "arms": [
+      [
+        0.17,
+        0.75,
+        0.25,
+        0.66
+      ],
+      [
+        0.86,
+        0.77,
+        0.77,
+        0.66
+      ]
+    ],
+    "prop": "sword"
+  },
+  {
+    "id": "shisa",
+    "name": "시사",
+    "group": "friends",
+    "description": "성실하게 차곡차곡 쌓아가는 하루.",
+    "accent": "#eca87d",
+    "motion": "bow",
+    "crop": [
+      2636,
+      0,
+      400,
+      355
+    ],
+    "eyes": [
+      0.35,
+      0.65,
+      0.35
+    ],
+    "eyeRects": [
+      [
+        136,
+        119,
+        27,
+        28
+      ],
+      [
+        235,
+        119,
+        28,
+        28
+      ]
+    ],
+    "faceColor": "#faf0d2",
+    "arms": [
+      [
+        0.19,
+        0.68,
+        0.26,
+        0.61
+      ],
+      [
+        0.81,
+        0.68,
+        0.74,
+        0.61
+      ]
+    ]
+  },
+  {
+    "id": "furuhonya",
+    "name": "헌책방",
+    "aliases": [
+      "카니",
+      "게"
+    ],
+    "group": "friends",
+    "description": "조용히 곁을 지켜 주는 분홍빛 친구.",
+    "accent": "#eeb5c8",
+    "motion": "shy",
+    "crop": [
+      3456,
+      0,
+      310,
+      424
+    ],
+    "eyes": [
+      0.35,
+      0.65,
+      0.43
+    ],
+    "eyeRects": [
+      [
+        92,
+        163,
+        39,
+        40
+      ],
+      [
+        186,
+        164,
+        39,
+        40
+      ]
+    ],
+    "faceColor": "#fde9e1",
+    "arms": [
+      [
+        0.1,
+        0.76,
+        0.17,
+        0.67
+      ],
+      [
+        0.91,
+        0.74,
+        0.84,
+        0.64
+      ]
+    ],
+    "prop": "book"
+  },
+  {
+    "id": "pochette",
+    "name": "파우치 갑옷",
+    "group": "armor",
+    "description": "작은 물건에도 마음을 담는 다정한 친구.",
+    "accent": "#d6c4c3",
+    "motion": "bow",
+    "crop": [
+      1776,
+      0,
+      161,
+      427
+    ],
+    "arms": [
+      [
+        0.11,
+        0.53,
+        0.21,
+        0.31
+      ],
+      [
+        0.89,
+        0.53,
+        0.79,
+        0.31
+      ]
+    ],
+    "prop": "pouch"
+  },
+  {
+    "id": "labor",
+    "name": "노동 갑옷",
+    "group": "armor",
+    "description": "오늘의 할 일을 든든하게 함께해요.",
+    "accent": "#b6afaa",
+    "motion": "nod",
+    "crop": [
+      1947,
+      0,
+      161,
+      427
+    ],
+    "arms": [
+      [
+        0.11,
+        0.53,
+        0.21,
+        0.31
+      ],
+      [
+        0.89,
+        0.53,
+        0.79,
+        0.31
+      ]
+    ],
+    "prop": "clipboard"
+  },
+  {
+    "id": "ramen",
+    "name": "라멘 갑옷",
+    "group": "armor",
+    "description": "집중도 휴식도 정성껏 준비해요.",
+    "accent": "#dfd481",
+    "motion": "bow",
+    "crop": [
+      2118,
+      0,
+      161,
+      427
+    ],
+    "arms": [
+      [
+        0.11,
+        0.53,
+        0.21,
+        0.31
+      ],
+      [
+        0.89,
+        0.53,
+        0.79,
+        0.31
+      ]
+    ],
+    "prop": "bowl"
+  },
+  {
+    "id": "pajama-green",
+    "name": "파자마 그린",
+    "group": "pajamas",
+    "description": "초록빛 리듬으로 가볍게 시작해요.",
+    "accent": "#b9d4a0",
+    "motion": "dance",
+    "vector": "pajama",
+    "color": "#b9d4a0"
+  },
+  {
+    "id": "pajama-pink",
+    "name": "파자마 핑크",
+    "group": "pajamas",
+    "description": "완료할 때마다 즐거운 작은 춤.",
+    "accent": "#e7aab9",
+    "motion": "dance",
+    "vector": "pajama",
+    "color": "#e7aab9"
+  },
+  {
+    "id": "pajama-white",
+    "name": "파자마 화이트",
+    "group": "pajamas",
+    "description": "포근하고 느긋한 나만의 작업 친구.",
+    "accent": "#f2e9d7",
+    "motion": "sway",
+    "vector": "pajama",
+    "color": "#f2e9d7"
+  },
+  {
+    "id": "pajama-purple",
+    "name": "파자마 퍼플",
+    "group": "pajamas",
+    "description": "보랏빛 박자에 맞춰 한 가지씩.",
+    "accent": "#c4b3d6",
+    "motion": "dance",
+    "vector": "pajama",
+    "color": "#c4b3d6"
+  },
+  {
+    "id": "anoko",
+    "name": "그 아이",
+    "aliases": [
+      "아노코"
+    ],
+    "group": "neighbors",
+    "description": "커다란 몸, 호기심 가득한 작은 표정.",
+    "accent": "#e4cca3",
+    "motion": "flutter",
+    "vector": "anoko"
+  },
+  {
+    "id": "ode",
+    "name": "오데",
+    "group": "neighbors",
+    "description": "묵직한 응원으로 오늘도 힘내요.",
+    "accent": "#e7d19a",
+    "motion": "hero",
+    "vector": "ode"
+  }
+]

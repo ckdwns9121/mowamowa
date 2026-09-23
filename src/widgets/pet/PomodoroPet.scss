@@ -75,6 +75,10 @@ html.window-pet, html.window-pet body, html.window-pet #root { margin: 0; paddin
 }
 
 .pet-left-avatar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
   flex-shrink: 0;
   display: flex;
   align-items: center;

@@ -6,7 +6,8 @@
       "name": "orbit",
       "dependencies": {
         "@modelcontextprotocol/server": "^2.0.0",
-        "@rive-app/react-canvas": "^4.34.3",
+        "@rive-app/canvas": "2.42.2",
+        "@rive-app/react-canvas": "4.34.3",
         "@tauri-apps/api": "^2",
         "@tauri-apps/plugin-notification": "^2",
         "@tauri-apps/plugin-opener": "^2",
