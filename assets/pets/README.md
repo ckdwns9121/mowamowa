@@ -29,3 +29,14 @@ Motion revision 3 keeps the connected atlas silhouettes rigid. Bitmap arms, head
 The six vector drawings have genuinely separate hand/head/eye shapes and may use their own pivots. `pet_motion.py` keeps anticipation, held poses, the Usagi jumps, Momonga float, and independent held-object animations. Atlas arm stretching and body bending are disabled in every state, including idle/focus/break/celebration. More elaborate arm acting would require separately redrawn arm/body layers.
 
 Only the active preview and visible mascots animate; list thumbnails are static. Reduced motion uses the matching static portrait, and loading/error states keep the same portrait visible. Selection is persisted independently of the focus timer.
+
+## Rakko click performance
+
+Rakko's React state jumps and makes five rapid upright 360-degree turns in 40 frames (~0.67 s). Eight discrete directions use the approved original front plus seven independently drawn side, diagonal and rear views. Hold interpolation selects exactly one direction; every drawing retains its aspect ratio. The jump pivot never rotates in the screen plane.
+
+The source front artwork is unchanged. Wind ribbons, a landing ring and six sparks are separate Rive shapes. Other characters retain their previous timelines. `src/entities/pet/model/rakko-action.json` owns duration (90 frames at 60 fps) and the UI settling/replay gap. The app queues at most one replay and never changes timer data when the Rakko avatar is clicked.
+
+
+Directional artwork: `turnaround/rakko-eight-views.png` was generated with ImageGen from the approved front reference, then refined for direction and scar consistency. Its generated front cell is unused. `rakko-views.json` records the atlas hash, UV crops and foot/head alignment, reproducible with `uv run --with pillow python scripts/inspect-rakko-turnaround.py`. The source PNG is unmodified. This is an eight-view 2D animation, not a 3D model.
+
+The click effect also adds three staggered peripheral light trails, eight expanding glints, and a delayed cyan landing shockwave. All effect nodes are hidden in non-React states and fade out before the action ends.

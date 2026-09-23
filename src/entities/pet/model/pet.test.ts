@@ -42,12 +42,32 @@ describe("pet collection", () => {
     const roots = [...source.matchAll(/<Node id="([^"]+)" name="Body root"/g)].map((match) => match[1]);
     expect(roots).toHaveLength(17);
     for (const id of roots) {
-      const tracks = [...source.matchAll(new RegExp(`<KeyedObject[^>]*objectId="${id}"[^>]*>([\\s\\S]*?)<\\/KeyedObject>`, "g"))];
+      const tracks = [...source.matchAll(new RegExp(String.raw`<KeyedObject[^>]*objectId="${id}"[^>]*>([\s\S]*?)<\/KeyedObject>`, "g"))];
+      expect(tracks.length).toBeGreaterThan(0);
       for (const track of tracks) {
         if (!/propertyKey="1[67]"/.test(track[1])) continue;
         for (const value of track[1].matchAll(/<KeyFrameDouble[^>]*value="([^"]+)"/g)) expect(Number(value[1])).toBe(1);
       }
     }
+  });
+  test("Rakko uses seven drawn directions and its original front without flattening", () => {
+    const source = readFileSync("assets/pets/scene.rml", "utf8");
+    const board = [...source.matchAll(/<Artboard\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/Artboard>/g)].find((entry) => entry[1] === "rakko")![2];
+    const nodeId = (name: string) => board.match(new RegExp(`<Node[^>]*name="${name}"[^>]*id="([^"]+)"`))![1];
+    const action = board.match(/<LinearAnimation[^>]*name="React"[^>]*>([\s\S]*?)<\/LinearAnimation>/)![1];
+    const values = (id: string, key: number) => [...action.matchAll(new RegExp(String.raw`<KeyedObject[^>]*objectId="${id}"[^>]*>([\s\S]*?)<\/KeyedObject>`, "g"))]
+      .filter((entry) => entry[1].includes(`propertyKey="${key}"`))
+      .flatMap((entry) => [...entry[1].matchAll(/<KeyFrameDouble[^>]*value="([^"]+)"/g)].map((value) => Number(value[1])));
+    expect(values(nodeId("Rakko jump pivot"), 15)).toEqual([0, 0]);
+    const facing = values(nodeId("Vertical-axis facing"), 16);
+    expect(facing).toEqual([1, 1]);
+    for (const angle of [45, 90, 135, 180, 225, 270, 315]) {
+      const opacity = values(nodeId(`Rakko view ${String(angle).padStart(3, "0")}`), 18);
+      expect(opacity[0]).toBe(0);
+      expect(opacity[opacity.length - 1]).toBe(0);
+      expect(opacity.filter((value) => value === 1)).toHaveLength(5);
+    }
+    expect(source).toContain('file="turnaround/rakko-eight-views.png"');
   });
   test("runtime export is real Rive and all artboards own five timelines", () => {
     const binary = readFileSync("public/pets/chiikawa-pets.riv");

@@ -4,6 +4,9 @@ are independent channels. Long held poses separate gestures instead of looping
 one sine-wave across every body part.
 """
 import math
+import json
+from pathlib import Path
+RAKKO_TIMING=json.loads((Path(__file__).resolve().parent.parent/"src/entities/pet/model/rakko-action.json").read_text())
 
 MODES=['Idle','Focus','Break','Celebrate','React']
 DURATIONS=[420,360,480,144,132]
@@ -26,7 +29,7 @@ def rotate(x,y,cx,cy,angle):
     return cx+c*dx-s*dy,cy+s*dx+c*dy
 
 def profile(pet,m):
-    d=DURATIONS[m];kind=pet['motion'];name=pet['id']
+    d=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m];kind=pet['motion'];name=pet['id']
     c={k:[(0,0),(d,0)] for k in ['x','y','head','left','right','lift','earL','earR','tail','gaze','sword','propY','propAngle','fx','stepL','stepR']}
     c['prop']=[(0,0),(d,0)]
     c['y']=[(0,0),(100,-.8),(220,0),(330,-.7),(d,0)] if m==0 else [(0,0),(d,0)]
@@ -117,14 +120,14 @@ def profile(pet,m):
     return c
 
 def blinks(pet,index,m):
-    d=DURATIONS[m]
+    d=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m]
     if m==0:times=[87+(index%5)*7,271+(index%4)*9]
     elif m==1:times=[217+(index%5)*6]
     elif m==2:times=[75,264,359]
     elif m==3:times=[]
     else:times=[11,101]
     points=[(0,1)]
-    for t in times:points.extend([(t-3,1),(t,.06),(t+2,.06),(t+9,1)])
+    for t in [t for t in times if t+9<d]:points.extend([(t-3,1),(t,.06),(t+2,.06),(t+9,1)])
     if m==2:points.extend([(120,1),(144,.38),(204,.38),(228,1)])
     if m==3:points.extend([(15,1),(27,.06),(79,.06),(94,1)])
     points.append((d,1));return sorted(dict(points).items())
@@ -132,9 +135,71 @@ def blinks(pet,index,m):
 def animate(art,pet,index,rig,el,keyed):
     ids=[];w,h=rig['width'],rig['height'];root=rig['root'];groups=rig['groups']
     for m,mode in enumerate(MODES):
-        duration=DURATIONS[m];c=profile(pet,m)
+        duration=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m];c=profile(pet,m)
         anim=el('LinearAnimation',art,name=mode,duration=duration,loopValue='loop' if m<3 else 'oneShot');ids.append(anim.get('id'))
-        keyed(anim,root,13,[(f,128+v) for f,v in c['x']]);keyed(anim,root,14,[(f,228+v) for f,v in c['y']])
+        origin_x,origin_y=(0,100) if rig.get('spin') else (128,228)
+        if pet['id']=='rakko' and m==4:
+            c['x']=[(0,0),(duration,0)];c['y']=[(0,0),(duration,0)];c['gaze']=[(0,0),(duration,0)]
+        keyed(anim,root,13,[(f,origin_x+v) for f,v in c['x']]);keyed(anim,root,14,[(f,origin_y+v) for f,v in c['y']])
+        if rig.get('spin'):
+            spin=rig['spin']
+            # Keep every direction at its drawn proportions; never flatten or mirror.
+            keyed(anim,spin,15,[(0,0),(duration,0)])
+            keyed(anim,rig['facing'],16,[(0,1),(duration,1)])
+            if m==4:
+                keyed(anim,spin,14,[(0,128),(8,131),(14,114),(22,106),(40,106),(54,116),(62,128),(68,125),(77,128),(duration,128)])
+                zoom=[(0,1),(8,.98),(16,.93),(22,.90),(48,.93),(62,1),(duration,1)]
+                start=RAKKO_TIMING['spinStart'];span=RAKKO_TIMING['spinFrames'];turns=RAKKO_TIMING['turns']
+                for direction,obj in enumerate(rig['angleFrames']):
+                    visible=int(direction==0)
+                    points=[(0,visible)]
+                    for step in range(span+1):
+                        active=round(turns*step/span*8)%8
+                        points.append((start+step,int(active==direction)))
+                    points.append((duration,visible))
+                    keyed(anim,obj,18,points,hold=True)
+            else:
+                keyed(anim,spin,14,[(0,128),(duration,128)])
+                zoom=[(0,1),(duration,1)]
+                for direction,obj in enumerate(rig['angleFrames']):
+                    visible=int(direction==0)
+                    keyed(anim,obj,18,[(0,visible),(duration,visible)],hold=True)
+            keyed(anim,spin,16,zoom);keyed(anim,spin,17,zoom)
+            for effect in rig['actionFx']:
+                kind=effect['kind'];obj=effect['id']
+                if m!=4:
+                    keyed(anim,obj,18,[(0,0),(duration,0)])
+                    continue
+                if kind=='wind':
+                    keyed(anim,obj,18,[(0,0),(14,0),(19,.85),(51,.85),(61,0),(duration,0)])
+                    keyed(anim,obj,15,[(0,-.16),(16,-.16),(34,.16),(55,-.12),(duration,-.12)])
+                    keyed(anim,obj,16,[(0,.6),(14,.6),(30,1),(54,1.05),(duration,1.05)])
+                    keyed(anim,obj,17,[(0,.6),(14,.6),(30,1),(54,1.05),(duration,1.05)])
+                elif kind=='trail':
+                    index=effect['index'];delay=index*3
+                    keyed(anim,obj,18,[(0,0),(13+delay,0),(20+delay,.65-index*.12),(48,.7-index*.12),(59,0),(duration,0)])
+                    keyed(anim,obj,15,[(0,-.3+index*.25),(14,-.3+index*.25),(54,.5+index*.25),(duration,.5+index*.25)],linear=True)
+                    keyed(anim,obj,14,[(0,157-index*17),(14,157-index*17),(52,135-index*17),(duration,135-index*17)])
+                elif kind=='glint':
+                    index=effect['index'];start=15+index*4
+                    angle=index*math.tau/8
+                    keyed(anim,obj,18,[(0,0),(start,0),(start+4,1),(start+12,.8),(start+19,0),(duration,0)])
+                    keyed(anim,obj,13,[(0,128+math.cos(angle)*83),(start,128+math.cos(angle)*83),(start+19,128+math.cos(angle)*113),(duration,128+math.cos(angle)*113)])
+                    keyed(anim,obj,14,[(0,120+math.sin(angle)*77),(start,120+math.sin(angle)*77),(start+19,108+math.sin(angle)*88),(duration,108+math.sin(angle)*88)])
+                    keyed(anim,obj,15,[(0,0),(start,0),(start+19,1.6),(duration,1.6)])
+                    for axis in [16,17]:keyed(anim,obj,axis,[(0,.2),(start,.2),(start+6,1.2),(start+19,.3),(duration,.3)])
+                elif kind=='shockwave':
+                    keyed(anim,obj,18,[(0,0),(64,0),(68,.8),(87,0),(duration,0)])
+                    for axis in [16,17]:keyed(anim,obj,axis,[(0,.45),(64,.45),(87,2.15),(duration,2.15)])
+                elif kind=='ripple':
+                    keyed(anim,obj,18,[(0,0),(58,0),(63,.85),(80,0),(duration,0)])
+                    for axis in [16,17]:keyed(anim,obj,axis,[(0,.35),(58,.35),(80,1.35),(duration,1.35)])
+                else:
+                    angle=effect['angle'];radius=effect['radius']
+                    keyed(anim,obj,18,[(0,0),(58,0),(64,1),(78,.8),(duration,0)])
+                    keyed(anim,obj,13,[(0,128),(58,128),(84,128+math.cos(angle)*radius),(duration,128+math.cos(angle)*radius)])
+                    keyed(anim,obj,14,[(0,220),(58,220),(79,220-math.sin(angle)*radius),(duration,224-math.sin(angle)*radius)])
+                    keyed(anim,obj,15,[(0,0),(60,0),(duration,angle*2)])
         # Stable volume: no whole-character stretch/squash and no idle pendulum rotation.
         keyed(anim,root,15,[(0,0),(duration,0)]);keyed(anim,root,16,[(0,1),(duration,1)]);keyed(anim,root,17,[(0,1),(duration,1)])
         keyed(anim,rig['effects'],18,c['fx'])
@@ -146,7 +211,7 @@ def animate(art,pet,index,rig,el,keyed):
             prop=rig['prop'];keyed(anim,prop['root'],18,c['prop'])
             keyed(anim,prop['root'],14,[(f,prop['y']+v) for f,v in c['propY']])
             keyed(anim,prop['root'],15,c['sword'] if pet.get('prop')=='sword' else c['propAngle'])
-        eye_keys=blinks(pet,index,m)
+        eye_keys=[(0,1),(duration,1)] if pet['id']=='rakko' and m==4 else blinks(pet,index,m)
         if rig.get('eyeHead'):
             keyed(anim,rig['eyeHead'],15,c['head'])
         for lid in rig.get('closedEyes',[]):
