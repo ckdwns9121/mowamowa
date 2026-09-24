@@ -14,8 +14,8 @@
     "mcp:validate": "bun run mcp:typecheck && bun run mcp:bundle && claude plugin validate agent-plugins/orbit",
     "verify:fsd": "bun scripts/verify-fsd.ts",
     "release:check": "bun scripts/check-release-version.ts",
-    "bundle:mac": "CI=true tauri build --bundles app,dmg",
-    "bundle:mac:universal": "CI=true tauri build --bundles app,dmg --target universal-apple-darwin",
+    "bundle:mac": "CI=true tauri build --config src-tauri/tauri.installed.conf.json --bundles app,dmg",
+    "bundle:mac:universal": "CI=true tauri build --config src-tauri/tauri.installed.conf.json --bundles app,dmg --target universal-apple-darwin",
     "test": "bun test",
     "preview": "vite preview",
     "tauri": "tauri"

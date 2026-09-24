@@ -1,119 +1,98 @@
-# Orbit
+# MowaMowa · 모와모와
 
-<p align="center">
-  <strong>English</strong> ·
-  <a href="README.ko.md">한국어</a> ·
-  <a href="README.ja.md">日本語</a>
-</p>
+**Your tasks in the menu bar. Your focus buddy on the desktop.**
 
-> A lightweight macOS menu-bar micro-todo and Pomodoro timer featuring Chiikawa's master warrior, Rakko.
+**English** · [한국어](README.ko.md) · [日本語](README.ja.md)
 
-[![CI](https://github.com/ckdwns9121/orbit/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/orbit/actions/workflows/ci.yml)
-[![Release macOS](https://github.com/ckdwns9121/orbit/actions/workflows/release.yml/badge.svg)](https://github.com/ckdwns9121/orbit/actions/workflows/release.yml)
-![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
-![Bun](https://img.shields.io/badge/Bun-1.3-FBF0DF?logo=bun&logoColor=111)
-![Platform](https://img.shields.io/badge/platform-macOS-black?logo=apple)
+[![CI](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml)
+![macOS](https://img.shields.io/badge/macOS-13%2B-222222?logo=apple)
 
----
+<p align="center"><img src="docs/assets/mowamowa/focus-pet.png" width="480" alt="Rakko beside the focus timer" /></p>
 
-## Introduction
+MowaMowa is a small work companion that keeps your tasks close and stays beside you while you focus. Check your todos, assigned Jira tickets and GitHub review requests from the menu bar. Pick one task, start the timer, and work alongside your desktop pet.
 
-Managing complex dashboards and bulky windows adds friction to daily development workflows.
 
-**Orbit** transforms your task workflow into a seamless **macOS menu bar micro-todo service**, paired with an animated **Rakko (Chiikawa) floating pet companion & Pomodoro timer** running in the corner of your screen.
+## How it works
 
-Quickly offload tasks in one line, eliminate priority decision fatigue, and lock in on **one single task** alongside master warrior Rakko.
+1. **Gather** — Add a task, check assigned tickets, or find a PR waiting for your review.
+2. **Focus** — Start one task with a timer and a little companion on your desktop.
+3. **Reflect** — Browse focus time and completed tasks by date.
 
----
+## Tour
 
-## Key Features
+<table>
+<tr>
+<td width="50%" valign="top"><h3>A small menu-bar workspace</h3><p>Add a task in one line and start working. Everything lives in the menu bar, without a separate main window.</p><img src="docs/assets/mowamowa/tasks.png" width="360" alt="A small menu-bar workspace" /></td>
+<td width="50%" valign="top"><h3>Pick your companion</h3><p>Choose from 17 pets. Click Rakko for a jump, five fast spins, light trails and a landing burst.</p><img src="docs/assets/mowamowa/pet-picker.png" width="360" alt="Pick your companion" /></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><h3>Your Jira tickets</h3><p>Status badges sit beside ticket keys. Completed tickets stay hidden unless you choose to include them.</p><img src="docs/assets/mowamowa/jira.png" width="360" alt="Your Jira tickets" /></td>
+<td width="50%" valign="top"><h3>Your review queue</h3><p>See open PRs requesting your review. Click an item to open it on GitHub.</p><img src="docs/assets/mowamowa/reviews.png" width="360" alt="Your review queue" /></td>
+</tr>
+</table>
 
-### 🦦 Rakko Pomodoro Floating Pet Companion
-* **Always on Screen**: Floats unobtrusively on all macOS virtual spaces (Spaces) without interrupting your editor or terminal.
-* **Animated Interactions**: Reacts dynamically to your focus states and timer progress with sword slashes, 1080° cyclone spins, and idle animations.
-* **1-Click Toggle**: Summon or hide Rakko instantly via the tray button.
+The pet and picker screenshots were captured in the installed macOS app. Task, Jira and PR screenshots use the real UI with fictional demo data.
 
-### ⚡️ Tray Micro To-Do (Menu Bar Only)
-* **Accessory Mode**: Runs quietly in the macOS menu bar—no bulky desktop window. Opens in 0.2 seconds and dismisses with `Esc` or an outside click.
-* **1-Line Quick-Add**: Type your task title and hit `Enter` to immediately prepend it to the top of the queue.
-* **Zero-Priority Overhead**: No High/Medium/Low dropdowns. Order is naturally governed by sequence.
-* **NOW & TODO & DONE Flow**:
-  * `NOW`: The single active focus card with a live elapsed timer, and 1-click `[Complete]` / `[Pause]`.
-  * `TODO`: The waiting task queue with `[Start]` buttons to swap focus.
-  * `DONE`: Completed tasks remain visible with a strikethrough (`~~`) in the compact bottom section, giving a satisfying feeling of accomplishment.
-* **Undo Completion**: Easily uncheck to restore tasks if marked by mistake.
+## Install
 
-### Jira & PR reviews
-* Three compact tabs: tasks, assigned Jira tickets, and GitHub review requests. Jira and PR status badges sit beside the ticket number; tasks stay uncluttered.
-* Jira connection settings live in the Jira tab. PR reviews use the active GitHub CLI account, without scanning AI sessions or local repositories.
-* No separate main window, AI chat/session UI, or Google Calendar integration. Right-click the tray icon to quit.
+**Public DMG releases and Homebrew installation are not available yet.** Build from source below, or install a DMG shared with you.
 
-### 🔌 Background Intelligence & MCP Support
-* **Local-First Architecture**: All your work items remain on your machine in local SQLite (`tauri-plugin-sql`).
-* **Model Context Protocol (MCP)**: Embedded MCP server allowing Claude Code, Cursor, and other AI agents to inspect and create Orbit tasks directly.
+### From an existing DMG
 
----
+Open the DMG, drag `MowaMowa.app` into **Applications**, and launch it. No source checkout, Bun or Rust is needed.
 
-## Workflow
+### Build an installer
 
-```text
-1. Click menu bar icon
-        ↓
-2. Type task title and press [Enter] (immediately prepended to list)
-        ↓
-3. Click [Start] → Rakko mascot appears & NOW focus timer begins
-        ↓
-4. Check off when finished → Strikethrough feedback & recorded in today's accomplishments
-```
+Requires macOS 13+, [Bun](https://bun.sh/) 1.3.6, Rust stable and Xcode Command Line Tools.
 
----
-
-## Requirements & Quick Start
-
-### Requirements
-* macOS 13+
-* [Bun](https://bun.sh/) 1.3.6
-* Rust stable & Xcode Command Line Tools
-
-### Run in Development
 ```bash
-git clone https://github.com/ckdwns9121/orbit.git
-cd orbit
+git clone https://github.com/ckdwns9121/mowamowa.git
+cd mowamowa
 bun install --frozen-lockfile
-bun run tauri dev
+bun run bundle:mac
+open src-tauri/target/release/bundle/dmg
 ```
 
-Click the Orbit icon in your macOS menu bar to toggle the tray popover.
+Install from the generated DMG. This builds for your current Mac architecture.
 
-### Build macOS App
+<details>
+<summary>Universal build for Apple Silicon and Intel</summary>
+
 ```bash
-# Current Mac architecture (DMG and .app)
-bun run bundle:mac
-
-# Universal binary (Apple Silicon + Intel)
 rustup target add aarch64-apple-darwin x86_64-apple-darwin
 bun run bundle:mac:universal
 ```
 
-Artifacts are created under `src-tauri/target/release/bundle/`.
+Artifacts: `src-tauri/target/universal-apple-darwin/release/bundle/`.
 
----
+</details>
 
-## Tech Stack
+### First launch
 
-| Component | Technology |
-| :--- | :--- |
-| **Desktop Shell** | Tauri 2 (macOS Accessory Mode) |
-| **Frontend** | React 19, TypeScript, Sass/SCSS, Lucide React |
-| **Mascot Animation** | Rive Canvas & Custom Vector Animation |
-| **Backend & Core** | Rust 2021, SQLite (`tauri-plugin-sql`) |
-| **Storage & Security** | macOS Keychain, Rust `keyring` |
-| **AI Integration** | Model Context Protocol (MCP Server) |
-| **Build & Test** | Bun, Vite, Bun Test, Cargo Test |
+- **Tasks, pets and the timer** work without an external account.
+- **Jira:** enter your `https://company.atlassian.net` site, email and API token in the Jira tab.
+- **PR reviews:** install GitHub CLI, sign in with `gh auth login`, then click the GitHub connect button. Check the active account with `gh auth status`.
 
----
+Installed and development builds use separate data, settings and Keychain entries. Reinstalling preserves installed-app records. Right-click the menu-bar icon to quit.
 
-## Contributing
+## Data and connections
 
-Bug reports and feature requests are welcome via [GitHub Issues](https://github.com/ckdwns9121/orbit/issues).
+Tasks and focus history are stored in local SQLite. Jira tokens use macOS Keychain by default; GitHub uses your local GitHub CLI authentication. Fetching connected Jira and GitHub lists contacts those services. PR reviews are not fetched until you connect.
+
+## Development
+
+```bash
+bun run tauri dev
+bun run build
+bun test
+bun run verify:fsd
+cargo test --manifest-path src-tauri/Cargo.toml --lib
+```
+
+Built with Tauri 2, React 19, TypeScript, Rive and SQLite. See [MCP integration](docs/technical/README.md) for managing tasks from AI tools.
+
+## Characters
+
+This is an unofficial fan project featuring Chiikawa characters, not an official app or an affiliation with their creators or rights holders. Character names and artwork belong to their respective rights holders.
+
+Bug reports and suggestions: [Issues](https://github.com/ckdwns9121/mowamowa/issues).

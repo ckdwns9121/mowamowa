@@ -1,125 +1,114 @@
-# Orbit
+# 모와모와 · MowaMowa
 
-<p align="center">
-  <a href="README.md">English</a> ·
-  <strong>한국어</strong> ·
-  <a href="README.ja.md">日本語</a>
-</p>
+**할 일은 메뉴바에, 집중 친구는 바탕화면에.**
 
-> 먼작귀(치이카와) 최고의 실력자, 용사 랏코(Rakko)와 함께하는 macOS 메뉴바 마이크로 몰입 투두 & 뽀모도로 타이머.
+[English](README.md) · **한국어** · [日本語](README.ja.md)
 
-[![CI](https://github.com/ckdwns9121/orbit/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/orbit/actions/workflows/ci.yml)
-[![Release macOS](https://github.com/ckdwns9121/orbit/actions/workflows/release.yml/badge.svg)](https://github.com/ckdwns9121/orbit/actions/workflows/release.yml)
-![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
-![Bun](https://img.shields.io/badge/Bun-1.3-FBF0DF?logo=bun&logoColor=111)
-![Platform](https://img.shields.io/badge/platform-macOS-black?logo=apple)
+[![CI](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml)
+![macOS](https://img.shields.io/badge/macOS-13%2B-222222?logo=apple)
 
----
+<p align="center"><img src="docs/assets/mowamowa/focus-pet.png" width="480" alt="랏코와 함께하는 집중 타이머" /></p>
 
-## 소개
+모와모와는 내 할 일을 챙겨주고, 집중하는 동안 곁에 있어주는 작은 업무 짝꿍입니다. 메뉴바에서 할 일·Jira 티켓·GitHub PR 리뷰를 확인하고, 오늘 끝낼 일을 하나 골라 펫과 함께 시작하세요.
 
-무거운 대시보드를 열어두고 수많은 티켓과 할 일을 관리하는 것은 작업 흐름을 끊고 높은 마찰을 만듭니다.
 
-**Orbit**은 개발 일상에 자연스럽게 녹아드는 **macOS 상단 메뉴바(트레이) 기반의 초경량 마이크로 투두**와, 화면 한구석에서 함께 싸우고 집중해주는 **랏코(Rakko) 뽀모도로 플로팅 펫 타이머**를 제공합니다.
+## 이렇게 함께해요
 
-생각난 일은 1초 만에 털어 넣고, 복잡한 우선순위 고민 없이 지금 가장 중요한 **단 하나의 작업**에 랏코와 함께 몰입하세요.
+1. **모으기** — 할 일을 적고, 담당 Jira 티켓과 나에게 요청된 PR 리뷰를 확인합니다.
+2. **집중하기** — 한 가지 일을 시작하면 바탕화면의 펫과 타이머가 함께합니다.
+3. **돌아보기** — 날짜별 집중 시간과 완료한 일을 살펴봅니다.
 
----
+## 둘러보기
 
-## 핵심 기능
+<table>
+<tr>
+<td width="50%" valign="top">
+<h3>작은 메뉴바 작업 공간</h3>
+<p>한 줄로 할 일을 추가하고, 지금 할 일을 시작하세요. 별도 메인 창 없이 메뉴바에서 관리합니다.</p>
+<img src="docs/assets/mowamowa/tasks.png" width="360" alt="진행 중인 일과 대기 중인 할 일 목록" />
+</td>
+<td width="50%" valign="top">
+<h3>오늘 함께할 친구</h3>
+<p>17가지 펫 중 마음에 드는 친구를 고르세요. 랏코를 클릭하면 점프와 빠른 5회전, 반짝임과 착지 이펙트를 보여줍니다.</p>
+<img src="docs/assets/mowamowa/pet-picker.png" width="360" alt="치이카와 캐릭터 펫 선택 화면" />
+</td>
+</tr>
+<tr>
+<td valign="top">
+<h3>내 Jira 티켓</h3>
+<p>티켓 번호 옆의 작은 상태 뱃지로 할 일과 진행 중인 일을 구분합니다. 완료 티켓은 기본으로 숨기고 필요할 때 포함할 수 있어요.</p>
+<img src="docs/assets/mowamowa/jira.png" width="360" alt="상태 뱃지와 완료 티켓 필터가 있는 Jira 목록" />
+</td>
+<td valign="top">
+<h3>쌓인 PR 리뷰</h3>
+<p>나에게 리뷰가 요청된 열린 PR을 모아봅니다. 항목을 누르면 GitHub에서 바로 열립니다.</p>
+<img src="docs/assets/mowamowa/reviews.png" width="360" alt="GitHub PR 리뷰 요청 목록" />
+</td>
+</tr>
+</table>
 
-### 🦦 랏코(Rakko) 뽀모도로 플로팅 펫 타이머
-* **화면 위의 페어 프로그래밍 메이트**: 모든 macOS 가상 데스크톱(Spaces) 위에 항상 떠 있어 작업 중에도 시야를 방해하지 않고 함께합니다.
-* **살아 숨쉬는 인터랙션**: 집중 상태와 타이머 진행에 반응하여 참격 액션, 덤블링 회오리 스핀, 대기 모션 등 다채로운 애니메이션을 선보입니다.
-* **원클릭 토글**: 트레이 하단 버튼으로 언제든 자유롭게 띄우거나 숨길 수 있습니다.
+펫과 펫 선택 화면은 설치된 macOS 앱에서 촬영했습니다. 할 일·Jira·PR 화면은 실제 UI에 가상 데이터를 넣어 촬영한 데모입니다.
 
-### ⚡️ 초경량 메뉴바 트레이 투두 (Tray Micro To-Do)
-* **메뉴바 상주형 (Accessory Mode)**: 거대한 데스크탑 창 없이 상단 메뉴바 트레이에서 0.2초 만에 즉시 열리고, `Esc`나 클릭 한 번으로 사라집니다.
-* **1줄 퀵 추가 (Quick-Add)**: 맨 위 입력창에 제목만 치고 `Enter`를 누르면 대기 목록 최상단에 즉시 등록됩니다.
-* **결정 피로 없는 제로 우선순위 (Zero Priority)**: High/Medium/Low 같은 형식적인 등급 없이 목록의 위아래 순서로만 직관적으로 다룹니다.
-* **NOW (1개 몰입) & TODO (대기 목록)**:
-  * `NOW`: 현재 집중 중인 단 1개의 작업 카드와 실시간 경과 시간 타이머, 원클릭 `[완료]` / `[일시정지]`.
-  * `TODO`: 대기 중인 할 일 목록, `[시작]` 버튼으로 즉시 집중 전환.
-* **DONE 취소선 달성 피드백**: 완료 체크 시 즉시 지워지지 않고 취소선(`~~`)이 그어진 채 하단 완료 영역에 남아 오늘 하루의 성취감을 선사합니다. (실수로 체크한 경우 원클릭 복구 가능)
+## 설치
 
-### 펫 선택
-* 트레이 하단 **펫 선택** 또는 펫 툴바의 발바닥 버튼에서 17종을 고릅니다.
-* 친구들·갑옷·파자마·이웃들 분류와 이름 검색을 제공하며, 대기·집중·휴식·완료 동작을 미리 볼 수 있습니다.
-* Rive로 만든 캐릭터별 움직임을 오프라인에서 재생합니다. 선택은 저장되며 타이머와 집중 기록은 유지됩니다.
-* 캐릭터 범위와 그림 출처, 재빌드 방법은 [펫 에셋 문서](assets/pets/README.md)에 있습니다.
+**현재 공개 DMG 릴리스와 Homebrew 설치는 아직 제공하지 않습니다.** 지금은 아래 명령으로 직접 빌드하거나, 빌드된 DMG를 전달받아 설치할 수 있습니다.
 
-### 오늘 기록과 업무 확인
-* 하단 **오늘 집중 · 완료**를 누르면 날짜별 집중 시간, 완료 개수와 작업별 기록을 봅니다.
-* 트레이와 펫은 같은 타이머를 사용합니다. 휴식·일시정지·잠자기·앱 종료 시간은 집계에서 제외하며, 과거에 기록하지 않은 집중 시간은 추정하지 않습니다.
-* Jira 미연결 시 사이트 URL·이메일·API 토큰 입력 화면부터 표시합니다. 연결 확인에 성공하면 목록을 엽니다.
-* 완료 티켓은 기본으로 숨깁니다. **완료된 티켓 포함** 체크 상태는 다음에도 유지됩니다.
+### DMG를 가지고 있다면
 
-### 🔌 보조 업무 인텔리전스 & MCP 연동
-* **로컬 우선 (Local First)**: 모든 작업 데이터는 외부 서버가 아닌 내 맥의 로컬 SQLite에 안전하게 보관됩니다.
-* **AI 에이전트 연동 (Orbit MCP)**: Claude Code, Cursor 등 다양한 AI 어시스턴트가 Orbit의 할 일을 직접 조회하고 생성할 수 있는 Model Context Protocol(MCP) 서버를 지원합니다.
+DMG를 열어 `MowaMowa.app`을 **응용 프로그램** 폴더로 옮기고 실행하세요. 소스 코드, Bun, Rust는 필요 없습니다.
 
----
+### 소스에서 설치용 앱 만들기
 
-## 사용 방법
+macOS 13 이상, [Bun](https://bun.sh/) 1.3.6, Rust stable, Xcode Command Line Tools가 필요합니다.
 
-```text
-1. 메뉴바 트레이 아이콘 클릭
-        ↓
-2. 상단 인풋에 할 일 입력 후 [Enter] (목록 최상단 즉시 추가)
-        ↓
-3. [시작] 버튼 클릭 → 랏코 펫 소환 & NOW 몰입 타이머 시작
-        ↓
-4. 작업 완료 시 [완료] 체크 → 취소선 피드백과 함께 오늘 달성 기록
-```
-
----
-
-## 요구사항 및 실행
-
-### 요구사항
-* macOS 13 이상
-* [Bun](https://bun.sh/) 1.3.6
-* Rust stable & Xcode Command Line Tools
-
-### 소스에서 개발 모드 실행
 ```bash
-git clone https://github.com/ckdwns9121/orbit.git
-cd orbit
+git clone https://github.com/ckdwns9121/mowamowa.git
+cd mowamowa
 bun install --frozen-lockfile
-bun run tauri dev
+bun run bundle:mac
+open src-tauri/target/release/bundle/dmg
 ```
 
-앱이 실행되면 상단 메뉴바에 Orbit 아이콘이 나타나며, 클릭하여 트레이 팝업을 열 수 있습니다.
+열린 폴더의 DMG로 설치하세요. `bun run bundle:mac`은 현재 Mac의 아키텍처용 앱을 만듭니다.
 
-### macOS 번들 앱 빌드
+<details>
+<summary>Apple Silicon과 Intel을 함께 지원하는 Universal 빌드</summary>
+
 ```bash
-# 현재 Mac 아키텍처용 빌드
-bun run bundle:mac
-
-# Apple Silicon & Intel Universal 빌드
 rustup target add aarch64-apple-darwin x86_64-apple-darwin
 bun run bundle:mac:universal
 ```
 
-빌드 산출물(App, DMG)은 `src-tauri/target/release/bundle/`에 생성됩니다.
+산출물은 `src-tauri/target/universal-apple-darwin/release/bundle/`에 생성됩니다.
 
----
+</details>
 
-## 기술 스택
+### 처음 실행하면
 
-| 영역 | 기술 |
-| :--- | :--- |
-| **Desktop Shell** | Tauri 2 (macOS Accessory Mode) |
-| **Frontend** | React 19, TypeScript, Sass/SCSS, Lucide React |
-| **Mascot Asset** | Rive Canvas & Custom Vector Animation |
-| **Backend & Core** | Rust 2021, SQLite (`tauri-plugin-sql`) |
-| **Storage & Security** | macOS Keychain, Rust `keyring` |
-| **AI Integration** | Model Context Protocol (MCP Server) |
-| **Build & Test** | Bun, Vite, Bun Test, Cargo Test |
+- **할 일·펫·타이머**는 외부 계정 없이 사용할 수 있습니다.
+- **Jira** 탭에서 `https://회사명.atlassian.net`, 이메일, API 토큰을 입력하세요.
+- **PR 리뷰**는 GitHub CLI가 필요합니다. `gh auth login`으로 로그인한 뒤 **GitHub 연결하고 불러오기**를 누르세요. `gh auth status`로 활성 계정을 확인할 수 있습니다.
 
----
+설치판은 개발판과 데이터·설정·키체인을 분리합니다. 재설치해도 설치판에서 쓰던 기록은 유지됩니다. 앱을 종료하려면 메뉴바 아이콘을 우클릭하세요.
 
-## 기여 및 문의
+## 데이터와 연결
 
-버그 제보와 기능 제안은 [GitHub Issues](https://github.com/ckdwns9121/orbit/issues)를 이용해 주세요.
+할 일과 집중 기록은 로컬 SQLite에 저장합니다. Jira 토큰은 기본적으로 macOS 키체인에 저장하며, GitHub는 이 Mac의 GitHub CLI 인증을 사용합니다. 연결한 Jira·GitHub의 목록을 가져올 때 해당 서비스에 요청합니다. PR 리뷰는 연결 버튼을 누르기 전에는 조회하지 않습니다.
+
+## 개발
+
+```bash
+bun run tauri dev       # 개발 모드
+bun run build          # 프런트엔드 빌드
+bun test               # 테스트
+bun run verify:fsd     # 모듈 의존 방향 검사
+cargo test --manifest-path src-tauri/Cargo.toml --lib
+```
+
+Tauri 2 · React 19 · TypeScript · Rive · SQLite로 만들었습니다. AI 도구에서 할 일을 다루는 기능은 [MCP 연동 문서](docs/technical/README.md)를 참고하세요.
+
+## 캐릭터 안내
+
+치이카와 캐릭터를 사용하는 비공식 팬 프로젝트이며, 원작자나 권리자와 제휴한 공식 앱이 아닙니다. 캐릭터와 관련 명칭·그림의 권리는 각 권리자에게 있습니다.
+
+버그와 제안은 [Issues](https://github.com/ckdwns9121/mowamowa/issues)에 남겨주세요.

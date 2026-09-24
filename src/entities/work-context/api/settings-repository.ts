@@ -5,6 +5,7 @@ export type SettingKey =
   | "pet_character"
   | "jira_url"
   | "jira_email"
+  | "github_reviews_enabled"
   | "slack_workspace"
   | "slack_workspace_id"
   | "slack_user_name"
