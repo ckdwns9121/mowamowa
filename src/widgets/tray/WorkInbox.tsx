@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { RefreshCw, Settings2, ArrowUpRight } from "lucide-react";
@@ -24,6 +24,8 @@ export default function WorkInbox({ source }: { source: Source }) {
   const [query, setQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [connectionReady, setConnectionReady] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const connectingRef = useRef(false);
   const [showCompleted, setShowCompleted] = useState(() => localStorage.getItem("orbit.jira.show-completed") === "true");
 
   async function refresh(force = false): Promise<boolean> {
@@ -48,6 +50,24 @@ export default function WorkInbox({ source }: { source: Source }) {
       return false;
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function connectGitHub() {
+    // Cover both the network request and settings persistence with one lock.
+    if (connectingRef.current) return;
+    connectingRef.current = true;
+    setConnecting(true);
+    try {
+      if (!await refresh()) return;
+      await setAppSettings({ github_reviews_enabled: "true" });
+      setConnectionReady(true);
+    } catch (cause) {
+      setRows([]);
+      setError(String(cause));
+    } finally {
+      connectingRef.current = false;
+      setConnecting(false);
     }
   }
 
@@ -101,16 +121,10 @@ export default function WorkInbox({ source }: { source: Source }) {
       if (success) { setConnectionReady(true); setSettingsOpen(false); }
       return success;
     }} />}
-    {source === "reviews" && !connectionReady && !loading && <div className="tray-connection">
+    {source === "reviews" && !connectionReady && (!loading || connecting) && <div className="tray-connection">
       <span>GitHub를 연결하면 나에게 요청된 PR 리뷰를 볼 수 있어요.</span>
       <small>이 Mac의 GitHub CLI 활성 계정을 사용합니다. 아직 로그인하지 않았다면 터미널에서 <code>gh auth login</code>을 실행해주세요.</small>
-      <button type="button" onClick={() => void (async () => {
-        if (!await refresh()) return;
-        try {
-          await setAppSettings({ github_reviews_enabled: "true" });
-          setConnectionReady(true);
-        } catch (cause) { setRows([]); setError(String(cause)); }
-      })()}>GitHub 연결하고 불러오기</button>
+      <button type="button" disabled={connecting} onClick={() => void connectGitHub()}>{connecting ? "GitHub 연결 중…" : "GitHub 연결하고 불러오기"}</button>
     </div>}
     {source === "reviews" && <p className="tray-inbox-note">{account ? `@${account} · GitHub CLI 활성 계정` : "GitHub CLI에 로그인된 계정으로 확인합니다."}</p>}
     {connectionReady && <input className="tray-inbox-search" aria-label="목록 검색" placeholder={source === "jira" ? "티켓 검색" : "PR 검색"} value={query} onChange={(event) => setQuery(event.target.value)} />}
