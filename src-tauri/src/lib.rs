@@ -16,7 +16,6 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 mod jira_issue;
 mod github_reviews;
 
-const KEYCHAIN_SERVICE: &str = "com.orbit.desktop";
 static SECRET_CACHE: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 
@@ -164,7 +163,8 @@ fn delete_internal_secret(secret_id: &str) -> Result<(), String> {
 
 fn keychain_entry(secret_id: &str) -> Result<keyring::Entry, String> {
     validate_secret_id(secret_id)?;
-    keyring::Entry::new(KEYCHAIN_SERVICE, secret_id).map_err(|error| error.to_string())
+    let app = APP_HANDLE.get().ok_or_else(|| "Orbit 앱이 아직 초기화되지 않았습니다.".to_string())?;
+    keyring::Entry::new(&app.config().identifier, secret_id).map_err(|error| error.to_string())
 }
 
 fn get_secret(secret_id: &str) -> Result<String, String> {

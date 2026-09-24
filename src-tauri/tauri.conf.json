@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Orbit",
+  "productName": "MowaMowa",
   "version": "0.1.0",
   "identifier": "com.orbit.desktop",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "tray",
-        "title": "Orbit Quick View",
+        "title": "MowaMowa Quick View",
         "width": 360,
         "height": 520,
         "minWidth": 360,
@@ -34,7 +34,7 @@
       },
       {
         "label": "pet",
-        "title": "Orbit Pomodoro Pet",
+        "title": "MowaMowa Pomodoro Pet",
         "width": 240,
         "height": 108,
         "minWidth": 240,
