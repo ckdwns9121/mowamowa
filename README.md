@@ -73,7 +73,7 @@ Artifacts: `src-tauri/target/universal-apple-darwin/release/bundle/`.
 - **Jira:** enter your `https://company.atlassian.net` site, email and API token in the Jira tab.
 - **PR reviews:** install GitHub CLI, sign in with `gh auth login`, then click the GitHub connect button. Check the active account with `gh auth status`.
 
-Installed and development builds use separate data, settings and Keychain entries. Reinstalling preserves installed-app records. Right-click the menu-bar icon to quit.
+Installed and development builds use separate data, settings and Keychain entries. Reinstalling this isolated edition preserves its own records. Data and tokens from earlier builds that shared the development storage are not imported automatically; the first launch starts with fresh settings. Existing data and Keychain entries are neither deleted nor moved. Users who need to retain records from those earlier builds need a separate migration before switching to this edition. Right-click the menu-bar icon to quit.
 
 ## Data and connections
 
