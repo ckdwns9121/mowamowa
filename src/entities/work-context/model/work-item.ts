@@ -62,3 +62,14 @@ export const statusMeta: Record<
   inbox: { label: "Inbox", shortLabel: "Inbox", order: 5 },
   done: { label: "완료", shortLabel: "완료", order: 6 },
 };
+
+/**
+ * The tray only keeps today's work in view: open items made or due since
+ * yesterday, and items finished today. Anything older stays one click away.
+ */
+export function isRecentWorkItem(item: WorkItem, now: Date): boolean {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const since = (value: string | null, start: number) => value !== null && Date.parse(value) >= start;
+  if (item.status === "done") return since(item.completedAt, today);
+  return item.status === "focus" || since(item.createdAt, today - 86_400_000) || since(item.targetAt, today - 86_400_000);
+}

@@ -14,12 +14,12 @@
       {
         "label": "tray",
         "title": "MowaMowa Quick View",
-        "width": 360,
-        "height": 520,
-        "minWidth": 360,
-        "minHeight": 520,
-        "maxWidth": 360,
-        "maxHeight": 520,
+        "width": 440,
+        "height": 560,
+        "minWidth": 440,
+        "minHeight": 560,
+        "maxWidth": 440,
+        "maxHeight": 560,
         "visible": false,
         "decorations": false,
         "transparent": true,
@@ -30,7 +30,8 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visibleOnAllWorkspaces": true,
-        "shadow": false
+        "shadow": false,
+        "acceptFirstMouse": true
       },
       {
         "label": "pet",
