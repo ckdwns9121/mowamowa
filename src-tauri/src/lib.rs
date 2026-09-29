@@ -10,7 +10,6 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
-use tauri_plugin_positioner::{Position, WindowExt};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 mod jira_issue;
@@ -291,19 +290,62 @@ fn show_tray_window(app: AppHandle) -> Result<(), String> {
         if let Some(window) = handle.get_webview_window("tray") {
             *handle.state::<Arc<Mutex<Instant>>>().lock().unwrap() = Instant::now();
             configure_window_for_all_spaces(&window);
-            let _ = window.move_window_constrained(Position::TrayCenter);
             let _ = window.show();
             bring_window_to_front(&window, true);
             let _ = window.set_focus();
+            let _ = window.emit("notch-open", ());
         }
     }).map_err(|error| error.to_string())
 }
 
+/// Collapses the notch and hands keyboard focus back to the previous app,
+/// since the notch window itself stays on screen.
 #[tauri::command]
 fn hide_tray_window(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("tray") {
-        let _ = window.hide();
+    let _ = app.emit_to("tray", "notch-close", ());
+    #[cfg(target_os = "macos")]
+    let _ = app.run_on_main_thread(|| unsafe {
+        use objc2::MainThreadMarker;
+        objc2_app_kit::NSApplication::sharedApplication(MainThreadMarker::new_unchecked()).deactivate();
+    });
+}
+
+#[derive(serde::Serialize)]
+struct NotchMetrics {
+    width: f64,
+    height: f64,
+}
+
+/// Size of the camera notch on the menu-bar screen, in points. Screens
+/// without one get a menu-bar-height pill so the island still has a home.
+#[tauri::command]
+fn notch_metrics() -> NotchMetrics {
+    #[cfg(target_os = "macos")]
+    if let Some(mtm) = objc2::MainThreadMarker::new() {
+        if let Some(screen) = objc2_app_kit::NSScreen::screens(mtm).firstObject() {
+            let frame = screen.frame();
+            let top = screen.safeAreaInsets().top;
+            if top > 0.0 {
+                let side = screen.auxiliaryTopLeftArea().size.width
+                    + screen.auxiliaryTopRightArea().size.width;
+                return NotchMetrics { width: frame.size.width - side, height: top };
+            }
+            let visible = screen.visibleFrame();
+            let menu_bar = frame.origin.y + frame.size.height - (visible.origin.y + visible.size.height);
+            return NotchMetrics { width: 180.0, height: menu_bar.max(24.0) };
+        }
     }
+    NotchMetrics { width: 180.0, height: 32.0 }
+}
+
+// ponytail: pinned to the primary monitor at launch; re-place on
+// display-change events if people move the menu bar between screens.
+fn place_notch_window(window: &tauri::WebviewWindow) {
+    if let (Ok(Some(monitor)), Ok(size)) = (window.primary_monitor(), window.outer_size()) {
+        let x = monitor.position().x + (monitor.size().width as i32 - size.width as i32) / 2;
+        let _ = window.set_position(tauri::PhysicalPosition::new(x, monitor.position().y));
+    }
+    let _ = window.set_ignore_cursor_events(true);
 }
 
 #[cfg(target_os = "macos")]
@@ -631,7 +673,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_positioner::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:orbit.db", migrations)
@@ -644,7 +685,6 @@ pub fn run() {
             let last_tray_shown = Arc::new(Mutex::new(Instant::now()));
             app.manage(last_tray_shown.clone());
             let last_tray_shown_blur = last_tray_shown.clone();
-            let last_tray_shown_click = last_tray_shown.clone();
 
             let _ = APP_HANDLE.set(app.handle().clone());
             let clock = app.handle().clone();
@@ -667,7 +707,8 @@ pub fn run() {
             });
             if let Some(window) = app.get_webview_window("tray") {
                 configure_window_for_all_spaces(&window);
-                let _ = window.hide();
+                place_notch_window(&window);
+                let _ = window.show();
                 let window_to_hide = window.clone();
                 window.on_window_event(move |event| {
                     eprintln!("TRAY WINDOW EVENT: {:?}", event);
@@ -683,8 +724,8 @@ pub fn run() {
                                 }
                             });
                         } else {
-                            eprintln!("TRAY HIDING DUE TO BLUR (Focused(false), elapsed: {:?})", elapsed);
-                            let _ = window_to_hide.hide();
+                            eprintln!("TRAY COLLAPSING DUE TO BLUR (Focused(false), elapsed: {:?})", elapsed);
+                            let _ = window_to_hide.emit("notch-close", ());
                         }
                     }
                 });
@@ -715,7 +756,6 @@ pub fn run() {
                 .tooltip("Orbit · 작업 빠른 보기")
                 .on_tray_icon_event(move |tray, event| {
                     eprintln!("ON TRAY ICON EVENT: {:?}", event);
-                    tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
 
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
@@ -723,27 +763,7 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        if let Some(window) = tray.app_handle().get_webview_window("tray") {
-                            let is_visible = window.is_visible().unwrap_or(false);
-                            let elapsed = last_tray_shown_click.lock().unwrap().elapsed();
-                            eprintln!("TRAY CLICK STATE: is_visible={}, elapsed={:?}", is_visible, elapsed);
-
-                            if is_visible && elapsed > Duration::from_millis(300) {
-                                eprintln!("TRAY ACTION: HIDING (toggle)");
-                                let _ = window.hide();
-                            } else {
-                                eprintln!("TRAY ACTION: SHOWING");
-                                *last_tray_shown_click.lock().unwrap() = Instant::now();
-                                configure_window_for_all_spaces(&window);
-                                let pos_res = window.move_window_constrained(Position::TrayCenter);
-                                eprintln!("TRAY MOVE RESULT: {:?}", pos_res);
-                                let show_res = window.show();
-                                eprintln!("TRAY SHOW RESULT: {:?}", show_res);
-                                bring_window_to_front(&window, true);
-                                let focus_res = window.set_focus();
-                                eprintln!("TRAY FOCUS RESULT: {:?}", focus_res);
-                            }
-                        }
+                        let _ = tray.app_handle().emit_to("tray", "notch-toggle", ());
                     }
                 })
                 .build(app)?;
@@ -753,6 +773,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             show_tray_window,
             hide_tray_window,
+            notch_metrics,
             show_pet_window,
             hide_pet_window,
             toggle_pet_window,

@@ -1,10 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cursorPosition, getCurrentWindow } from "@tauri-apps/api/window";
 import {
   Check,
   CheckCircle2,
   Circle,
+  CalendarDays,
   Clock,
   Pause,
   PawPrint,
@@ -24,7 +26,7 @@ import {
   switchFocusedWorkItem,
   transitionWorkItem,
 } from "../../entities/work-context/api/work-continuity-repository";
-import type { WorkItem } from "../../entities/work-context/model/work-item";
+import { isRecentWorkItem, type WorkItem } from "../../entities/work-context/model/work-item";
 import { notifyDueWorkItems } from "../../features/tasks/task-reminders";
 import { notifyDueStretchReminder } from "../../features/wellbeing/stretch-reminders";
 import { PetMascot } from "../pet/PetMascot";
@@ -46,6 +48,56 @@ export default function TrayApp() {
   const [timer, setTimer] = useState<FocusTimer | null>(null);
   const [today, setToday] = useState<DayRecord | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [showOlder, setShowOlder] = useState(false);
+  const [notch, setNotch] = useState({ width: 180, height: 32 });
+  const notchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    void invoke<{ width: number; height: number }>("notch_metrics").then(setNotch).catch(() => undefined);
+  }, []);
+
+  // The notch window never hides: it ignores the cursor while collapsed and
+  // polls the pointer so hovering the island opens it, like Dynamic Island.
+  useEffect(() => {
+    const win = getCurrentWindow();
+    let open = false;
+    let focused = false;
+    let outsideSince = 0;
+    let busy = false;
+    const setOpen = (next: boolean) => {
+      if (open === next) return;
+      open = next;
+      outsideSince = 0;
+      setExpanded(next);
+      if (!next) { setPetPickerOpen(false); setHistoryOpen(false); }
+      void win.setIgnoreCursorEvents(!next).catch(() => undefined);
+    };
+    const poll = window.setInterval(() => {
+      const box = notchRef.current?.getBoundingClientRect();
+      if (busy || !box) return;
+      busy = true;
+      void Promise.all([cursorPosition(), win.outerPosition(), win.scaleFactor()]).then(([cursor, origin, scale]) => {
+        const x = (cursor.x - origin.x) / scale;
+        const y = (cursor.y - origin.y) / scale;
+        if (x >= box.left && x <= box.right && y >= box.top && y <= box.bottom + 4) { outsideSince = 0; setOpen(true); }
+        else if (open && !focused) {
+          outsideSince ||= Date.now();
+          if (Date.now() - outsideSince > 400) setOpen(false);
+        }
+      }).catch(() => undefined).finally(() => { busy = false; });
+    }, 100);
+    const offs = [
+      win.onFocusChanged(({ payload }) => { focused = payload; }),
+      listen("notch-open", () => setOpen(true)),
+      listen("notch-close", () => setOpen(false)),
+      listen("notch-toggle", () => { if (open) void invoke("hide_tray_window"); else void invoke("show_tray_window"); }),
+    ];
+    return () => {
+      window.clearInterval(poll);
+      offs.forEach((off) => void off.then((unlisten) => unlisten()).catch(() => undefined));
+    };
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -109,12 +161,18 @@ export default function TrayApp() {
   }, []);
 
   const focusItem = useMemo(() => items.find((item) => item.status === "focus"), [items]);
-  const todoItems = useMemo(
+  const openItems = useMemo(
     () => items.filter((item) => item.status !== "focus" && item.status !== "done"),
     [items],
   );
+  // Re-evaluated on each 3s refresh, so the list rolls over at midnight.
+  const todoItems = useMemo(
+    () => (showOlder ? openItems : openItems.filter((item) => isRecentWorkItem(item, new Date()))),
+    [openItems, showOlder],
+  );
+  const olderCount = openItems.length - openItems.filter((item) => isRecentWorkItem(item, new Date())).length;
   const doneItems = useMemo(
-    () => items.filter((item) => item.status === "done"),
+    () => items.filter((item) => item.status === "done" && isRecentWorkItem(item, new Date())),
     [items],
   );
   async function handleCreateTask(event: React.FormEvent) {
@@ -212,9 +270,18 @@ export default function TrayApp() {
 
   return (
     <div className="tray-window-container">
-      <div className="tray-arrow-notch" />
-
-      <main className="tray-shell">
+      <div
+        ref={notchRef}
+        className={`notch${expanded ? " is-open" : ""}${focusItem ? " has-activity" : ""}`}
+        style={{ "--notch-w": `${notch.width}px`, "--notch-h": `${notch.height}px` } as React.CSSProperties}
+      >
+      {focusItem && (
+        <div className="notch-compact" aria-hidden={expanded}>
+          <PetMascot mood={timer?.mode === "shortBreak" ? "break" : "focus"} isRunning={Boolean(timer?.running)} size={Math.max(18, notch.height - 8)} />
+          <span className="notch-compact-time">{formatClock(timer?.remaining_ms ?? 0)}</span>
+        </div>
+      )}
+      <main className="tray-shell" inert={!expanded}>
         <nav className="tray-tabs" aria-label="Orbit">
           {([{ id: "tasks", label: "할 일" }, { id: "jira", label: "Jira" }, { id: "reviews", label: "PR 리뷰" }] as const).map((item) => (
             <button type="button" key={item.id} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setHistoryOpen(false); setPetPickerOpen(false); }}>{item.label}</button>
@@ -341,13 +408,18 @@ export default function TrayApp() {
             ) : (
               <div className="tray-empty-hint">대기 중인 할 일이 없습니다.</div>
             )}
+            {olderCount > 0 && (
+              <button type="button" className="tray-older-toggle" aria-expanded={showOlder} onClick={() => setShowOlder(!showOlder)}>
+                {showOlder ? "지난 할 일 숨기기" : `지난 할 일 ${olderCount}개 보기`}
+              </button>
+            )}
           </section>
 
           {/* DONE: Completed Tasks */}
           {doneItems.length > 0 && (
             <section className="tray-section tray-done-section">
               <div className="section-label">
-                <span className="label-text">완료</span>
+                <span className="label-text">오늘 완료</span>
                 <span className="count-badge done-badge">{doneItems.length}</span>
               </div>
               <div className="task-item-list">
@@ -383,7 +455,8 @@ export default function TrayApp() {
 
         {/* Footer */}
         <footer className="tray-bottom-bar">
-          <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => { setPetPickerOpen(false); setHistoryOpen(!historyOpen); }} title={historyError || "날짜별 집중 시간과 완료한 일 보기"}>
+          <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => { setPetPickerOpen(false); setHistoryOpen(!historyOpen); }} title={historyError || "달력에서 날짜별 집중 시간과 완료한 일 보기"}>
+            <CalendarDays size={12} />
             {historyError ? "기록 확인 필요" : today ? `오늘 집중 ${formatFocusDuration(today.focusMs)} · 완료 ${today.completedCount}개` : "오늘 기록 불러오는 중…"}
           </button>
 
@@ -408,6 +481,12 @@ export default function TrayApp() {
           </div>
         </footer>
       </main>
+      </div>
     </div>
   );
+}
+
+function formatClock(ms: number): string {
+  const seconds = Math.ceil(Math.max(0, ms) / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
