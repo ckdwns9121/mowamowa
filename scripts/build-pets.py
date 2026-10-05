@@ -1,4 +1,4 @@
-"""Author editable Rive meshes/timelines and SVG fallback art. Build with Rive CLI 1.1.1.
+"""Author editable Rive meshes/timelines and SVG fallback art. Build with Rive CLI 1.3.0.
 No scripts, network lookups, or account publishing are embedded in the assets.
 """
 from pathlib import Path
@@ -307,6 +307,12 @@ def make_pet(doc,pet,index):
     facing=el('Node',spin,name='Vertical-axis facing') if spin is not None else None
     root=el('Node',facing if facing is not None else art,id=rootid,name='Body root',x=0 if spin is not None else 128,y=100 if spin is not None else 228)
     action_fx=rakko_action_effects(art) if spin is not None else []
+    slash=None
+    if spin is not None:
+        # Arc traced by the blade tip around the sword grip during the idle cuts.
+        slash=el('Node',name='Idle sword slash',opacity=0);art.insert(1,slash)
+        draw_path(slash,'Slash glow','M 108 122 Q 162 47 241 95',None,'#e9f6ff',5)
+        draw_path(slash,'Slash core','M 116 116 Q 164 56 234 96',None,'#a6dbe9',2)
     vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
     if 'crop' in pet:
         bones,bonepivots,width,height=add_mesh(root,pet)
@@ -334,6 +340,7 @@ def make_pet(doc,pet,index):
     stateids=[uid() for _ in MODES]
     rig={'root':rootid,'width':width,'height':height,'bones':bones,'bonePivots':bonepivots,'groups':vectors,'pivots':pivots,
          'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,
+         'slash':slash.get('id') if slash is not None else None,
          'facing':facing.get('id') if facing is not None else None,'angleFrames':angle_frames,
          'eyes':eyes,'closedEyes':closed,'eyeHead':eyehead,'prop':prop,'effects':effects.get('id'),'sparks':spark_ids}
     animids=animate(art,pet,index,rig,el,keyed)

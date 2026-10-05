@@ -12,7 +12,7 @@
 
 ## Rebuild
 
-Use Rive CLI **1.1.1**. No Rive account, scripts, publishing, or external runtime requests are required.
+Use Rive CLI **1.3.0** (`brew install --cask rive-app/tap/rive-cli`; earlier builds used 1.1.1). No Rive account, scripts, publishing, or external runtime requests are required.
 
 ```sh
 python3 scripts/build-pets.py
@@ -38,5 +38,7 @@ The source front artwork is unchanged. Wind ribbons, a landing ring and six spar
 
 
 Directional artwork: `turnaround/rakko-eight-views.png` was generated with ImageGen from the approved front reference, then refined for direction and scar consistency. Its generated front cell is unused. `rakko-views.json` records the atlas hash, UV crops and foot/head alignment, reproducible with `uv run --with pillow python scripts/inspect-rakko-turnaround.py`. The source PNG is unmodified. This is an eight-view 2D animation, not a 3D model.
+
+Rakko's Idle loop also includes a short sword kata (frames 150–296 of 420): it draws the sword, makes two quick cuts with a small lunge and a slash arc, then sheathes it. The sword pivots at the grip because the atlas arms are welded to the body.
 
 The click effect also adds three staggered peripheral light trails, eight expanding glints, and a delayed cyan landing shockwave. All effect nodes are hidden in non-React states and fade out before the action ends.
