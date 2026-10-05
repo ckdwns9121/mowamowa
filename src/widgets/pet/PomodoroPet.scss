@@ -1,315 +1,70 @@
 html.window-pet, html.window-pet body, html.window-pet #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
 
+/* No card: the character floats on the desktop by itself. */
 .pet-window-shell {
+  position: relative;
   width: 100vw;
   height: 100vh;
-  margin: 0;
-  padding: 10px;
-  box-sizing: border-box;
-  background: transparent !important;
-  background-color: transparent !important;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent !important;
   user-select: none;
-  overflow: visible;
-  font-family: -apple-system, BlinkMacSystemFont, "Geist", "Segoe UI", Roboto, sans-serif;
-  -webkit-app-region: drag; /* allows dragging from anywhere or marked regions */
-}
-
-.pet-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  border-radius: 18px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: none;
-  color: #f4f4f5;
-  box-sizing: border-box;
   cursor: grab;
-  transition: border-color 0.2s, transform 0.15s ease;
 
   &:active {
     cursor: grabbing;
   }
 
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.28);
-
-    .pet-hover-controls {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-  }
-
-  &.is-break {
-    background: #1c1917;
-    border-color: rgba(251, 133, 0, 0.35);
-    .pet-timer-val {
-      color: #ffb703;
-    }
-  }
-
-  &.is-focus {
-    background: #0f172a;
-    border-color: rgba(58, 134, 255, 0.35);
-    .pet-timer-val {
-      color: #60a5fa;
-    }
-  }
-
-  &.is-running {
-    background: radial-gradient(circle at 85% 20%, #065f46 0%, #064e3b 70%, #022c22 100%);
-    border-color: rgba(52, 211, 153, 0.45);
-
-    .pet-timer-val {
-      color: #34d399;
-    }
+  &:hover .pet-hover-controls {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
   }
 }
 
-.pet-left-avatar {
+.pet-avatar {
+  display: flex;
   padding: 0;
   border: 0;
   background: transparent;
-  color: inherit;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  -webkit-app-region: no-drag;
 }
 
-.pet-info-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-}
-
-.pet-status-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #a1a1aa;
-}
-
-.pet-mode-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 5px;
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e4e4e7;
-
-  &.badge-focus {
-    background: rgba(58, 134, 255, 0.2);
-    color: #93c5fd;
-  }
-  &.badge-break {
-    background: rgba(251, 133, 0, 0.2);
-    color: #fcd34d;
-  }
-  &.badge-running {
-    background: rgba(16, 185, 129, 0.25);
-    color: #6ee7b7;
-    border: 1px solid rgba(52, 211, 153, 0.35);
-  }
-}
-
-.pet-timer-btn {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 4px;
-  -webkit-app-region: no-drag;
-  transition: opacity 0.15s, transform 0.12s ease;
-
-  &:hover {
-    opacity: 0.85;
-    transform: scale(1.04);
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
-}
-
-.pet-timer-val {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  color: #fafafa;
-}
-
-.pet-task-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: #d4d4d8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 115px;
-}
-
-/* Hover mini control toolbar */
 .pet-hover-controls {
   position: absolute;
   z-index: 10;
-  top: 4px;
-  right: 6px;
+  top: 2px;
+  right: 2px;
   display: flex;
-  align-items: center;
   gap: 4px;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-2px);
   transition: opacity 0.15s ease, transform 0.15s ease;
-  -webkit-app-region: no-drag;
 }
 
 .pet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e4e4e7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 0;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.1s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.22);
-    color: #ffffff;
-    transform: scale(1.08);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &.pet-btn-close {
-    &:hover {
-      background: rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
-    }
-  }
-}
-
-/* Duration picker popover inside pet card */
-.pet-picker-popover {
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  z-index: 20;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 8px 12px;
-  box-sizing: border-box;
-  -webkit-app-region: no-drag;
-  animation: fadeInPop 0.15s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: none;
-}
-
-@keyframes fadeInPop {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.pet-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #a1a1aa;
-  letter-spacing: 0.02em;
-}
-
-.pet-picker-close {
-  background: transparent;
   border: none;
-  color: #71717a;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s;
-
-  &:hover {
-    color: #f4f4f5;
-  }
-}
-
-.pet-picker-chips {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  justify-content: space-between;
-}
-
-.pet-chip-btn {
-  flex: 1;
-  padding: 5px 0;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: #d4d4d8;
-  font-size: 11px;
-  font-weight: 600;
+  background: rgba(24, 24, 27, 0.75);
+  color: #e4e4e7;
   cursor: pointer;
-  text-align: center;
-  transition: all 0.15s ease;
+  transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(63, 63, 70, 0.9);
+    color: #fff;
   }
 
-  &.is-selected {
-    background: #059669;
-    border-color: #34d399;
-    color: #ffffff;
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  &.pet-btn-close:hover {
+    background: rgba(239, 68, 68, 0.6);
+    color: #fff;
   }
 }
-
