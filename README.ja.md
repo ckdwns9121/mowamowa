@@ -1,33 +1,37 @@
 # MowaMowa · 모와모와
 
-**タスクはメニューバーに。集中の相棒はデスクトップに。**
+**タスクは MacBook のノッチに。集中の相棒はデスクトップに。**
 
 [English](README.md) · [한국어](README.ko.md) · **日本語**
 
-<p align="center"><img src="docs/assets/mowamowa/focus-pet.png" width="480" alt="ラッコと集中タイマー" /></p>
+<p align="center"><img src="docs/assets/mowamowa/notch-collapsed.png" width="560" alt="ラッコと集中タイマーが表示された閉じたノッチ" /></p>
 
-MowaMowa は、やることを整理し、集中する間そばにいてくれる小さな仕事の相棒です。メニューバーからタスク、担当 Jira チケット、GitHub のレビュー依頼を確認し、ひとつ選んでペットと一緒に始めましょう。
-
+MowaMowa は、MacBook のカメラノッチに住む小さな仕事の相棒です。iPhone の Dynamic Island のように、ノッチにカーソルを合わせるとタスク、担当 Jira チケット、GitHub のレビュー依頼が広がります。集中している間は、閉じたノッチの両側にペットとタイマーが表示されます。ノッチのない Mac では画面上部に同じ形のピルが表示されます。
 
 ## 使い方
 
-1. タスクを追加し、担当チケットやレビュー依頼を確認します。
-2. ひとつの作業を開始し、タイマーとペットと一緒に集中します。
-3. 日付ごとの集中時間と完了したタスクを振り返ります。
+1. ノッチにカーソルを合わせ、タスクを追加し、担当チケットやレビュー依頼を確認します。
+2. ひとつの作業を開始すると、ノッチにタイマーが表示され、デスクトップのペットがそばにいます。
+3. 月間カレンダーで日付ごとの集中時間と完了したタスクを振り返ります。
 
 ## 画面紹介
 
-| メニューバーのタスク | 一緒に過ごすペット |
-| --- | --- |
-| <img src="docs/assets/mowamowa/tasks.png" width="360" alt="タスク一覧" /> | <img src="docs/assets/mowamowa/pet-picker.png" width="360" alt="ペット選択" /> |
-| 一行で追加し、今やることを開始。独立したメインウィンドウはありません。 | 17 種類から選べます。ラッコをクリックするとジャンプ、素早い5回転、光のエフェクトを見せます。 |
+<table>
+<tr>
+<td width="50%" valign="top"><h3>ノッチのワークスペース</h3><p>カーソルを合わせると開き、離れると閉じます。今日のタスクと昨日の残りだけを表示し、古いタスクはワンクリックで表示できます。</p><img src="docs/assets/mowamowa/notch-tasks.png" width="360" alt="開いたノッチの今日のタスク" /></td>
+<td width="50%" valign="top"><h3>1か月の集中記録</h3><p>Apple カレンダーのような月間表示です。集中や完了があった日に点が付き、日付を選ぶとその日の記録が見られます。</p><img src="docs/assets/mowamowa/notch-calendar.png" width="360" alt="集中記録の月間カレンダー" /></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><h3>担当 Jira チケット</h3><p>チケット番号の横に状態バッジを表示。完了済みは必要なときだけ表示できます。</p><img src="docs/assets/mowamowa/notch-jira.png" width="360" alt="Jira チケット一覧" /></td>
+<td width="50%" valign="top"><h3>PR レビュー依頼</h3><p>自分へのレビュー依頼を一覧表示。クリックすると GitHub で開きます。</p><img src="docs/assets/mowamowa/notch-reviews.png" width="360" alt="PR レビュー一覧" /></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><h3>一緒に過ごすペット</h3><p>17 種類から選べます。ペットはキャラクターだけがデスクトップに浮かび、ドラッグで移動できます。</p><img src="docs/assets/mowamowa/notch-pets.png" width="360" alt="ペット選択" /></td>
+<td width="50%" valign="top"><h3>剣を持つラッコ</h3><p>しばらく放っておくと、ラッコが剣を抜いて二度振ります。クリックするとジャンプ、素早い5回転、着地エフェクトを見せます。</p><img src="docs/assets/mowamowa/rakko-sword.png" width="360" alt="剣を抜いて振るラッコ" /></td>
+</tr>
+</table>
 
-| 担当 Jira チケット | PR レビュー依頼 |
-| --- | --- |
-| <img src="docs/assets/mowamowa/jira.png" width="360" alt="Jira チケット一覧" /> | <img src="docs/assets/mowamowa/reviews.png" width="360" alt="PR レビュー一覧" /> |
-| チケット番号の横に状態バッジを表示。完了済みは必要なときだけ表示できます。 | 自分へのレビュー依頼を一覧表示。クリックすると GitHub で開きます。 |
-
-ペットと選択画面はインストール済み macOS アプリのスクリーンショットです。タスク・Jira・PR は実際の UI に架空のデータを入れたデモです。
+ノッチ・タスク・カレンダー・Jira・PR の画面は実際の UI に架空のデータを入れたデモです。ラッコの場面は Rive ファイルからレンダリングしました。
 
 ## インストール
 
