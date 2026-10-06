@@ -1,53 +1,40 @@
 # 모와모와 · MowaMowa
 
-**할 일은 메뉴바에, 집중 친구는 바탕화면에.**
+**할 일은 맥북 노치에, 집중 친구는 바탕화면에.**
 
 [English](README.md) · **한국어** · [日本語](README.ja.md)
 
 [![CI](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-222222?logo=apple)
 
-<p align="center"><img src="docs/assets/mowamowa/focus-pet.png" width="480" alt="랏코와 함께하는 집중 타이머" /></p>
+<p align="center"><img src="docs/assets/mowamowa/notch-collapsed.png" width="560" alt="랏코와 집중 타이머가 보이는 접힌 노치" /></p>
 
-모와모와는 내 할 일을 챙겨주고, 집중하는 동안 곁에 있어주는 작은 업무 짝꿍입니다. 메뉴바에서 할 일·Jira 티켓·GitHub PR 리뷰를 확인하고, 오늘 끝낼 일을 하나 골라 펫과 함께 시작하세요.
-
+모와모와는 맥북 카메라 노치에 사는 작은 업무 짝꿍입니다. 아이폰의 다이내믹 아일랜드처럼, 노치에 마우스를 올리면 할 일·Jira 티켓·GitHub PR 리뷰가 펼쳐집니다. 집중하는 동안에는 접힌 노치 양옆에 펫과 타이머가 보입니다. 노치가 없는 Mac에서는 화면 위쪽에 같은 모양의 알약이 나타납니다.
 
 ## 이렇게 함께해요
 
-1. **모으기** — 할 일을 적고, 담당 Jira 티켓과 나에게 요청된 PR 리뷰를 확인합니다.
-2. **집중하기** — 한 가지 일을 시작하면 바탕화면의 펫과 타이머가 함께합니다.
-3. **돌아보기** — 날짜별 집중 시간과 완료한 일을 살펴봅니다.
+1. **모으기**: 노치에 마우스를 올려 할 일을 적고, 담당 Jira 티켓과 나에게 요청된 PR 리뷰를 확인합니다.
+2. **집중하기**: 한 가지 일을 시작하면 노치에 타이머가 보이고, 바탕화면의 펫이 곁을 지킵니다.
+3. **돌아보기**: 달력에서 날짜별 집중 시간과 완료한 일을 살펴봅니다.
 
 ## 둘러보기
 
 <table>
 <tr>
-<td width="50%" valign="top">
-<h3>작은 메뉴바 작업 공간</h3>
-<p>한 줄로 할 일을 추가하고, 지금 할 일을 시작하세요. 별도 메인 창 없이 메뉴바에서 관리합니다.</p>
-<img src="docs/assets/mowamowa/tasks.png" width="360" alt="진행 중인 일과 대기 중인 할 일 목록" />
-</td>
-<td width="50%" valign="top">
-<h3>오늘 함께할 친구</h3>
-<p>17가지 펫 중 마음에 드는 친구를 고르세요. 랏코를 클릭하면 점프와 빠른 5회전, 반짝임과 착지 이펙트를 보여줍니다.</p>
-<img src="docs/assets/mowamowa/pet-picker.png" width="360" alt="치이카와 캐릭터 펫 선택 화면" />
-</td>
+<td width="50%" valign="top"><h3>노치 작업 공간</h3><p>마우스를 올리면 열리고, 벗어나면 닫힙니다. 오늘 할 일과 어제 남은 일만 보여주고, 지난 할 일은 한 번 눌러서 펼칩니다.</p><img src="docs/assets/mowamowa/notch-tasks.png" width="360" alt="펼친 노치의 오늘 할 일" /></td>
+<td width="50%" valign="top"><h3>한 달의 집중 기록</h3><p>애플 캘린더 같은 월간 달력입니다. 집중하거나 완료한 날에 점이 찍히고, 날짜를 누르면 그날 한 일을 볼 수 있어요.</p><img src="docs/assets/mowamowa/notch-calendar.png" width="360" alt="집중 기록 월간 달력" /></td>
 </tr>
 <tr>
-<td valign="top">
-<h3>내 Jira 티켓</h3>
-<p>티켓 번호 옆의 작은 상태 뱃지로 할 일과 진행 중인 일을 구분합니다. 완료 티켓은 기본으로 숨기고 필요할 때 포함할 수 있어요.</p>
-<img src="docs/assets/mowamowa/jira.png" width="360" alt="상태 뱃지와 완료 티켓 필터가 있는 Jira 목록" />
-</td>
-<td valign="top">
-<h3>쌓인 PR 리뷰</h3>
-<p>나에게 리뷰가 요청된 열린 PR을 모아봅니다. 항목을 누르면 GitHub에서 바로 열립니다.</p>
-<img src="docs/assets/mowamowa/reviews.png" width="360" alt="GitHub PR 리뷰 요청 목록" />
-</td>
+<td width="50%" valign="top"><h3>내 Jira 티켓</h3><p>티켓 번호 옆의 작은 상태 뱃지로 할 일과 진행 중인 일을 구분합니다. 완료 티켓은 기본으로 숨기고 필요할 때 포함할 수 있어요.</p><img src="docs/assets/mowamowa/notch-jira.png" width="360" alt="담당 Jira 티켓 목록" /></td>
+<td width="50%" valign="top"><h3>쌓인 PR 리뷰</h3><p>나에게 리뷰가 요청된 열린 PR을 모아봅니다. 항목을 누르면 GitHub에서 바로 열립니다.</p><img src="docs/assets/mowamowa/notch-reviews.png" width="360" alt="GitHub PR 리뷰 요청 목록" /></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><h3>오늘 함께할 친구</h3><p>17가지 펫 중 마음에 드는 친구를 고르세요. 펫은 바탕화면에 캐릭터만 떠 있고, 끌어서 원하는 곳에 둘 수 있어요.</p><img src="docs/assets/mowamowa/notch-pets.png" width="360" alt="펫 선택 화면" /></td>
+<td width="50%" valign="top"><h3>칼을 든 랏코</h3><p>가만히 두면 랏코가 칼을 뽑아 두 번 휘두릅니다. 클릭하면 점프와 빠른 5회전, 착지 이펙트를 보여줍니다.</p><img src="docs/assets/mowamowa/rakko-sword.png" width="360" alt="칼을 뽑아 휘두르는 랏코" /></td>
 </tr>
 </table>
 
-펫과 펫 선택 화면은 설치된 macOS 앱에서 촬영했습니다. 할 일·Jira·PR 화면은 실제 UI에 가상 데이터를 넣어 촬영한 데모입니다.
+노치·할 일·달력·Jira·PR 화면은 실제 UI에 가상 데이터를 넣어 촬영한 데모입니다. 랏코 장면은 Rive 파일에서 렌더링했습니다.
 
 ## 설치
 

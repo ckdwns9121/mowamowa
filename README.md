@@ -1,37 +1,40 @@
 # MowaMowa · 모와모와
 
-**Your tasks in the menu bar. Your focus buddy on the desktop.**
+**Your tasks in the MacBook notch. Your focus buddy on the desktop.**
 
 **English** · [한국어](README.ko.md) · [日本語](README.ja.md)
 
 [![CI](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml/badge.svg)](https://github.com/ckdwns9121/mowamowa/actions/workflows/ci.yml)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-222222?logo=apple)
 
-<p align="center"><img src="docs/assets/mowamowa/focus-pet.png" width="480" alt="Rakko beside the focus timer" /></p>
+<p align="center"><img src="docs/assets/mowamowa/notch-collapsed.png" width="560" alt="The collapsed notch island with Rakko and the focus timer" /></p>
 
-MowaMowa is a small work companion that keeps your tasks close and stays beside you while you focus. Check your todos, assigned Jira tickets and GitHub review requests from the menu bar. Pick one task, start the timer, and work alongside your desktop pet.
-
+MowaMowa is a small work companion that lives in your MacBook's camera notch, like Dynamic Island on iPhone. Hover the notch and it opens into your todos, assigned Jira tickets and GitHub review requests. While you focus, the collapsed island shows your pet and the timer on either side of the camera. Macs without a notch get a matching pill at the top of the screen.
 
 ## How it works
 
-1. **Gather** — Add a task, check assigned tickets, or find a PR waiting for your review.
-2. **Focus** — Start one task with a timer and a little companion on your desktop.
-3. **Reflect** — Browse focus time and completed tasks by date.
+1. **Gather**: hover the notch to add a task, check assigned tickets, or find a PR waiting for your review.
+2. **Focus**: start one task. The island keeps the timer in view and your companion stays on the desktop.
+3. **Reflect**: browse focus time and completed tasks in a month calendar.
 
 ## Tour
 
 <table>
 <tr>
-<td width="50%" valign="top"><h3>A small menu-bar workspace</h3><p>Add a task in one line and start working. Everything lives in the menu bar, without a separate main window.</p><img src="docs/assets/mowamowa/tasks.png" width="360" alt="A small menu-bar workspace" /></td>
-<td width="50%" valign="top"><h3>Pick your companion</h3><p>Choose from 17 pets. Click Rakko for a jump, five fast spins, light trails and a landing burst.</p><img src="docs/assets/mowamowa/pet-picker.png" width="360" alt="Pick your companion" /></td>
+<td width="50%" valign="top"><h3>A notch workspace</h3><p>Hover to open, move away to close. Only today's tasks and leftovers from yesterday stay in the list; older ones are one click away.</p><img src="docs/assets/mowamowa/notch-tasks.png" width="360" alt="Today's tasks in the expanded notch" /></td>
+<td width="50%" valign="top"><h3>A month of focus</h3><p>An Apple Calendar style month view. Dots mark days with focus time or completed work; pick a day to see what you did.</p><img src="docs/assets/mowamowa/notch-calendar.png" width="360" alt="Month calendar of focus history" /></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><h3>Your Jira tickets</h3><p>Status badges sit beside ticket keys. Completed tickets stay hidden unless you choose to include them.</p><img src="docs/assets/mowamowa/jira.png" width="360" alt="Your Jira tickets" /></td>
-<td width="50%" valign="top"><h3>Your review queue</h3><p>See open PRs requesting your review. Click an item to open it on GitHub.</p><img src="docs/assets/mowamowa/reviews.png" width="360" alt="Your review queue" /></td>
+<td width="50%" valign="top"><h3>Your Jira tickets</h3><p>Status badges sit beside ticket keys. Completed tickets stay hidden unless you choose to include them.</p><img src="docs/assets/mowamowa/notch-jira.png" width="360" alt="Assigned Jira tickets" /></td>
+<td width="50%" valign="top"><h3>Your review queue</h3><p>See open PRs requesting your review. Click an item to open it on GitHub.</p><img src="docs/assets/mowamowa/notch-reviews.png" width="360" alt="GitHub review requests" /></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><h3>Pick your companion</h3><p>Choose from 17 pets. The pet floats on the desktop by itself; drag it anywhere.</p><img src="docs/assets/mowamowa/notch-pets.png" width="360" alt="Pet picker" /></td>
+<td width="50%" valign="top"><h3>Rakko with a sword</h3><p>Left alone, Rakko draws its sword and makes two quick cuts. Click it for a jump, five fast spins and a landing burst.</p><img src="docs/assets/mowamowa/rakko-sword.png" width="360" alt="Rakko drawing and swinging a sword" /></td>
 </tr>
 </table>
 
-The pet and picker screenshots were captured in the installed macOS app. Task, Jira and PR screenshots use the real UI with fictional demo data.
+Notch, task, calendar, Jira and PR screenshots show the real UI with fictional demo data. The Rakko frames are rendered from the Rive file.
 
 ## Install
 

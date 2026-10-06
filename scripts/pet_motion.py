@@ -42,6 +42,12 @@ def profile(pet,m):
         elif kind in ['sway','dance']:c['left']=[(0,0),(250,0),(271,.4),(289,.21),(310,0),(d,0)]
         elif kind=='flutter':c['tail']=[(0,0),(110,.1),(180,-.065),(247,.09),(305,0),(d,0)]
         elif kind=='nod':c['head']=[(0,0),(100,0),(122,.025),(150,0),(d,0)]
+        if name=='rakko':
+            # Idle kata: draw, raise, two quick cuts with a small lunge, sheathe.
+            c['prop']=[(0,0),(150,0),(158,1),(285,1),(296,0),(d,0)]
+            c['sword']=[(0,-.65),(150,-.65),(170,-.22),(186,-.95),(194,.55),(214,.45),(226,-.8),(234,.6),(256,.4),(280,-.22),(296,-.65),(d,-.65)]
+            c['x']=[(0,0),(184,0),(188,-2),(196,4),(214,4),(228,-2),(236,4),(258,0),(d,0)]
+            c['fx']=[(0,0),(d,0)]
     elif m==1:
         c['head']=[(0,0),(18,.035),(90,.035),(112,.045),(128,.02),(180,.035),(d,.035)]
         c['gaze']=[(0,0),(20,.8),(210,.8),(236,-.8),(275,.8),(d,.8)]
@@ -200,6 +206,8 @@ def animate(art,pet,index,rig,el,keyed):
                     keyed(anim,obj,13,[(0,128),(58,128),(84,128+math.cos(angle)*radius),(duration,128+math.cos(angle)*radius)])
                     keyed(anim,obj,14,[(0,220),(58,220),(79,220-math.sin(angle)*radius),(duration,224-math.sin(angle)*radius)])
                     keyed(anim,obj,15,[(0,0),(60,0),(duration,angle*2)])
+        if rig.get('slash'):
+            keyed(anim,rig['slash'],18,[(0,0),(191,0),(194,.9),(206,0),(231,0),(234,.9),(246,0),(duration,0)] if m==0 else [(0,0),(duration,0)])
         # Stable volume: no whole-character stretch/squash and no idle pendulum rotation.
         keyed(anim,root,15,[(0,0),(duration,0)]);keyed(anim,root,16,[(0,1),(duration,1)]);keyed(anim,root,17,[(0,1),(duration,1)])
         keyed(anim,rig['effects'],18,c['fx'])
