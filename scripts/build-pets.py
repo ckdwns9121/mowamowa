@@ -3,7 +3,7 @@ No scripts, network lookups, or account publishing are embedded in the assets.
 """
 from pathlib import Path
 import base64, json, math, re, shutil, xml.etree.ElementTree as ET
-from pet_motion import animate, MODES
+from pet_motion import animate, MODES, PERFORMERS
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT = ROOT / 'assets/pets'
@@ -269,6 +269,101 @@ def add_prop(root,pet):
     group[:]=reversed(list(group))
     return {'root':group.get('id'),'y':y}
 
+def performance_effects(root,pet,w,h):
+    """Separate Rive shapes layered over the untouched atlas illustration."""
+    if pet['id'] not in ['chiikawa','hachiware']:return []
+    cx,cy,cw,ch=pet['crop'];scale=w/cw;result=[]
+    eyes=[((ex+ew/2-cw/2)*scale,(ey+eh/2-ch)*scale,ew*scale,eh*scale) for ex,ey,ew,eh in pet['eyeRects']]
+    def front(node):root.insert(0,node);return node
+    if pet['id']=='chiikawa':
+        alert=front(el('Node',name='Startle exclamation',x=w*.5,y=-h*.74,opacity=0))
+        draw_path(alert,'Exclamation stem','M 0 -17 L 1 -3',None,'#e5718d',5.5)
+        dot=el('Shape',alert,name='Exclamation dot',y=6);el('Ellipse',dot,width=6,height=6);paint(dot,'#e5718d',None)
+        result.append({'kind':'alert','id':alert.get('id')})
+        lines=front(el('Node',name='Startle lines',x=-w*.42,y=-h*.74,opacity=0))
+        draw_path(lines,'Surprise strokes','M -6 -2 L -15 -8 M -3 -9 L -7 -19 M -9 6 L -19 6',None,'#7d6a63',2.4)
+        result.append({'kind':'lines','id':lines.get('id')})
+        for index in range(2):
+            for side,(x,y,ew,eh) in enumerate(eyes):
+                tx=x+(-.3 if side==0 else .3)*ew;ty=y+eh*.45
+                tear=front(el('Node',name='Falling tear',x=tx,y=ty,opacity=0))
+                draw_path(tear,'Tear drop','M 0 -9 Q 8 1 7 6 Q 4 13 0 13 Q -4 13 -7 6 Q -8 1 0 -9 Z','#bfe6fa','#5d9fcb',1.4)
+                draw_path(tear,'Tear shine','M -3 3 Q -3 7 0 9',None,'#ffffff',1.3)
+                result.append({'kind':'tear','id':tear.get('id'),'index':index,'x':tx,'y':ty,'drift':-4 if side==0 else 4})
+    else:
+        mid=sum(e[1] for e in eyes)/len(eyes)
+        for index in range(4):
+            x=(w*.5 if index%2==0 else -w*.5);color=['#5b9fd2','#ef9fb8','#79b8a2','#e9b85c'][index]
+            note=front(el('Node',name='Song note',x=x,y=mid-6,opacity=0))
+            if index%2==0:
+                draw_path(note,'Note stem','M 5 2 L 5 -18 Q 12 -14 13 -8',None,color,2.4)
+                head=el('Shape',note,name='Note head',x=1,y=3,rotation=-.45);el('Ellipse',head,width=11,height=8);paint(head,color,None)
+            else:
+                draw_path(note,'Beam','M 3 2 L 3 -16 L 17 -19 L 17 -1 M 3 -12 L 17 -15',None,color,2.4)
+                for hx,hy in [(-1,3),(13,0)]:
+                    head=el('Shape',note,name='Note head',x=hx,y=hy,rotation=-.45);el('Ellipse',head,width=10,height=7);paint(head,color,None)
+            result.append({'kind':'note','id':note.get('id'),'index':index,'x':x,'y':mid-6})
+    return result
+
+# Subjugation weapons: drawn out of nowhere during the Idle loop. The atlas paw
+# is welded to the body, so each weapon pivots at a grip drawn over the right paw.
+WEAPONS={'chiikawa':'sasumata','hachiware':'sasumata','usagi':'staff'}
+
+def weapon_rig(root,pet,w,h):
+    kind=WEAPONS.get(pet['id'])
+    if not kind:return None
+    hx,hy=pet['arms'][1][:2];gx,gy=(hx-.5)*w,(hy-1)*h
+    holder=el('Node',name=f'{kind} weapon grip',x=gx,y=gy,opacity=0)
+    if kind=='sasumata':
+        # Kept short enough that every swing stays inside the 256px artboard.
+        length=100
+        draw_path(holder,'Pole','M 0 14 L 0 -82',None,'#8c6a4a',5)
+        draw_path(holder,'Pole highlight','M -1 9 L -1 -78',None,'#c49a6c',1.4)
+        draw_path(holder,'Fork','M -14 -104 L -14 -92 Q -14 -82 0 -82 Q 14 -82 14 -92 L 14 -104',None,'#8fa4ad',4.5)
+        draw_path(holder,'Fork shine','M -12 -101 L -12 -93',None,'#e9f3f6',1.4)
+        draw_path(holder,'Collar','M -4 -86 L 4 -86 L 4 -78 L -4 -78 Z','#c7a24e','#5b4a2c',1.4)
+    else:
+        length=58
+        draw_path(holder,'Staff','M 0 58 L 0 -58',None,'#a8794c',5.5)
+        draw_path(holder,'Staff grain','M -1.5 52 L -1.5 -52',None,'#d6aa77',1.4)
+        for y in [-58,58]:
+            cap=el('Shape',holder,name='Staff cap',y=y);el('Ellipse',cap,width=10,height=10);paint(cap,'#e3c27a','#5f4a2c',1.6)
+    paw=el('Shape',holder,name='Gripping paw');el('Ellipse',paw,width=17,height=15);paint(paw,pet['faceColor'],'#4b3631',2)
+    holder[:]=reversed(list(holder));root.insert(0,holder)
+    fx=[]
+    def effect(name,node):root.insert(0,node);fx.append({'kind':name,'id':node.get('id')});return node
+    if pet['id']=='chiikawa':
+        for index in range(2):
+            burst=effect('poke',el('Node',name='Thrust impact',x=gx+6+math.sin(.38)*length,y=gy-math.cos(.38)*length,rotation=.38-math.pi/2,opacity=0))
+            draw_path(burst,'Impact strokes','M 8 0 L 20 0 M 6 -7 L 15 -15 M 6 7 L 15 15',None,'#e5718d',2.6)
+            fx[-1]['index']=index
+        sweat=effect('sweat',el('Node',name='Nervous sweat',x=-w*.38,y=-h*.78,opacity=0))
+        draw_path(sweat,'Sweat drop','M 0 -7 Q 6 1 5 5 Q 3 9 0 9 Q -3 9 -5 5 Q -6 1 0 -7 Z','#bfe6fa','#5d9fcb',1.3)
+    elif pet['id']=='hachiware':
+        arc=effect('sweep',el('Node',name='Sasumata sweep arc',x=gx,y=gy,opacity=0))
+        a0,a1=-.25,.55;am=(a0+a1)/2;r=length
+        tip=lambda a,k=1:(k*r*math.sin(a),-k*r*math.cos(a))
+        (x0,y0),(x1,y1),(xm,ym)=tip(a0),tip(a1),tip(am,1/math.cos((a1-a0)/2))
+        draw_path(arc,'Sweep glow',f'M {x0:.1f} {y0:.1f} Q {xm:.1f} {ym:.1f} {x1:.1f} {y1:.1f}',None,'#dff1fb',6)
+        draw_path(arc,'Sweep core',f'M {x0*.9:.1f} {y0*.9:.1f} Q {xm*.9:.1f} {ym*.9:.1f} {x1*.9:.1f} {y1*.9:.1f}',None,'#94c5e3',2.4)
+        for index,(sx,sy) in enumerate([(-w*.44,-h*.95),(w*.15,-h*1.08)]):
+            star=effect('pose',el('Shape',name='Pose sparkle',x=sx,y=sy,opacity=0))
+            el('Star',star,width=12,height=12,points=4,innerRadius=.25,cornerRadius=.6);paint(star,'#f6e08b',None)
+            fx[-1]['index']=index
+    else:
+        whirl=effect('whirl',el('Node',name='Staff whirl',x=gx,y=gy,opacity=0))
+        draw_path(whirl,'Whirl ring','M -60 0 Q -60 -60 0 -60 Q 60 -60 60 0 Q 60 60 0 60 Q -60 60 -60 0',None,'#fff0bd',2.2)
+        sx=gx+math.sin(2.3)*length
+        ring=effect('slam',el('Shape',name='Staff slam shockwave',x=sx,y=-2,opacity=0))
+        el('Ellipse',ring,width=48,height=11);paint(ring,None,'#efd480',2.6)
+        for index in range(4):
+            dust=effect('dust',el('Shape',name='Slam dust',x=sx,y=-4,opacity=0))
+            el('Ellipse',dust,width=10-index,height=8-index);paint(dust,'#e6dcc4',None)
+            fx[-1]['index']=index
+    for item in fx:
+        node=next(n for n in root if n.get('id')==item['id']);item['x']=float(node.get('x',0));item['y']=float(node.get('y',0))
+    return {'id':holder.get('id'),'kind':kind,'x':gx,'y':gy,'height':h,'fx':fx}
+
 def rakko_action_effects(art):
     result=[]
     wind=el('Node',name='Air spiral',x=128,y=113,opacity=0);art.insert(1,wind)
@@ -313,10 +408,12 @@ def make_pet(doc,pet,index):
         slash=el('Node',name='Idle sword slash',opacity=0);art.insert(1,slash)
         draw_path(slash,'Slash glow','M 108 122 Q 162 47 241 95',None,'#e9f6ff',5)
         draw_path(slash,'Slash core','M 116 116 Q 164 56 234 96',None,'#a6dbe9',2)
-    vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
+    perform_fx=[];weapon=None;vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
     if 'crop' in pet:
         bones,bonepivots,width,height=add_mesh(root,pet)
         eyehead,eyes,closed=add_eyes(root,pet,width,height)
+        perform_fx=performance_effects(root,pet,width,height)
+        weapon=weapon_rig(root,pet,width,height)
     else:vectors,pivots=add_vector(root,pet)
     prop=add_prop(root,pet) if pet.get('prop') else None
     angle_frames=[rootid]
@@ -339,7 +436,7 @@ def make_pet(doc,pet,index):
         paint(spark,pet['accent'],None);spark_ids.append(spark.get('id'))
     stateids=[uid() for _ in MODES]
     rig={'root':rootid,'width':width,'height':height,'bones':bones,'bonePivots':bonepivots,'groups':vectors,'pivots':pivots,
-         'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,
+         'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,'performFx':perform_fx,'weapon':weapon,
          'slash':slash.get('id') if slash is not None else None,
          'facing':facing.get('id') if facing is not None else None,'angleFrames':angle_frames,
          'eyes':eyes,'closedEyes':closed,'eyeHead':eyehead,'prop':prop,'effects':effects.get('id'),'sparks':spark_ids}
@@ -355,7 +452,7 @@ def make_pet(doc,pet,index):
         # Outgoing conditional transitions avoid perpetual self-transition resets.
         for j in range(len(MODES)):
             if i==j:continue
-            tr=el('StateTransition',state,stateToId=stateids[j],duration=0 if pet['id']=='rakko' and (i==4 or j==4) else 110 if j>=3 else 220)
+            tr=el('StateTransition',state,stateToId=stateids[j],duration=0 if pet['id'] in PERFORMERS and (i==4 or j==4) else 110 if j>=3 else 220)
             condition=el('TransitionViewModelCondition',tr,opValue='equal')
             bind=el('BindablePropertyNumber',el('TransitionPropertyViewModelComparator',condition))
             el('DataBindContext',bind,sourcePathIds=f'{vmid}-{propid}',propertyKey=636)

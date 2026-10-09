@@ -1,0 +1,11 @@
+{
+  "fps": 60,
+  "settleMs": 80,
+  "replayGapMs": 60,
+  "actions": {
+    "rakko": { "frames": 90, "label": "랏코 점프와 회전", "hint": "클릭하면 점프와 회전" },
+    "chiikawa": { "frames": 120, "label": "치이카와 깜짝 점프", "hint": "클릭하면 깜짝 놀라 점프" },
+    "hachiware": { "frames": 132, "label": "하치와레 노래 스텝", "hint": "클릭하면 노래하며 스텝" }
+  },
+  "rakkoSpin": { "turns": 5, "spinStart": 14, "spinFrames": 40 }
+}

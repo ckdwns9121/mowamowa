@@ -3,8 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { emitTo, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { PawPrint, X } from "lucide-react";
-import { createRakkoActionQueue } from "../../entities/pet/model/rakko-action";
-import { useSelectedPet } from "../../entities/pet";
+import { createPetActionQueue, getPetAction, useSelectedPet } from "../../entities/pet";
 import { PetMascot, type PetMood } from "./PetMascot";
 import "./PetMascot.scss";
 import "./PomodoroPet.scss";
@@ -12,14 +11,15 @@ import "./PomodoroPet.scss";
 /** Just the companion: a draggable character with no timer chrome. */
 export default function PomodoroPet() {
   const selectedPet = useSelectedPet();
+  const petAction = getPetAction(selectedPet.id);
   const [performing, setPerforming] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
-  const actionQueue = useRef<ReturnType<typeof createRakkoActionQueue> | null>(null);
+  const actionQueue = useRef<ReturnType<typeof createPetActionQueue> | null>(null);
   const celebrateTimeout = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     setPerforming(false);
-    const queue = createRakkoActionQueue(setPerforming);
+    const queue = createPetActionQueue(selectedPet.id, setPerforming);
     actionQueue.current = queue;
     return () => { queue.dispose(); actionQueue.current = null; };
   }, [selectedPet.id]);
@@ -62,12 +62,12 @@ export default function PomodoroPet() {
 
   const closePet = async () => {
     actionQueue.current?.dispose();
-    actionQueue.current = createRakkoActionQueue(setPerforming);
+    actionQueue.current = createPetActionQueue(selectedPet.id, setPerforming);
     setPerforming(false);
     await invoke("hide_pet_window");
   };
 
-  const mood: PetMood = selectedPet.id === "rakko" && performing ? "react" : celebrating ? "done" : "idle";
+  const mood: PetMood = petAction && performing ? "react" : celebrating ? "done" : "idle";
 
   return (
     <div className="pet-window-shell" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={() => { dragStart.current = null; }}>
@@ -78,9 +78,9 @@ export default function PomodoroPet() {
       <button
         type="button"
         className="pet-avatar"
-        onClick={() => { if (dragged.current) { dragged.current = false; return; } if (selectedPet.id === "rakko") actionQueue.current?.request(); else celebrate(); }}
+        onClick={() => { if (dragged.current) { dragged.current = false; return; } if (petAction) actionQueue.current?.request(); else celebrate(); }}
         data-performing={performing ? "true" : "false"}
-        aria-label={selectedPet.id === "rakko" ? "랏코 점프와 회전" : `${selectedPet.name} 쓰다듬기`}
+        aria-label={petAction ? petAction.label : `${selectedPet.name} 쓰다듬기`}
         title={`${selectedPet.name} · 드래그해서 옮기기`}
       >
         <PetMascot mood={mood} isRunning={false} size={96} />
