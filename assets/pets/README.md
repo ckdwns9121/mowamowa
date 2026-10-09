@@ -55,3 +55,7 @@ All effect nodes are separate Rive shapes inside the body root, hidden in every 
 ## Subjugation weapon kata (Chiikawa, Hachiware, Usagi)
 
 During the Idle loop (frames ~230–380 of 420) each pulls out a subjugation weapon with a pop, acts, and puts it away. The weapons are separate vector drawings (a sasumata for Chiikawa and Hachiware, a staff for Usagi) that pivot at a gripping paw drawn over the welded atlas paw; the body still only moves rigidly. Chiikawa thrusts twice with a nervous sweat drop, Hachiware sweeps an arc then poses with sparkles, and Usagi twirls the staff three times overhead then slams it down with a shockwave and dust. Weapons and effects are hidden in every non-Idle timeline and stay within the 256 px artboard.
+
+## Click performances for the rest of the cast
+
+Every character now owns a React performance (durations in `src/entities/pet/model/pet-action.json`). Effects are data in `scripts/pet_performances.py` (`pop` effects rise/drift and fade, `drop` effects fall and stack) and are separate Rive shapes inside the body root, hidden outside React. Body motion lives in `REACTIONS` in `scripts/pet_motion.py`: atlas characters move rigidly with ears, tail, eyes and props; the six vector characters also move their separately drawn arms, head and feet.

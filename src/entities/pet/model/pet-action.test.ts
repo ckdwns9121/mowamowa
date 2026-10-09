@@ -47,12 +47,13 @@ describe("Rakko click performance", () => {
     expect(h.events).toEqual([true, false, true]);
     h.queue.dispose();
   });
-  test("Chiikawa and Hachiware own timed performances; other pets have none", () => {
+  test("every pet owns a timed performance; unknown pets have none", () => {
     expect(getPetAction("chiikawa")?.frames).toBe(120);
     expect(getPetAction("hachiware")?.frames).toBe(132);
     expect(petActionMs("chiikawa")).toBe(120 / 60 * 1000 + 80);
-    expect(getPetAction("usagi")).toBeNull();
-    const h = harness("usagi"); h.queue.request();
+    expect(getPetAction("usagi")?.frames).toBe(132);
+    expect(getPetAction("removed-character")).toBeNull();
+    const h = harness("removed-character"); h.queue.request();
     expect(h.events).toEqual([]);
     const c = harness("hachiware"); c.queue.request();
     expect(c.next()).toBe(petActionMs("hachiware"));
