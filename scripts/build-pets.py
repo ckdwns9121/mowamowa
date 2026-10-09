@@ -4,6 +4,7 @@ No scripts, network lookups, or account publishing are embedded in the assets.
 from pathlib import Path
 import base64, json, math, re, shutil, xml.etree.ElementTree as ET
 from pet_motion import animate, MODES, PERFORMERS
+import pet_performances
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT = ROOT / 'assets/pets'
@@ -408,13 +409,17 @@ def make_pet(doc,pet,index):
         slash=el('Node',name='Idle sword slash',opacity=0);art.insert(1,slash)
         draw_path(slash,'Slash glow','M 108 122 Q 162 47 241 95',None,'#e9f6ff',5)
         draw_path(slash,'Slash core','M 116 116 Q 164 56 234 96',None,'#a6dbe9',2)
-    perform_fx=[];weapon=None;vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
+    perform_fx=[];scripted=[];weapon=None;vectors={};bones={};bonepivots={};height=200;width=170;pivots={};eyes=[];closed=[];eyehead=None
     if 'crop' in pet:
         bones,bonepivots,width,height=add_mesh(root,pet)
         eyehead,eyes,closed=add_eyes(root,pet,width,height)
         perform_fx=performance_effects(root,pet,width,height)
         weapon=weapon_rig(root,pet,width,height)
-    else:vectors,pivots=add_vector(root,pet)
+        eye_y=(pet['eyeRects'][0][1]+pet['eyeRects'][0][3]/2-pet['crop'][3])*width/pet['crop'][2] if pet.get('eyeRects') else -height*.6
+        scripted=pet_performances.build(KIT,root,pet,width,height,eye_y)
+    else:
+        vectors,pivots=add_vector(root,pet)
+        scripted=pet_performances.build(KIT,root,pet,*pet_performances.VECTOR_GEOMETRY[pet['vector']])
     prop=add_prop(root,pet) if pet.get('prop') else None
     angle_frames=[rootid]
     if facing is not None:
@@ -436,7 +441,7 @@ def make_pet(doc,pet,index):
         paint(spark,pet['accent'],None);spark_ids.append(spark.get('id'))
     stateids=[uid() for _ in MODES]
     rig={'root':rootid,'width':width,'height':height,'bones':bones,'bonePivots':bonepivots,'groups':vectors,'pivots':pivots,
-         'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,'performFx':perform_fx,'weapon':weapon,
+         'spin':spin.get('id') if spin is not None else None,'actionFx':action_fx,'performFx':perform_fx+scripted,'weapon':weapon,
          'slash':slash.get('id') if slash is not None else None,
          'facing':facing.get('id') if facing is not None else None,'angleFrames':angle_frames,
          'eyes':eyes,'closedEyes':closed,'eyeHead':eyehead,'prop':prop,'effects':effects.get('id'),'sparks':spark_ids}
@@ -457,6 +462,8 @@ def make_pet(doc,pet,index):
             bind=el('BindablePropertyNumber',el('TransitionPropertyViewModelComparator',condition))
             el('DataBindContext',bind,sourcePathIds=f'{vmid}-{propid}',propertyKey=636)
             el('TransitionValueNumberComparator',condition,value=j)
+
+KIT={'el':el,'draw_path':draw_path,'paint':paint}
 
 if __name__=='__main__':
     doc=ET.Element('Rive',version='1',kind='fragment')
