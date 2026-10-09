@@ -69,6 +69,37 @@ describe("pet collection", () => {
     }
     expect(source).toContain('file="turnaround/rakko-eight-views.png"');
   });
+  test("Chiikawa and Hachiware click effects appear only in their React performance", () => {
+    const source = readFileSync("assets/pets/scene.rml", "utf8");
+    const boards = new Map([...source.matchAll(/<Artboard\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/Artboard>/g)].map((entry) => [entry[1], entry[2]]));
+    for (const [pet, effect, count] of [["chiikawa", "Falling tear", 4], ["hachiware", "Song note", 4]] as const) {
+      const board = boards.get(pet)!;
+      const ids = [...board.matchAll(new RegExp(`<Node[^>]*name="${effect}"[^>]*id="([^"]+)"`, "g"))].map((match) => match[1]);
+      expect(ids).toHaveLength(count);
+      for (const animation of board.matchAll(/<LinearAnimation[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/LinearAnimation>/g)) {
+        const opacity = [...animation[2].matchAll(new RegExp(String.raw`<KeyedObject[^>]*objectId="${ids[0]}"[^>]*>([\s\S]*?)<\/KeyedObject>`, "g"))]
+          .filter((entry) => entry[1].includes('propertyKey="18"'))
+          .flatMap((entry) => [...entry[1].matchAll(/value="([^"]+)"/g)].map((value) => Number(value[1])));
+        expect(Math.max(...opacity) > 0).toBe(animation[1] === "React");
+      }
+    }
+  });
+  test("Chiikawa, Hachiware and Usagi draw their subjugation weapons only during Idle", () => {
+    const source = readFileSync("assets/pets/scene.rml", "utf8");
+    const boards = new Map([...source.matchAll(/<Artboard\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/Artboard>/g)].map((entry) => [entry[1], entry[2]]));
+    for (const [pet, weapon] of [["chiikawa", "sasumata"], ["hachiware", "sasumata"], ["usagi", "staff"]]) {
+      const board = boards.get(pet)!;
+      const id = board.match(new RegExp(`<Node[^>]*name="${weapon} weapon grip"[^>]*id="([^"]+)"`))![1];
+      for (const animation of board.matchAll(/<LinearAnimation[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/LinearAnimation>/g)) {
+        const opacity = [...animation[2].matchAll(new RegExp(String.raw`<KeyedObject[^>]*objectId="${id}"[^>]*>([\s\S]*?)<\/KeyedObject>`, "g"))]
+          .filter((entry) => entry[1].includes('propertyKey="18"'))
+          .flatMap((entry) => [...entry[1].matchAll(/value="([^"]+)"/g)].map((value) => Number(value[1])));
+        expect(Math.max(...opacity) > 0).toBe(animation[1] === "Idle");
+        expect(opacity[0]).toBe(0);
+        expect(opacity[opacity.length - 1]).toBe(0);
+      }
+    }
+  });
   test("runtime export is real Rive and all artboards own five timelines", () => {
     const binary = readFileSync("public/pets/chiikawa-pets.riv");
     expect(binary.subarray(0,4).toString()).toBe("RIVE");

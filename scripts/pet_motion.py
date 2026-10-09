@@ -6,10 +6,16 @@ one sine-wave across every body part.
 import math
 import json
 from pathlib import Path
-RAKKO_TIMING=json.loads((Path(__file__).resolve().parent.parent/"src/entities/pet/model/rakko-action.json").read_text())
+ACTIONS=json.loads((Path(__file__).resolve().parent.parent/"src/entities/pet/model/pet-action.json").read_text())
+RAKKO_TIMING={**ACTIONS['rakkoSpin'],'frames':ACTIONS['actions']['rakko']['frames']}
+# Pets whose avatar click plays a dedicated React performance instead of toggling the timer.
+PERFORMERS=set(ACTIONS['actions'])
 
 MODES=['Idle','Focus','Break','Celebrate','React']
 DURATIONS=[420,360,480,144,132]
+
+def duration_of(pet,m):
+    return ACTIONS['actions'][pet['id']]['frames'] if m==4 and pet['id'] in PERFORMERS else DURATIONS[m]
 
 def sample(keys,frame):
     if frame<=keys[0][0]:return keys[0][1]
@@ -29,8 +35,8 @@ def rotate(x,y,cx,cy,angle):
     return cx+c*dx-s*dy,cy+s*dx+c*dy
 
 def profile(pet,m):
-    d=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m];kind=pet['motion'];name=pet['id']
-    c={k:[(0,0),(d,0)] for k in ['x','y','head','left','right','lift','earL','earR','tail','gaze','sword','propY','propAngle','fx','stepL','stepR']}
+    d=duration_of(pet,m);kind=pet['motion'];name=pet['id']
+    c={k:[(0,0),(d,0)] for k in ['x','y','tilt','head','left','right','lift','earL','earR','tail','gaze','sword','propY','propAngle','fx','stepL','stepR']}
     c['prop']=[(0,0),(d,0)]
     c['y']=[(0,0),(100,-.8),(220,0),(330,-.7),(d,0)] if m==0 else [(0,0),(d,0)]
     if m==0:
@@ -42,6 +48,22 @@ def profile(pet,m):
         elif kind in ['sway','dance']:c['left']=[(0,0),(250,0),(271,.4),(289,.21),(310,0),(d,0)]
         elif kind=='flutter':c['tail']=[(0,0),(110,.1),(180,-.065),(247,.09),(305,0),(d,0)]
         elif kind=='nod':c['head']=[(0,0),(100,0),(122,.025),(150,0),(d,0)]
+        # Subjugation kata (weapon keys live in kata()); only rigid body moves here.
+        if name=='chiikawa':
+            c['x']=[(0,0),(240,0),(243,-1),(246,1),(249,-1),(252,0),(256,-2),(266,3),(284,3),(296,0),(304,3),(322,3),(340,0),(d,0)]
+            c['tilt']=[(0,0),(256,-.03),(266,.035),(284,.035),(296,0),(304,.035),(322,.035),(340,0),(d,0)]
+            c['earL']=c['earL'][:-1]+[(262,0),(267,-.2),(278,0),(300,0),(305,-.2),(316,0),(d,0)]
+            c['earR']=c['earR'][:-1]+[(262,0),(267,.2),(278,0),(300,0),(305,.2),(316,0),(d,0)]
+        elif name=='hachiware':
+            c['x']=[(0,0),(246,0),(256,-3),(266,-3),(276,5),(292,5),(312,0),(d,0)]
+            c['tilt']=[(0,0),(246,0),(256,-.05),(266,-.05),(276,.05),(292,.05),(312,0),(d,0)]
+            c['y']=[(0,0),(100,-.8),(220,0),(302,0),(312,-7),(324,0),(d,0)]
+            c['earL']=c['earL'][:-1]+[(306,0),(314,-.15),(350,-.15),(364,0),(d,0)]
+            c['earR']=c['earR'][:-1]+[(306,0),(314,.15),(350,.15),(364,0),(d,0)]
+        elif name=='usagi':
+            c['y']=[(0,0),(100,-.8),(220,0),(250,0),(260,-10),(271,0),(282,-10),(290,-18),(298,2),(304,0),(d,0)]
+            c['earL']=c['earL'][:-1]+[(246,0),(256,.15),(266,-.15),(276,.15),(286,-.15),(298,.25),(312,0),(d,0)]
+            c['earR']=c['earR'][:-1]+[(246,0),(256,-.15),(266,.15),(276,-.15),(286,.15),(298,-.25),(312,0),(d,0)]
         if name=='rakko':
             # Idle kata: draw, raise, two quick cuts with a small lunge, sheathe.
             c['prop']=[(0,0),(150,0),(158,1),(285,1),(296,0),(d,0)]
@@ -115,6 +137,25 @@ def profile(pet,m):
         c['right']=[(0,0),(32,0),(48,-.48),(66,-.22),(82,-.45),(104,0),(d,0)]
         if kind=='flutter':c['tail']=[(0,0),(20,-.1),(41,.16),(67,-.08),(101,0),(d,0)]
         if name=='rakko':c['head']=[(0,0),(15,-.04),(37,.075),(62,.075),(90,0),(d,0)];c['right']=[(0,0),(d,0)]
+        if name=='chiikawa':
+            # Startle: crouch, jump with flicked ears, shaky landing, squeezed-shut
+            # crying, then a shy recovery. The bitmap body only moves rigidly.
+            c['y']=[(0,0),(7,3),(19,-18),(27,-17),(36,2),(41,0),(d,0)]
+            shake=[(0,0),(41,0)]+[(41+i*3,(1.7 if i%2 else -1.7)*(1-i/14)) for i in range(1,14)]+[(84,0),(d,0)]
+            c['x']=shake
+            c['tilt']=[(0,0),(7,.03),(19,-.04),(36,0),(84,0),(94,-.06),(110,-.06),(d,0)]
+            c['earL']=[(0,0),(9,0),(17,-.28),(31,.08),(42,0),(d,0)]
+            c['earR']=[(0,0),(9,0),(17,.28),(31,-.08),(42,0),(d,0)]
+            c['gaze']=[(0,0),(d,0)]
+        elif name=='hachiware':
+            # Singing on the beat: lean-and-step left/right with a hop per beat.
+            beats=[0,22,44,66,88,110]
+            c['x']=[(beats[0],0)]+[(b,6 if i%2==0 else -6) for i,b in enumerate(beats[1:-1])]+[(beats[-1],0),(d,0)]
+            c['tilt']=[(beats[0],0)]+[(b,.07 if i%2==0 else -.07) for i,b in enumerate(beats[1:-1])]+[(beats[-1],0),(d,0)]
+            c['y']=[(0,0)]+[p for a,b in zip(beats,beats[1:]) for p in [((a+b)//2,-7),(b,0)]]+[(d,0)]
+            c['earL']=[(0,0)]+[(b,-.12 if i%2 else .1) for i,b in enumerate(beats[1:-1])]+[(beats[-1],0),(d,0)]
+            c['earR']=[(0,0)]+[(b,.1 if i%2 else -.12) for i,b in enumerate(beats[1:-1])]+[(beats[-1],0),(d,0)]
+            c['gaze']=[(0,0),(d,0)]
     if pet.get('prop') in ['pouch','clipboard','bowl','book'] and m==3:
         c['prop']=[(0,0),(17,1),(95,1),(117,0),(d,0)]
         c['propY']=[(0,0),(30,-8),(72,-8),(104,0),(d,0)]
@@ -126,7 +167,9 @@ def profile(pet,m):
     return c
 
 def blinks(pet,index,m):
-    d=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m]
+    d=duration_of(pet,m)
+    if m==4 and pet['id']=='chiikawa':return [(0,1),(40,1),(44,.06),(96,.06),(102,1),(d,1)]
+    if m==4 and pet['id']=='hachiware':return [(0,1),(8,1),(12,.06),(100,.06),(106,1),(d,1)]
     if m==0:times=[87+(index%5)*7,271+(index%4)*9]
     elif m==1:times=[217+(index%5)*6]
     elif m==2:times=[75,264,359]
@@ -141,7 +184,7 @@ def blinks(pet,index,m):
 def animate(art,pet,index,rig,el,keyed):
     ids=[];w,h=rig['width'],rig['height'];root=rig['root'];groups=rig['groups']
     for m,mode in enumerate(MODES):
-        duration=RAKKO_TIMING['frames'] if pet['id']=='rakko' and m==4 else DURATIONS[m];c=profile(pet,m)
+        duration=duration_of(pet,m);c=profile(pet,m)
         anim=el('LinearAnimation',art,name=mode,duration=duration,loopValue='loop' if m<3 else 'oneShot');ids.append(anim.get('id'))
         origin_x,origin_y=(0,100) if rig.get('spin') else (128,228)
         if pet['id']=='rakko' and m==4:
@@ -208,8 +251,10 @@ def animate(art,pet,index,rig,el,keyed):
                     keyed(anim,obj,15,[(0,0),(60,0),(duration,angle*2)])
         if rig.get('slash'):
             keyed(anim,rig['slash'],18,[(0,0),(191,0),(194,.9),(206,0),(231,0),(234,.9),(246,0),(duration,0)] if m==0 else [(0,0),(duration,0)])
-        # Stable volume: no whole-character stretch/squash and no idle pendulum rotation.
-        keyed(anim,root,15,[(0,0),(duration,0)]);keyed(anim,root,16,[(0,1),(duration,1)]);keyed(anim,root,17,[(0,1),(duration,1)])
+        perform(anim,pet,m,duration,rig,keyed)
+        kata(anim,pet,m,duration,rig,keyed)
+        # Stable volume: no whole-character stretch/squash; only React performances lean rigidly.
+        keyed(anim,root,15,c['tilt']);keyed(anim,root,16,[(0,1),(duration,1)]);keyed(anim,root,17,[(0,1),(duration,1)])
         keyed(anim,rig['effects'],18,c['fx'])
         for spark in rig['sparks']:
             keyed(anim,spark,15,[(0,0),(duration,.55 if m==3 else 0)])
@@ -243,3 +288,84 @@ def animate(art,pet,index,rig,el,keyed):
             else:keyed(anim,bone,15,c[name])
             if name=='left':keyed(anim,bone,14,[(f,rig['bonePivots'][name][1]+v) for f,v in c['lift']])
     return ids
+
+def perform(anim,pet,m,d,rig,keyed):
+    """Chiikawa/Hachiware click effects; hidden in every other state."""
+    for fx in rig.get('performFx',[]):
+        obj=fx['id'];kind=fx['kind'];i=fx.get('index',0)
+        if m!=4:
+            keyed(anim,obj,18,[(0,0),(d,0)]);continue
+        if kind=='alert':
+            keyed(anim,obj,18,[(0,0),(9,0),(13,1),(36,1),(44,0),(d,0)])
+            for axis in [16,17]:keyed(anim,obj,axis,[(0,.3),(9,.3),(14,1.25),(19,1),(d,1)])
+            keyed(anim,obj,15,[(0,0),(14,0),(18,.18),(22,-.12),(27,0),(d,0)])
+        elif kind=='lines':
+            keyed(anim,obj,18,[(0,0),(10,0),(14,1),(30,1),(38,0),(d,0)])
+            for axis in [16,17]:keyed(anim,obj,axis,[(0,.6),(10,.6),(18,1.15),(d,1.15)])
+        elif kind=='tear':
+            start=44+i*16;x,y=fx['x'],fx['y']
+            keyed(anim,obj,18,[(0,0),(start,0),(start+4,1),(start+22,.9),(start+30,0),(d,0)])
+            keyed(anim,obj,14,[(0,y),(start,y),(start+30,y+24),(d,y+24)])
+            keyed(anim,obj,13,[(0,x),(start,x),(start+30,x+fx['drift']),(d,x+fx['drift'])])
+            for axis in [16,17]:keyed(anim,obj,axis,[(0,.4),(start,.4),(start+8,1),(start+30,.8),(d,.8)])
+        elif kind=='note':
+            start=6+i*22;x,y=fx['x'],fx['y'];side=-1 if i%2 else 1
+            keyed(anim,obj,18,[(0,0),(start,0),(start+5,1),(start+30,.9),(start+40,0),(d,0)])
+            keyed(anim,obj,14,[(0,y),(start,y),(start+40,y-46),(d,y-46)])
+            keyed(anim,obj,13,[(0,x),(start,x),(start+20,x+side*10),(start+40,x+side*4),(d,x+side*4)])
+            keyed(anim,obj,15,[(0,0),(start,0),(start+10,side*.25),(start+22,-side*.18),(start+34,side*.12),(d,0)])
+            for axis in [16,17]:keyed(anim,obj,axis,[(0,.4),(start,.4),(start+7,1.1),(start+14,1),(d,1)])
+
+def kata(anim,pet,m,d,rig,keyed):
+    """Idle subjugation kata: the weapon appears suddenly, acts, then vanishes."""
+    weapon=rig.get('weapon')
+    if not weapon:return
+    obj=weapon['id'];gx,gy=weapon['x'],weapon['y'];name=pet['id']
+    if m!=0:
+        keyed(anim,obj,18,[(0,0),(d,0)])
+        for fx in weapon['fx']:keyed(anim,fx['id'],18,[(0,0),(d,0)])
+        return
+    def pop(start,end):
+        keyed(anim,obj,18,[(0,0),(start,0),(start+3,1),(end,1),(end+8,0),(d,0)])
+        for axis in [16,17]:keyed(anim,obj,axis,[(0,1),(start,.45),(start+5,1.15),(start+11,1),(end,1),(end+8,.6),(d,1)])
+    def flash(fx,a,b,c,e,scale=(.5,1.2)):
+        keyed(anim,fx['id'],18,[(0,0),(a,0),(b,1),(c,.9),(e,0),(d,0)])
+        for axis in [16,17]:keyed(anim,fx['id'],axis,[(0,scale[0]),(a,scale[0]),(b+4,scale[1]),(d,scale[1])])
+    if name=='chiikawa':
+        pop(236,372)
+        keyed(anim,obj,15,[(0,.15),(236,.15),(256,-.15),(266,.38),(284,.38),(296,-.1),(304,.38),(322,.38),(340,.1),(d,.15)])
+        keyed(anim,obj,13,[(0,gx),(256,gx-4),(266,gx+6),(284,gx+6),(296,gx),(304,gx+6),(322,gx+6),(340,gx),(d,gx)])
+        for fx in weapon['fx']:
+            if fx['kind']=='poke':
+                a=264 if fx.get('index',0)==0 else 302;flash(fx,a,a+4,a+14,a+20)
+            else:
+                flash(fx,242,248,296,306,(.6,1))
+                keyed(anim,fx['id'],14,[(0,fx['y']),(242,fx['y']),(306,fx['y']+10),(d,fx['y']+10)])
+    elif name=='hachiware':
+        pop(236,372)
+        keyed(anim,obj,15,[(0,-.2),(236,-.2),(256,-.25),(266,-.25),(276,.55),(292,.55),(312,0),(360,0),(d,-.2)])
+        keyed(anim,obj,14,[(0,gy),(302,gy),(312,gy-8),(360,gy-8),(372,gy),(d,gy)])
+        for fx in weapon['fx']:
+            if fx['kind']=='sweep':flash(fx,268,272,284,294,(1,1))
+            else:
+                a=314+fx.get('index',0)*8;flash(fx,a,a+5,a+26,a+34)
+                keyed(anim,fx['id'],15,[(0,0),(a,0),(a+34,1.2),(d,1.2)])
+    else:
+        pop(230,350)
+        spin=6*math.pi
+        # Twirl above the head (clear of the face), then slam beside the body.
+        ox,oy=gx-40,-weapon['height']*.8
+        keyed(anim,obj,13,[(0,gx),(230,gx),(244,ox),(288,ox),(298,gx),(d,gx)])
+        keyed(anim,obj,14,[(0,gy),(230,gy),(244,oy),(288,oy),(298,gy),(d,gy)])
+        keyed(anim,obj,15,[(0,0),(244,0),(288,spin),(298,spin+2.3),(358,spin+2.3),(d,0)],linear=True)
+        for fx in weapon['fx']:
+            kind=fx['kind']
+            if kind=='whirl':
+                flash(fx,248,254,282,290,(.7,1))
+                keyed(anim,fx['id'],13,[(0,ox),(d,ox)]);keyed(anim,fx['id'],14,[(0,oy),(d,oy)])
+            elif kind=='slam':flash(fx,297,300,306,322,(.4,1.5))
+            else:
+                i=fx.get('index',0);dx=[-1,1,-.5,.6][i]*(14+i*4)
+                keyed(anim,fx['id'],18,[(0,0),(297,0),(300,1),(316,.8),(328,0),(d,0)])
+                keyed(anim,fx['id'],13,[(0,fx['x']),(297,fx['x']),(328,fx['x']+dx),(d,fx['x']+dx)])
+                keyed(anim,fx['id'],14,[(0,fx['y']),(297,fx['y']),(312,fx['y']-14-i*3),(328,fx['y']-6),(d,fx['y']-6)])

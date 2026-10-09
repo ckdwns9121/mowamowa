@@ -34,7 +34,7 @@ Only the active preview and visible mascots animate; list thumbnails are static.
 
 Rakko's React state jumps and makes five rapid upright 360-degree turns in 40 frames (~0.67 s). Eight discrete directions use the approved original front plus seven independently drawn side, diagonal and rear views. Hold interpolation selects exactly one direction; every drawing retains its aspect ratio. The jump pivot never rotates in the screen plane.
 
-The source front artwork is unchanged. Wind ribbons, a landing ring and six sparks are separate Rive shapes. Other characters retain their previous timelines. `src/entities/pet/model/rakko-action.json` owns duration (90 frames at 60 fps) and the UI settling/replay gap. The app queues at most one replay and never changes timer data when the Rakko avatar is clicked.
+The source front artwork is unchanged. Wind ribbons, a landing ring and six sparks are separate Rive shapes. Chiikawa and Hachiware also have click performances (below); the remaining characters retain their previous timelines. `src/entities/pet/model/pet-action.json` owns every click performance's duration (Rakko: 90 frames at 60 fps), the Rakko spin timing, and the UI settling/replay gap. The app queues at most one replay and never changes timer data when the Rakko avatar is clicked.
 
 
 Directional artwork: `turnaround/rakko-eight-views.png` was generated with ImageGen from the approved front reference, then refined for direction and scar consistency. Its generated front cell is unused. `rakko-views.json` records the atlas hash, UV crops and foot/head alignment, reproducible with `uv run --with pillow python scripts/inspect-rakko-turnaround.py`. The source PNG is unmodified. This is an eight-view 2D animation, not a 3D model.
@@ -42,3 +42,16 @@ Directional artwork: `turnaround/rakko-eight-views.png` was generated with Image
 Rakko's Idle loop also includes a short sword kata (frames 150–296 of 420): it draws the sword, makes two quick cuts with a small lunge and a slash arc, then sheathes it. The sword pivots at the grip because the atlas arms are welded to the body.
 
 The click effect also adds three staggered peripheral light trails, eight expanding glints, and a delayed cyan landing shockwave. All effect nodes are hidden in non-React states and fade out before the action ends.
+
+## Chiikawa and Hachiware click performances
+
+Both keep the original atlas artwork and its rigid-silhouette rule: the body root only translates and leans as one piece (no squash, no separated limbs), plus ear bones and the independent eyes.
+
+- **Chiikawa** (120 frames): crouch, startled jump with flicked ears, a pink exclamation mark and surprise strokes, a shaky landing, eyes squeezed shut with four falling tears, then a shy lean back to rest.
+- **Hachiware** (132 frames): sings with closed eyes, leaning and stepping left/right with a small hop on each beat while ears alternate; four coloured music notes rise from beside the face.
+
+All effect nodes are separate Rive shapes inside the body root, hidden in every non-React timeline. The app plays them through the same one-replay queue as Rakko.
+
+## Subjugation weapon kata (Chiikawa, Hachiware, Usagi)
+
+During the Idle loop (frames ~230–380 of 420) each pulls out a subjugation weapon with a pop, acts, and puts it away. The weapons are separate vector drawings (a sasumata for Chiikawa and Hachiware, a staff for Usagi) that pivot at a gripping paw drawn over the welded atlas paw; the body still only moves rigidly. Chiikawa thrusts twice with a nervous sweat drop, Hachiware sweeps an arc then poses with sparkles, and Usagi twirls the staff three times overhead then slams it down with a shockwave and dust. Weapons and effects are hidden in every non-Idle timeline and stay within the 256 px artboard.

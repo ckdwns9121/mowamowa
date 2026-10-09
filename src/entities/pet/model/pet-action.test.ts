@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { createRakkoActionQueue, RAKKO_ACTION_MS, RAKKO_REPLAY_GAP_MS } from "./rakko-action";
+import { createPetActionQueue, getPetAction, petActionMs, PET_REPLAY_GAP_MS } from "./pet-action";
 
-function harness() {
+const RAKKO_ACTION_MS = petActionMs("rakko");
+const RAKKO_REPLAY_GAP_MS = PET_REPLAY_GAP_MS;
+
+function harness(petId = "rakko") {
   type Token = ReturnType<typeof setTimeout>;
   let serial = 0;
   const pending = new Map<Token, { fn: () => void; ms: number }>();
   const events: boolean[] = [];
-  const queue = createRakkoActionQueue((active) => events.push(active), (fn, ms) => {
+  const queue = createPetActionQueue(petId, (active) => events.push(active), (fn, ms) => {
     const token = ++serial as unknown as Token;
     pending.set(token, { fn, ms });
     return token;
@@ -43,5 +46,16 @@ describe("Rakko click performance", () => {
     const h = harness(); h.queue.request(); h.next(); h.next(); h.queue.request();
     expect(h.events).toEqual([true, false, true]);
     h.queue.dispose();
+  });
+  test("Chiikawa and Hachiware own timed performances; other pets have none", () => {
+    expect(getPetAction("chiikawa")?.frames).toBe(120);
+    expect(getPetAction("hachiware")?.frames).toBe(132);
+    expect(petActionMs("chiikawa")).toBe(120 / 60 * 1000 + 80);
+    expect(getPetAction("usagi")).toBeNull();
+    const h = harness("usagi"); h.queue.request();
+    expect(h.events).toEqual([]);
+    const c = harness("hachiware"); c.queue.request();
+    expect(c.next()).toBe(petActionMs("hachiware"));
+    c.queue.dispose();
   });
 });

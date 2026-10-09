@@ -20,7 +20,7 @@ function AnimatedPet({ petId, mood, isRunning, size }: { petId: string; mood: Pe
   const [visible, setVisible] = useState(true);
   const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const { rive, RiveComponent } = useRive({
-    src: "/pets/chiikawa-pets.riv?v=rakko-idle-sword-1", artboard: petId, stateMachines: "Pet",
+    src: "/pets/chiikawa-pets.riv?v=friends-weapons-1", artboard: petId, stateMachines: "Pet",
     autoplay: true, autoBind: true,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
     onLoadError: () => setFailed(true),
