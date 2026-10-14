@@ -100,6 +100,25 @@ describe("pet collection", () => {
       }
     }
   });
+  test("every pet has a click performance whose effects stay in React", () => {
+    const source = readFileSync("assets/pets/scene.rml", "utf8");
+    const actions = JSON.parse(readFileSync("src/entities/pet/model/pet-action.json", "utf8")).actions;
+    expect(Object.keys(actions).sort()).toEqual(PETS.map((pet) => pet.id).sort());
+    const boards = new Map([...source.matchAll(/<Artboard\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/Artboard>/g)].map((entry) => [entry[1], entry[2]]));
+    for (const pet of PETS) {
+      const board = boards.get(pet.id)!;
+      const react = board.match(/<LinearAnimation[^>]*name="React"[^>]*duration="(\d+)"/) ?? board.match(/<LinearAnimation[^>]*duration="(\d+)"[^>]*name="React"/);
+      expect(Number(react![1])).toBe(actions[pet.id].frames);
+      for (const [, id] of board.matchAll(/<Node[^>]*name="Performance [^"]+"[^>]*id="([^"]+)"/g)) {
+        for (const animation of board.matchAll(/<LinearAnimation[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/LinearAnimation>/g)) {
+          const opacity = [...animation[2].matchAll(new RegExp(String.raw`<KeyedObject[^>]*objectId="${id}"[^>]*>([\s\S]*?)<\/KeyedObject>`, "g"))]
+            .filter((entry) => entry[1].includes('propertyKey="18"'))
+            .flatMap((entry) => [...entry[1].matchAll(/value="([^"]+)"/g)].map((value) => Number(value[1])));
+          expect(Math.max(...opacity) > 0).toBe(animation[1] === "React");
+        }
+      }
+    }
+  });
   test("runtime export is real Rive and all artboards own five timelines", () => {
     const binary = readFileSync("public/pets/chiikawa-pets.riv");
     expect(binary.subarray(0,4).toString()).toBe("RIVE");

@@ -3,9 +3,95 @@
   "settleMs": 80,
   "replayGapMs": 60,
   "actions": {
-    "rakko": { "frames": 90, "label": "랏코 점프와 회전", "hint": "클릭하면 점프와 회전" },
-    "chiikawa": { "frames": 120, "label": "치이카와 깜짝 점프", "hint": "클릭하면 깜짝 놀라 점프" },
-    "hachiware": { "frames": 132, "label": "하치와레 노래 스텝", "hint": "클릭하면 노래하며 스텝" }
+    "rakko": {
+      "frames": 90,
+      "label": "랏코 점프와 회전",
+      "hint": "클릭하면 점프와 회전"
+    },
+    "chiikawa": {
+      "frames": 120,
+      "label": "치이카와 깜짝 점프",
+      "hint": "클릭하면 깜짝 놀라 점프"
+    },
+    "hachiware": {
+      "frames": 132,
+      "label": "하치와레 노래 스텝",
+      "hint": "클릭하면 노래하며 스텝"
+    },
+    "usagi": {
+      "frames": 132,
+      "label": "우사기 야하! 점프",
+      "hint": "클릭하면 야하! 하고 점프"
+    },
+    "momonga": {
+      "frames": 132,
+      "label": "모몽가 귀여움 충전",
+      "hint": "클릭하면 둥실 떠서 하트 뿅"
+    },
+    "kurimanju": {
+      "frames": 144,
+      "label": "쿠리만쥬 한잔 후~",
+      "hint": "클릭하면 한 모금 마시고 후~"
+    },
+    "shisa": {
+      "frames": 150,
+      "label": "시사 차곡차곡",
+      "hint": "클릭하면 블록을 차곡차곡 쌓기"
+    },
+    "furuhonya": {
+      "frames": 132,
+      "label": "헌책방 책 넘기기",
+      "hint": "클릭하면 책장이 팔랑팔랑"
+    },
+    "pochette": {
+      "frames": 132,
+      "label": "파우치 갑옷 선물",
+      "hint": "클릭하면 파우치에서 간식이 뿅"
+    },
+    "labor": {
+      "frames": 132,
+      "label": "노동 갑옷 체크",
+      "hint": "클릭하면 할 일을 하나씩 체크"
+    },
+    "ramen": {
+      "frames": 144,
+      "label": "라멘 갑옷 한 그릇",
+      "hint": "클릭하면 따끈한 라멘 대접"
+    },
+    "pajama-green": {
+      "frames": 132,
+      "label": "파자마 그린 만세 댄스",
+      "hint": "클릭하면 두 팔 번쩍 만세 댄스"
+    },
+    "pajama-pink": {
+      "frames": 132,
+      "label": "파자마 핑크 하트 댄스",
+      "hint": "클릭하면 하트 날리며 댄스"
+    },
+    "pajama-white": {
+      "frames": 132,
+      "label": "파자마 화이트 기지개",
+      "hint": "클릭하면 기지개 켜고 하품"
+    },
+    "pajama-purple": {
+      "frames": 132,
+      "label": "파자마 퍼플 비트 댄스",
+      "hint": "클릭하면 박자에 맞춰 펌프"
+    },
+    "anoko": {
+      "frames": 132,
+      "label": "그 아이 갸웃",
+      "hint": "클릭하면 갸웃하다가 신나서 퐁퐁"
+    },
+    "ode": {
+      "frames": 132,
+      "label": "오데 묵직한 응원",
+      "hint": "클릭하면 두 팔 번쩍 응원"
+    }
   },
-  "rakkoSpin": { "turns": 5, "spinStart": 14, "spinFrames": 40 }
+  "rakkoSpin": {
+    "turns": 5,
+    "spinStart": 14,
+    "spinFrames": 40
+  }
 }
