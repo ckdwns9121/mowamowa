@@ -30,6 +30,8 @@ import { isRecentWorkItem, type WorkItem } from "../../entities/work-context/mod
 import { notifyDueWorkItems } from "../../features/tasks/task-reminders";
 import { notifyDueStretchReminder } from "../../features/wellbeing/stretch-reminders";
 import { PetMascot } from "../pet/PetMascot";
+import NowPlayingBar from "./NowPlayingBar";
+import { artworkUrl, useNowPlaying } from "../../entities/media";
 import "./TrayApp.scss";
 import WorkInbox from "./WorkInbox";
 import PetPicker from "../pet/PetPicker";
@@ -51,6 +53,7 @@ export default function TrayApp() {
   const [expanded, setExpanded] = useState(false);
   const [showOlder, setShowOlder] = useState(false);
   const [notch, setNotch] = useState({ width: 180, height: 32 });
+  const media = useNowPlaying();
   const notchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -272,13 +275,27 @@ export default function TrayApp() {
     <div className="tray-window-container">
       <div
         ref={notchRef}
-        className={`notch${expanded ? " is-open" : ""}${focusItem ? " has-activity" : ""}`}
+        className={`notch${expanded ? " is-open" : ""}${focusItem || media ? " has-activity" : ""}`}
         style={{ "--notch-w": `${notch.width}px`, "--notch-h": `${notch.height}px` } as React.CSSProperties}
       >
-      {focusItem && (
+      {(focusItem || media) && (
         <div className="notch-compact" aria-hidden={expanded}>
-          <PetMascot mood={timer?.mode === "shortBreak" ? "break" : "focus"} isRunning={Boolean(timer?.running)} size={Math.max(18, notch.height - 8)} />
-          <span className="notch-compact-time">{formatClock(timer?.remaining_ms ?? 0)}</span>
+          {focusItem ? (
+            <span className="notch-compact-slot">
+              <PetMascot mood={timer?.mode === "shortBreak" ? "break" : "focus"} isRunning={Boolean(timer?.running)} size={Math.max(18, notch.height - 8)} />
+              <span className="notch-compact-time">{formatClock(timer?.remaining_ms ?? 0)}</span>
+            </span>
+          ) : media ? (
+            <span className="notch-compact-slot">
+              <MediaArt media={media} size={Math.max(16, notch.height - 12)} />
+            </span>
+          ) : null}
+          {media ? (
+            <span className="notch-compact-slot is-media" data-playing={media.playing}>
+              {focusItem && <MediaArt media={media} size={Math.max(16, notch.height - 12)} />}
+              <span className="notch-bars" aria-hidden="true"><i /><i /><i /></span>
+            </span>
+          ) : <span />}
         </div>
       )}
       <main className="tray-shell" inert={!expanded}>
@@ -453,6 +470,8 @@ export default function TrayApp() {
 
         </div>
 
+        {media && <NowPlayingBar item={media} />}
+
         {/* Footer */}
         <footer className="tray-bottom-bar">
           <button type="button" className="tray-daily-toggle" aria-expanded={historyOpen} onClick={() => { setPetPickerOpen(false); setHistoryOpen(!historyOpen); }} title={historyError || "달력에서 날짜별 집중 시간과 완료한 일 보기"}>
@@ -484,6 +503,13 @@ export default function TrayApp() {
       </div>
     </div>
   );
+}
+
+function MediaArt({ media, size }: { media: NonNullable<ReturnType<typeof useNowPlaying>>; size: number }) {
+  const art = artworkUrl(media);
+  return art
+    ? <img className="notch-compact-art" src={art} alt="" width={size} height={size} />
+    : <span className="notch-compact-art is-empty" style={{ width: size, height: size }} />;
 }
 
 function formatClock(ms: number): string {
