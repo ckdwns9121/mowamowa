@@ -2,7 +2,7 @@
 
 ## Context
 
-Orbit은 Tauri v2 기반 애플리케이션으로, 로컬 SQLite(`tauri-plugin-sql`)에 `work_items` 및 연속성(Continuity) 데이터를 보관합니다.
+MowaMowa은 Tauri v2 기반 애플리케이션으로, 로컬 SQLite(`tauri-plugin-sql`)에 `work_items` 및 연속성(Continuity) 데이터를 보관합니다.
 기존 아키텍처는 `main`(1280x820 대시보드), `tray`(360x520 팝오버), `pet`(플로팅 펫) 윈도우로 구성되어 있으며, 트레이 창은 메인 대시보드로 이동시키는 보조 뷰로 사용되었습니다. (배경 및 동기는 `proposal.md` 참고)
 
 ## Goals / Non-Goals

@@ -16,7 +16,7 @@ export interface CreateTaskInput {
   status?: "inbox" | "todo";
 }
 
-export interface OrbitTask {
+export interface MowaMowaTask {
   id: string;
   title: string;
   status: TaskStatus;
@@ -28,7 +28,7 @@ export interface OrbitTask {
   updatedAt: string;
 }
 
-export interface OrbitTicket {
+export interface MowaMowaTicket {
   key: string;
   summary: string;
   status: string;
@@ -41,15 +41,15 @@ export interface OrbitTicket {
   linkedTasks: Array<{ id: string; title: string; status: TaskStatus }>;
 }
 
-export interface OrbitRepositoryOptions {
+export interface MowaMowaRepositoryOptions {
   databasePath?: string;
   readOnly?: boolean;
 }
 
 const requiredTables = ["work_items", "jira_issues", "work_item_links"] as const;
 
-export function resolveOrbitDatabasePath(environment = process.env): string {
-  const override = environment.ORBIT_DB_PATH?.trim();
+export function resolveMowaMowaDatabasePath(environment = process.env): string {
+  const override = environment.MOWAMOWA_DB_PATH?.trim();
   if (override) return override;
 
   if (platform() === "darwin") {
@@ -57,7 +57,7 @@ export function resolveOrbitDatabasePath(environment = process.env): string {
   }
   if (platform() === "win32") {
     const appData = environment.APPDATA?.trim();
-    if (!appData) throw new Error("APPDATA를 찾을 수 없습니다. ORBIT_DB_PATH를 지정해주세요.");
+    if (!appData) throw new Error("APPDATA를 찾을 수 없습니다. MOWAMOWA_DB_PATH를 지정해주세요.");
     return join(appData, "com.orbit.desktop", "orbit.db");
   }
 
@@ -65,17 +65,17 @@ export function resolveOrbitDatabasePath(environment = process.env): string {
   return join(dataHome, "com.orbit.desktop", "orbit.db");
 }
 
-export class OrbitRepository {
+export class MowaMowaRepository {
   readonly databasePath: string;
   readonly readOnly: boolean;
   private readonly database: Database;
 
-  constructor(options: OrbitRepositoryOptions = {}) {
-    this.databasePath = options.databasePath || resolveOrbitDatabasePath();
-    this.readOnly = options.readOnly ?? process.env.ORBIT_MCP_READ_ONLY === "1";
+  constructor(options: MowaMowaRepositoryOptions = {}) {
+    this.databasePath = options.databasePath || resolveMowaMowaDatabasePath();
+    this.readOnly = options.readOnly ?? process.env.MOWAMOWA_MCP_READ_ONLY === "1";
 
     if (!existsSync(this.databasePath)) {
-      throw new Error(`Orbit 데이터베이스를 찾을 수 없습니다: ${this.databasePath}`);
+      throw new Error(`MowaMowa 데이터베이스를 찾을 수 없습니다: ${this.databasePath}`);
     }
 
     // Tauri's SQLite file can require a writable handle for journal/locking even for reads.
@@ -91,8 +91,8 @@ export class OrbitRepository {
     this.database.close();
   }
 
-  createTask(input: CreateTaskInput): OrbitTask {
-    if (this.readOnly) throw new Error("ORBIT_MCP_READ_ONLY=1에서는 할 일을 생성할 수 없습니다.");
+  createTask(input: CreateTaskInput): MowaMowaTask {
+    if (this.readOnly) throw new Error("MOWAMOWA_MCP_READ_ONLY=1에서는 할 일을 생성할 수 없습니다.");
 
     const title = input.title.trim();
     if (!title) throw new Error("할 일 제목은 비워둘 수 없습니다.");
@@ -114,7 +114,7 @@ export class OrbitRepository {
           `INSERT INTO work_items (
              id, title, status, priority, source, goal, next_action, done_definition,
              target_at, position, created_at, updated_at
-           ) VALUES (?, ?, ?, ?, 'orbit', ?, ?, ?, ?, ?, ?, ?)`,
+           ) VALUES (?, ?, ?, ?, 'mowamowa', ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           id,
@@ -137,12 +137,12 @@ export class OrbitRepository {
     return created;
   }
 
-  getTask(id: string): OrbitTask | null {
+  getTask(id: string): MowaMowaTask | null {
     const row = this.database.query<TaskRow, [string]>(taskSelect("WHERE id = ?")).get(id);
     return row ? toTask(row) : null;
   }
 
-  listTasks(options: { status?: TaskStatus | "open" | "all"; query?: string; limit?: number } = {}): OrbitTask[] {
+  listTasks(options: { status?: TaskStatus | "open" | "all"; query?: string; limit?: number } = {}): MowaMowaTask[] {
     const conditions: string[] = [];
     const values: Array<string | number> = [];
     const status = options.status ?? "open";
@@ -168,7 +168,7 @@ export class OrbitRepository {
     return rows.map(toTask);
   }
 
-  listMyTickets(options: { state?: "open" | "done" | "all"; query?: string; limit?: number } = {}): OrbitTicket[] {
+  listMyTickets(options: { state?: "open" | "done" | "all"; query?: string; limit?: number } = {}): MowaMowaTicket[] {
     const conditions: string[] = [];
     const values: Array<string | number> = [];
     const state = options.state ?? "open";
@@ -206,7 +206,7 @@ export class OrbitRepository {
          ORDER BY w.updated_at DESC`,
       )
       .all(...keys);
-    const linksByKey = new Map<string, OrbitTicket["linkedTasks"]>();
+    const linksByKey = new Map<string, MowaMowaTicket["linkedTasks"]>();
     for (const link of links) {
       const linkedTasks = linksByKey.get(link.issue_key) ?? [];
       linkedTasks.push({ id: link.id, title: link.title, status: link.status });
@@ -237,7 +237,7 @@ export class OrbitRepository {
     const found = new Set(rows.map((row) => row.name));
     const missing = requiredTables.filter((table) => !found.has(table));
     if (missing.length > 0) {
-      throw new Error(`Orbit 데이터베이스 스키마가 준비되지 않았습니다: ${missing.join(", ")}`);
+      throw new Error(`MowaMowa 데이터베이스 스키마가 준비되지 않았습니다: ${missing.join(", ")}`);
     }
   }
 }
@@ -278,7 +278,7 @@ function taskSelect(where: string): string {
           FROM work_items ${where}`;
 }
 
-function toTask(row: TaskRow): OrbitTask {
+function toTask(row: TaskRow): MowaMowaTask {
   return {
     id: row.id,
     title: row.title,

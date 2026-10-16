@@ -1,14 +1,14 @@
 {
-  "name": "orbit-local",
-  "description": "Local Orbit terminal integrations for Claude Code.",
+  "name": "mowamowa-local",
+  "description": "Local MowaMowa terminal integrations for Claude Code.",
   "owner": {
-    "name": "Orbit"
+    "name": "MowaMowa"
   },
   "plugins": [
     {
-      "name": "orbit",
-      "source": "./agent-plugins/orbit",
-      "description": "Create Orbit tasks and inspect synchronized Jira tickets from Claude Code.",
+      "name": "mowamowa",
+      "source": "./agent-plugins/mowamowa",
+      "description": "Create MowaMowa tasks and inspect synchronized Jira tickets from Claude Code.",
       "version": "0.1.0"
     }
   ]

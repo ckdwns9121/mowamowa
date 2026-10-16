@@ -30,7 +30,7 @@ describe("ChatGenerationManager", () => {
     const appendedMessages: Array<{ threadId: string; role: string; content: string }> = [];
 
     setChatGenerationDependencies({
-      streamAnswerWithOrbitContext: async (_q, _m, _model, _threadId, callbacks) => {
+      streamAnswerWithMowaMowaContext: async (_q, _m, _model, _threadId, callbacks) => {
         capturedOnDelta = callbacks.onDelta;
         return streamPromise;
       },
@@ -86,7 +86,7 @@ describe("ChatGenerationManager", () => {
     });
 
     setChatGenerationDependencies({
-      streamAnswerWithOrbitContext: async (_q, _m, _model, _threadId, callbacks) => {
+      streamAnswerWithMowaMowaContext: async (_q, _m, _model, _threadId, callbacks) => {
         capturedOnDelta = callbacks.onDelta;
         return streamPromise;
       },
@@ -157,7 +157,7 @@ describe("ChatGenerationManager", () => {
   test("explicit cancellation aborts the controller and notifies listeners", async () => {
     const holder = { signal: undefined as AbortSignal | undefined };
     setChatGenerationDependencies({
-      streamAnswerWithOrbitContext: async (_q, _m, _model, _threadId, callbacks) => {
+      streamAnswerWithMowaMowaContext: async (_q, _m, _model, _threadId, callbacks) => {
         holder.signal = callbacks.signal;
         return new Promise((_, reject) => {
           callbacks.signal?.addEventListener("abort", () => {

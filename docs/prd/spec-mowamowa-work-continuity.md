@@ -1,7 +1,7 @@
-# Spec: Orbit 개인 업무 연속성
+# Spec: MowaMowa 개인 업무 연속성
 
 - 상태: Accepted
-- Linked PRD: [prd-orbit-work-continuity.md](prd-orbit-work-continuity.md)
+- Linked PRD: [prd-mowamowa-work-continuity.md](prd-mowamowa-work-continuity.md)
 
 ## 1) 기능 목록
 

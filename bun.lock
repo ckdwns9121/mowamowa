@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "orbit",
+      "name": "mowamowa",
       "dependencies": {
         "@modelcontextprotocol/server": "^2.0.0",
         "@rive-app/canvas": "2.42.2",

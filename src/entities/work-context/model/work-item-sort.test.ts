@@ -3,7 +3,7 @@ import type { WorkItem } from "./work-item";
 import { reorderWorkItemIds, sortWorkItems } from "./work-item-sort";
 
 const item = (id: string, position: number, createdAt: string) => ({
-  id, position, createdAt, title: id, status: "todo", priority: null, source: "orbit",
+  id, position, createdAt, title: id, status: "todo", priority: null, source: "mowamowa",
   externalId: null, externalUrl: null, goal: null, checkpoint: null, nextAction: null,
   doneDefinition: null, updatedAt: createdAt, completedAt: null,
 }) as WorkItem;

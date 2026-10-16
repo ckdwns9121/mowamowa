@@ -113,7 +113,7 @@ export async function createWorkItem(input: CreateWorkItemInput): Promise<string
     `INSERT INTO work_items (
       id, title, status, priority, source, goal, next_action, done_definition,
       target_at, category_id, position, created_at, updated_at
-    ) VALUES ($1, $2, $3, $4, 'orbit', $5, $6, $7, $8, $9, $10, $11, $11)`,
+    ) VALUES ($1, $2, $3, $4, 'mowamowa', $5, $6, $7, $8, $9, $10, $11, $11)`,
     [
       id,
       input.title.trim(),

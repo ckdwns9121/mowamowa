@@ -1,7 +1,7 @@
-const outputPath = "agent-plugins/orbit/dist/server.js";
+const outputPath = "agent-plugins/mowamowa/dist/server.js";
 const result = await Bun.build({
   entrypoints: ["mcp/server.ts"],
-  outdir: "agent-plugins/orbit/dist",
+  outdir: "agent-plugins/mowamowa/dist",
   naming: "server.js",
   target: "bun",
   minify: true,

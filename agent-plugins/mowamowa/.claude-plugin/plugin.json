@@ -1,0 +1,8 @@
+{
+  "name": "mowamowa",
+  "version": "0.1.0",
+  "description": "Create MowaMowa tasks and inspect synchronized Jira tickets from Claude Code.",
+  "author": {
+    "name": "MowaMowa"
+  }
+}

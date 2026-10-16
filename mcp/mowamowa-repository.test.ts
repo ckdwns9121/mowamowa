@@ -3,13 +3,13 @@ import { Database } from "bun:sqlite";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { OrbitRepository } from "./orbit-repository";
+import { MowaMowaRepository } from "./mowamowa-repository";
 
 let testDirectory = "";
 let databasePath = "";
 
 beforeEach(() => {
-  testDirectory = mkdtempSync(join(tmpdir(), "orbit-mcp-"));
+  testDirectory = mkdtempSync(join(tmpdir(), "mowamowa-mcp-"));
   databasePath = join(testDirectory, "orbit.db");
   const database = new Database(databasePath);
   database.exec(`
@@ -57,12 +57,12 @@ beforeEach(() => {
 
 afterEach(() => rmSync(testDirectory, { recursive: true, force: true }));
 
-describe("OrbitRepository", () => {
+describe("MowaMowaRepository", () => {
   test("creates and reads a task without touching the production database", () => {
-    const repository = new OrbitRepository({ databasePath });
+    const repository = new MowaMowaRepository({ databasePath });
     const task = repository.createTask({
       title: "  MCP 할 일 만들기  ",
-      goal: "터미널에서 Orbit을 사용한다",
+      goal: "터미널에서 MowaMowa을 사용한다",
       priority: "p1",
       targetAt: "2026-08-16T09:00:00+09:00",
     });
@@ -75,11 +75,11 @@ describe("OrbitRepository", () => {
     repository.close();
   });
 
-  test("lists cached assigned Jira tickets with linked Orbit tasks", () => {
+  test("lists cached assigned Jira tickets with linked MowaMowa tasks", () => {
     const database = new Database(databasePath);
     database.exec(`
       INSERT INTO work_items (id, title, status, priority, source, position, created_at, updated_at)
-      VALUES ('task-1', 'Sentry 연결', 'todo', NULL, 'orbit', 0, '2026-08-15T00:00:00Z', '2026-08-15T00:00:00Z');
+      VALUES ('task-1', 'Sentry 연결', 'todo', NULL, 'mowamowa', 0, '2026-08-15T00:00:00Z', '2026-08-15T00:00:00Z');
       INSERT INTO jira_issues (
         issue_key, summary, status, status_category, priority, project_key, project_name,
         due_date, updated_at, url, discovered_at
@@ -92,7 +92,7 @@ describe("OrbitRepository", () => {
     `);
     database.close();
 
-    const repository = new OrbitRepository({ databasePath, readOnly: true });
+    const repository = new MowaMowaRepository({ databasePath, readOnly: true });
     const tickets = repository.listMyTickets();
     expect(tickets).toHaveLength(1);
     expect(tickets[0]?.key).toBe("CGKR-2492");
@@ -101,7 +101,7 @@ describe("OrbitRepository", () => {
   });
 
   test("blocks mutations in read-only mode", () => {
-    const repository = new OrbitRepository({ databasePath, readOnly: true });
+    const repository = new MowaMowaRepository({ databasePath, readOnly: true });
     expect(() => repository.createTask({ title: "생성하면 안 됨" })).toThrow("READ_ONLY");
     repository.close();
   });

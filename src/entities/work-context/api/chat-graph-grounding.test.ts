@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { ContextGraphSearchResult } from "../model/context-graph";
 import {
   buildKnowledgeGraphGrounding,
-  composeOrbitGrounding,
+  composeMowaMowaGrounding,
   initialContextSources,
   type ContextSourceStatus,
 } from "./chat-ai-repository";
@@ -70,7 +70,7 @@ describe("Knowledge Graph Chat grounding", () => {
   });
 
   test("composition includes graph once and preserves legacy context byte-for-byte on failure", () => {
-    expect(composeOrbitGrounding("base", "completion", "graph")).toBe("base\n\ncompletion\n\ngraph");
-    expect(composeOrbitGrounding("base", "completion", "")).toBe("base\n\ncompletion");
+    expect(composeMowaMowaGrounding("base", "completion", "graph")).toBe("base\n\ncompletion\n\ngraph");
+    expect(composeMowaMowaGrounding("base", "completion", "")).toBe("base\n\ncompletion");
   });
 });

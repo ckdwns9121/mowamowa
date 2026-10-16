@@ -1,13 +1,13 @@
-# Orbit Documentation
+# MowaMowa Documentation
 
-Orbit의 제품 요구사항, 디자인, 아키텍처, 기술 결정, 정책과 검증 증거를 관리하는 문서 허브다. 코드가 현재 동작을 보여준다면 문서는 **무엇을 왜 만들고, 어떤 경계를 지키며, 결과를 어떻게 검증하는지**를 설명한다.
+MowaMowa의 제품 요구사항, 디자인, 아키텍처, 기술 결정, 정책과 검증 증거를 관리하는 문서 허브다. 코드가 현재 동작을 보여준다면 문서는 **무엇을 왜 만들고, 어떤 경계를 지키며, 결과를 어떻게 검증하는지**를 설명한다.
 
 ## Start here
 
 | 목적 | 먼저 읽을 문서 |
 | --- | --- |
-| Orbit이 해결하는 문제 이해 | [제품 문제 정의](product-problem.md) |
-| 제품 범위와 수용기준 확인 | [업무 연속성 PRD](prd/prd-orbit-work-continuity.md) |
+| MowaMowa이 해결하는 문제 이해 | [제품 문제 정의](product-problem.md) |
+| 제품 범위와 수용기준 확인 | [업무 연속성 PRD](prd/prd-mowamowa-work-continuity.md) |
 | 기능의 사용자 동작 확인 | [Feature Specs](specs/README.md) |
 | 기능 구현 방식 확인 | [Design Documents](design-documents/README.md) |
 | UI/UX 구현 | [DESIGN.md](../DESIGN.md) |
@@ -46,12 +46,12 @@ Product → PRD → Spec → RFC/Architecture → Technical Design → ADR
 - [제품 문제 정의](product-problem.md)
 - [제품 솔루션 제안](product-solution.md)
 - [제품 원칙](product/product-principles.md)
-- [업무 연속성 PRD](prd/prd-orbit-work-continuity.md)
-- [업무 연속성 Spec](prd/spec-orbit-work-continuity.md)
+- [업무 연속성 PRD](prd/prd-mowamowa-work-continuity.md)
+- [업무 연속성 Spec](prd/spec-mowamowa-work-continuity.md)
 
 ### Design and architecture
 
-- [Orbit Design Contract](../DESIGN.md)
+- [MowaMowa Design Contract](../DESIGN.md)
 - [System Architecture](architecture/system-overview.md)
 - [Context Graph Architecture](context-graph-architecture.md)
 - [Frontend FSD Architecture](fsd-architecture.md)

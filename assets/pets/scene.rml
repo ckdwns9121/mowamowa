@@ -24488,49 +24488,49 @@
         <SolidColor colorValue="FFb5eaff" id="0:15772" />
       </Stroke>
     </Shape>
-    <Shape name="Orbit glint 7" opacity="0" id="0:15765">
+    <Shape name="MowaMowa glint 7" opacity="0" id="0:15765">
       <Star width="11" height="11" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15766" />
       <Fill id="0:15767">
         <SolidColor colorValue="FFfff1aa" id="0:15768" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 6" opacity="0" id="0:15761">
+    <Shape name="MowaMowa glint 6" opacity="0" id="0:15761">
       <Star width="7" height="7" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15762" />
       <Fill id="0:15763">
         <SolidColor colorValue="FFb5eaff" id="0:15764" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 5" opacity="0" id="0:15757">
+    <Shape name="MowaMowa glint 5" opacity="0" id="0:15757">
       <Star width="11" height="11" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15758" />
       <Fill id="0:15759">
         <SolidColor colorValue="FFfff1aa" id="0:15760" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 4" opacity="0" id="0:15753">
+    <Shape name="MowaMowa glint 4" opacity="0" id="0:15753">
       <Star width="7" height="7" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15754" />
       <Fill id="0:15755">
         <SolidColor colorValue="FFb5eaff" id="0:15756" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 3" opacity="0" id="0:15749">
+    <Shape name="MowaMowa glint 3" opacity="0" id="0:15749">
       <Star width="11" height="11" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15750" />
       <Fill id="0:15751">
         <SolidColor colorValue="FFfff1aa" id="0:15752" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 2" opacity="0" id="0:15745">
+    <Shape name="MowaMowa glint 2" opacity="0" id="0:15745">
       <Star width="7" height="7" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15746" />
       <Fill id="0:15747">
         <SolidColor colorValue="FFb5eaff" id="0:15748" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 1" opacity="0" id="0:15741">
+    <Shape name="MowaMowa glint 1" opacity="0" id="0:15741">
       <Star width="11" height="11" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15742" />
       <Fill id="0:15743">
         <SolidColor colorValue="FFfff1aa" id="0:15744" />
       </Fill>
     </Shape>
-    <Shape name="Orbit glint 0" opacity="0" id="0:15737">
+    <Shape name="MowaMowa glint 0" opacity="0" id="0:15737">
       <Star width="7" height="7" points="4" innerRadius="0.22" cornerRadius="0.5" id="0:15738" />
       <Fill id="0:15739">
         <SolidColor colorValue="FFb5eaff" id="0:15740" />

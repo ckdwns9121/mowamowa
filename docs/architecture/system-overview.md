@@ -1,21 +1,21 @@
-# Orbit System Architecture
+# MowaMowa System Architecture
 
 - 상태: Accepted
-- 소유자: Orbit maintainer
+- 소유자: MowaMowa maintainer
 - 작성일: 2026-08-15
 - 최종 갱신: 2026-08-15
-- 관련 문서: [업무 연속성 PRD](../prd/prd-orbit-work-continuity.md), [제품 원칙](../product/product-principles.md)
+- 관련 문서: [업무 연속성 PRD](../prd/prd-mowamowa-work-continuity.md), [제품 원칙](../product/product-principles.md)
 
 ## 목적
 
-이 문서는 Orbit 전체 시스템의 실행 경계, 데이터 소유권과 주요 데이터 흐름을 정의한다. 기능별 상세 계약은 Feature Spec과 Technical Design이 소유한다.
+이 문서는 MowaMowa 전체 시스템의 실행 경계, 데이터 소유권과 주요 데이터 흐름을 정의한다. 기능별 상세 계약은 Feature Spec과 Technical Design이 소유한다.
 
 ## 시스템 컨텍스트
 
 ```mermaid
 flowchart LR
   User[개인 사용자]
-  Orbit[Orbit macOS App]
+  MowaMowa[MowaMowa macOS App]
   Jira[Jira / Confluence]
   GitHub[GitHub / local git]
   Slack[Slack]
@@ -23,20 +23,20 @@ flowchart LR
   Sessions[Codex / Claude sessions]
   AI[AI Providers]
 
-  User <--> Orbit
-  Orbit <--> Jira
-  Orbit <--> GitHub
-  Orbit <--> Slack
-  Orbit <--> Calendar
-  Orbit <--> Sessions
-  Orbit <--> AI
+  User <--> MowaMowa
+  MowaMowa <--> Jira
+  MowaMowa <--> GitHub
+  MowaMowa <--> Slack
+  MowaMowa <--> Calendar
+  MowaMowa <--> Sessions
+  MowaMowa <--> AI
 ```
 
 ## 컨테이너
 
 ```mermaid
 flowchart TB
-  subgraph Desktop[Orbit Tauri Desktop]
+  subgraph Desktop[MowaMowa Tauri Desktop]
     UI[React UI\napp/pages/widgets/features/entities/shared]
     Commands[Rust Tauri Commands\nOAuth · External API · Keychain]
     DB[(SQLite\nCanonical + Cache + Projection)]
@@ -58,7 +58,7 @@ flowchart TB
 
 | 데이터 | 기준 저장소 | 파생 데이터 | 비고 |
 | --- | --- | --- | --- |
-| Task·focus·completion | SQLite canonical tables | Dashboard·Graph view | Orbit이 소유 |
+| Task·focus·completion | SQLite canonical tables | Dashboard·Graph view | MowaMowa이 소유 |
 | Jira·Slack·Calendar 등 원본 | 외부 서비스 | SQLite source cache | provenance·freshness 보존 |
 | Context Graph | canonical table과 source cache | versioned graph generation | 삭제·재구축 가능 |
 | 인증정보 | macOS Keychain | 연결 여부만 설정에 저장 | 평문 재표시 금지 |

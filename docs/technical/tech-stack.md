@@ -1,7 +1,7 @@
-# Orbit Tech Stack and Engineering Standards
+# MowaMowa Tech Stack and Engineering Standards
 
 - 상태: Accepted
-- 소유자: Orbit maintainer
+- 소유자: MowaMowa maintainer
 - 작성일: 2026-08-15
 - 최종 갱신: 2026-08-15
 - 관련 문서: [System Architecture](../architecture/system-overview.md), [DESIGN.md](../../DESIGN.md)

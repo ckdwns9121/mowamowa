@@ -8,7 +8,7 @@ function task(overrides: Partial<WorkItem>): WorkItem {
     title: "작업",
     status: "todo",
     priority: null,
-    source: "orbit",
+    source: "mowamowa",
     externalId: null,
     externalUrl: null,
     goal: null,

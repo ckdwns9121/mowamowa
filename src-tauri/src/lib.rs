@@ -47,7 +47,7 @@ impl SecretStorageMode {
 fn app_data_file(name: &str) -> Result<PathBuf, String> {
     let app = APP_HANDLE
         .get()
-        .ok_or_else(|| "Orbit 앱이 아직 초기화되지 않았습니다.".to_string())?;
+        .ok_or_else(|| "MowaMowa 앱이 아직 초기화되지 않았습니다.".to_string())?;
     let directory = app
         .path()
         .app_data_dir()
@@ -162,7 +162,7 @@ fn delete_internal_secret(secret_id: &str) -> Result<(), String> {
 
 fn keychain_entry(secret_id: &str) -> Result<keyring::Entry, String> {
     validate_secret_id(secret_id)?;
-    let app = APP_HANDLE.get().ok_or_else(|| "Orbit 앱이 아직 초기화되지 않았습니다.".to_string())?;
+    let app = APP_HANDLE.get().ok_or_else(|| "MowaMowa 앱이 아직 초기화되지 않았습니다.".to_string())?;
     keyring::Entry::new(&app.config().identifier, secret_id).map_err(|error| error.to_string())
 }
 
@@ -177,7 +177,7 @@ fn get_secret(secret_id: &str) -> Result<String, String> {
         SecretStorageMode::Keychain => match keychain_entry(secret_id)?.get_password() {
             Ok(value) => Ok(value),
             Err(keyring::Error::NoEntry) => Err(key_missing_message()),
-            Err(error) => Err(format!("macOS Keychain에서 자격 증명을 읽지 못했습니다. Orbit의 Keychain 접근을 허용해주세요. ({error})")),
+            Err(error) => Err(format!("macOS Keychain에서 자격 증명을 읽지 못했습니다. MowaMowa의 Keychain 접근을 허용해주세요. ({error})")),
         },
     };
     match value {
@@ -205,7 +205,7 @@ fn get_optional_secret(secret_id: &str) -> Result<Option<String>, String> {
         SecretStorageMode::Keychain => match keychain_entry(secret_id)?.get_password() {
             Ok(value) => Some(value),
             Err(keyring::Error::NoEntry) => None,
-            Err(error) => return Err(format!("macOS Keychain에서 자격 증명을 읽지 못했습니다. Orbit의 Keychain 접근을 허용해주세요. ({error})")),
+            Err(error) => return Err(format!("macOS Keychain에서 자격 증명을 읽지 못했습니다. MowaMowa의 Keychain 접근을 허용해주세요. ({error})")),
         },
     };
     match value.filter(|value| !value.is_empty()) {
@@ -738,12 +738,12 @@ pub fn run() {
             }
 
             let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
-                .expect("valid Orbit tray icon");
+                .expect("valid MowaMowa tray icon");
 
-            let quit = tauri::menu::MenuItem::with_id(app, "quit", "Orbit 종료", true, None::<&str>)?;
+            let quit = tauri::menu::MenuItem::with_id(app, "quit", "MowaMowa 종료", true, None::<&str>)?;
             let menu = tauri::menu::Menu::with_items(app, &[&quit])?;
 
-            TrayIconBuilder::with_id("orbit")
+            TrayIconBuilder::with_id("mowamowa")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| {
@@ -753,7 +753,7 @@ pub fn run() {
                 })
                 .icon(tray_icon)
                 .icon_as_template(true)
-                .tooltip("Orbit · 작업 빠른 보기")
+                .tooltip("MowaMowa · 작업 빠른 보기")
                 .on_tray_icon_event(move |tray, event| {
                     eprintln!("ON TRAY ICON EVENT: {:?}", event);
 

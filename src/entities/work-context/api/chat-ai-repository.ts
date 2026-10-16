@@ -175,7 +175,7 @@ async function collectSource<T>(
   }
 }
 
-export async function buildOrbitContext(
+export async function buildMowaMowaContext(
   now = new Date(),
   onSource: (source: ContextSourceStatus) => void = () => undefined,
 ): Promise<string> {
@@ -209,7 +209,7 @@ const graphGroundingPorts: GraphGroundingPorts = {
   format: formatContextGraphResults,
 };
 
-export function composeOrbitGrounding(...sections: string[]): string {
+export function composeMowaMowaGrounding(...sections: string[]): string {
   return sections.filter(Boolean).join("\n\n");
 }
 
@@ -467,11 +467,11 @@ async function continueAgent(run: ChatAgentRun, callbacks: StreamCallbacks): Pro
   return { content, responseId: run.responseId, cancelled: false, approvals: [], runId: run.id, steps };
 }
 
-export async function streamAnswerWithOrbitContext(question: string, messages: ChatMessage[], model: string, threadId: string, callbacks: StreamCallbacks): Promise<StreamAnswer> {
+export async function streamAnswerWithMowaMowaContext(question: string, messages: ChatMessage[], model: string, threadId: string, callbacks: StreamCallbacks): Promise<StreamAnswer> {
   const conversation = messages.slice(-12).map((message) => ({ role: message.role, content: message.content }));
   const now = new Date();
-  const context = composeOrbitGrounding(
-    await buildOrbitContext(now, callbacks.onSource),
+  const context = composeMowaMowaGrounding(
+    await buildMowaMowaContext(now, callbacks.onSource),
     await buildCompletedWorkGrounding(question),
     await buildKnowledgeGraphGrounding(question, callbacks.onSource),
   );

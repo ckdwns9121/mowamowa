@@ -1,4 +1,4 @@
-# PRD: Orbit 개인 업무 연속성
+# PRD: MowaMowa 개인 업무 연속성
 
 - 상태: Accepted
 - Mode: reverse

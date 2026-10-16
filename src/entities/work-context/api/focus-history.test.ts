@@ -74,7 +74,7 @@ describe("shared focus history", () => {
   });
   test("task focus, completion, undo and deletion keep history consistent", () => {
     using db=database();
-    db.query("INSERT INTO work_items(id,title,status,source,position,created_at,updated_at) VALUES('task','원래 제목','todo','orbit',0,'2026-09-23T00:00:00Z','2026-09-23T00:00:00Z')").run();
+    db.query("INSERT INTO work_items(id,title,status,source,position,created_at,updated_at) VALUES('task','원래 제목','todo','mowamowa',0,'2026-09-23T00:00:00Z','2026-09-23T00:00:00Z')").run();
     db.query(`INSERT INTO work_focus_transition_commands(id,correlation_id,current_work_item_id,requested_work_item_id,expected_slot_revision,expected_current_revision,expected_requested_revision,created_at)
       VALUES('cmd','cmd',NULL,'task',0,NULL,0,'2026-09-23T00:00:00Z')`).run();
     expect(timer(db).work_item_id).toBe('task'); expect(timer(db).running).toBe(1);

@@ -3,7 +3,7 @@ import type { ChatAgentApproval, ChatAgentStepView } from "../model/chat-agent";
 import {
   initialContextSources,
   resolveChatAgentApproval,
-  streamAnswerWithOrbitContext,
+  streamAnswerWithMowaMowaContext,
   type ContextSourceStatus,
 } from "./chat-ai-repository";
 import { appendChatMessage, listChatMessages } from "./chat-repository";
@@ -45,7 +45,7 @@ export type ChatGenerationEvent =
 export type ChatGenerationListener = (event: ChatGenerationEvent) => void;
 
 export interface ChatGenerationRunnerDependencies {
-  streamAnswerWithOrbitContext: typeof streamAnswerWithOrbitContext;
+  streamAnswerWithMowaMowaContext: typeof streamAnswerWithMowaMowaContext;
   resolveChatAgentApproval: typeof resolveChatAgentApproval;
   appendChatMessage: typeof appendChatMessage;
   attachAgentApprovalsToMessage: typeof attachAgentApprovalsToMessage;
@@ -53,7 +53,7 @@ export interface ChatGenerationRunnerDependencies {
 }
 
 const defaultDependencies: ChatGenerationRunnerDependencies = {
-  streamAnswerWithOrbitContext,
+  streamAnswerWithMowaMowaContext,
   resolveChatAgentApproval,
   appendChatMessage,
   attachAgentApprovalsToMessage,
@@ -136,7 +136,7 @@ export function startChatGeneration(params: StartChatGenerationParams): string {
   // Launch the generation process asynchronously in the background
   void (async () => {
     try {
-      const answer = await deps.streamAnswerWithOrbitContext(
+      const answer = await deps.streamAnswerWithMowaMowaContext(
         question,
         messages,
         modelId,

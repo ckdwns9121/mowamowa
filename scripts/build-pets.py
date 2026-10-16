@@ -386,7 +386,7 @@ def rakko_action_effects(art):
         draw_path(trail,'Sweeping light','M -101 8 C -112 -12 -80 -35 -47 -37 M 58 32 C 90 28 112 12 102 -7',None,['#a6e7ff','#fff4be','#ffffff'][index],3-index*.5)
         result.append({'kind':'trail','id':trail.get('id'),'index':index})
     for index in range(8):
-        star=el('Shape',name=f'Orbit glint {index}',opacity=0);art.insert(1,star)
+        star=el('Shape',name=f'MowaMowa glint {index}',opacity=0);art.insert(1,star)
         el('Star',star,width=11 if index%2 else 7,height=11 if index%2 else 7,points=4,innerRadius=.22,cornerRadius=.5)
         paint(star,'#fff1aa' if index%2 else '#b5eaff',None)
         result.append({'kind':'glint','id':star.get('id'),'index':index})

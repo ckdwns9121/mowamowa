@@ -1,8 +1,8 @@
-# Orbit Context Graph Architecture
+# MowaMowa Context Graph Architecture
 
 ## Purpose
 
-Orbit restores the context around a piece of work instead of returning isolated search hits. A Task can be connected to its Jira issue, pull request or commit, Slack discussion, Confluence page, calendar event, and AI work session.
+MowaMowa restores the context around a piece of work instead of returning isolated search hits. A Task can be connected to its Jira issue, pull request or commit, Slack discussion, Confluence page, calendar event, and AI work session.
 
 ## Storage boundary
 
@@ -22,10 +22,10 @@ Task / Jira / GitHub / Slack / Confluence / Calendar / AI sessions
              text seeds + bounded relation traversal
                               │
                               ▼
-                         Orbit Chat
+                         MowaMowa Chat
 ```
 
-The first production store is a local SQLite property-graph projection. This keeps Orbit self-contained and preserves a clean boundary for a later Graphiti, Neo4j, or FalkorDB adapter without making the desktop app depend on a separately operated service.
+The first production store is a local SQLite property-graph projection. This keeps MowaMowa self-contained and preserves a clean boundary for a later Graphiti, Neo4j, or FalkorDB adapter without making the desktop app depend on a separately operated service.
 
 ## Graph model
 
@@ -54,7 +54,7 @@ Every edge stores its derivation (`explicit`, `inferred`, or `system`), weight, 
 
 ## Rebuild and publication protocol
 
-`@tauri-apps/plugin-sql` does not expose a JavaScript transaction spanning multiple awaited calls. Orbit therefore does not use `BEGIN` and `COMMIT` from TypeScript.
+`@tauri-apps/plugin-sql` does not expose a JavaScript transaction spanning multiple awaited calls. MowaMowa therefore does not use `BEGIN` and `COMMIT` from TypeScript.
 
 1. Read the canonical source revision and fingerprint.
 2. Load source records and build an isolated `building` generation.

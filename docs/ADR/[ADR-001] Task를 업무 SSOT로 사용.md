@@ -18,7 +18,7 @@
 
 ## Decision
 
-Orbit의 `Task(WorkItem)`를 개인 업무 상태의 유일한 기준점으로 사용한다. 외부 객체와 AI 세션은 Task에 다중 연결되는 source 또는 evidence이며, Task의 상태를 독자적으로 소유하지 않는다.
+MowaMowa의 `Task(WorkItem)`를 개인 업무 상태의 유일한 기준점으로 사용한다. 외부 객체와 AI 세션은 Task에 다중 연결되는 source 또는 evidence이며, Task의 상태를 독자적으로 소유하지 않는다.
 
 ## Options
 

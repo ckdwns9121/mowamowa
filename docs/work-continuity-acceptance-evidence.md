@@ -1,11 +1,11 @@
-# Orbit 업무 연속성 수용 증거
+# MowaMowa 업무 연속성 수용 증거
 
 작성 시각: 2026-08-07 (Asia/Seoul)
 
 대상 문서:
 
-- `.omx/plans/prd-orbit-work-continuity.md`
-- `.omx/plans/test-spec-orbit-work-continuity.md`
+- `.omx/plans/prd-mowamowa-work-continuity.md`
+- `.omx/plans/test-spec-mowamowa-work-continuity.md`
 
 이 문서는 구현 파일, 실행한 자동 테스트, 로컬 런타임 확인 지점을 사용자 스토리별로 연결한다. 실행하지 않은 수동 검증은 통과로 간주하지 않는다.
 
@@ -82,7 +82,7 @@
 
 외부 시스템이 필요한 검증 gap은 한 가지다.
 
-1. 유효한 Jira staging 계정에서 preview된 정확한 Done transition을 사용자가 승인한 뒤 실제 POST하고, Jira와 Orbit outbox가 `succeeded`로 수렴하는지 확인.
+1. 유효한 Jira staging 계정에서 preview된 정확한 Done transition을 사용자가 승인한 뒤 실제 POST하고, Jira와 MowaMowa outbox가 `succeeded`로 수렴하는지 확인.
 
 Slack 외부 쓰기는 제품 범위에 없고, Calendar/Slack/Confluence/GitHub는 읽기 경계다. Jira write-back의 request binding, stale approval, already-Done, 오류 분류, restart reconciliation은 mock/단위/Rust 테스트로 실행했다.
 
@@ -91,5 +91,5 @@ Slack 외부 쓰기는 제품 범위에 없고, Calendar/Slack/Confluence/GitHub
 - 기존 사용자 DB를 백업한 뒤 Tauri 재기동, migration 26 checksum/트리거, `PRAGMA foreign_key_check`, 업무 흐름 Inbox 187개 렌더링을 확인했다.
 - Dashboard와 업무 흐름 최상단 viewport를 실제 앱에서 확인했고 visual-verdict는 **94/100 PASS**다.
 - 대용량 페이지 이동, 상태 전이, Inbox action, completion, Jira outbox, automation/undo는 실제 SQLite를 사용하는 service·migration 통합 테스트로 검증했다. 사용자 데이터에 테스트 mutation을 만들기 위한 수동 클릭은 수행하지 않았다.
-- 캡처는 로컬 `/tmp/orbit-final-continuity.png`, DB 복구 전 백업은 `orbit-before-automation-repair-20260807.db`이다.
+- 캡처는 로컬 `/tmp/mowamowa-final-continuity.png`, DB 복구 전 백업은 `orbit-before-automation-repair-20260807.db`이다.
 - 이후 코드가 변경되면 전체 `bun test`, build, cargo test/check와 migration/FK 검사를 다시 실행해야 한다.

@@ -10,7 +10,7 @@ export const workItemStatuses = [
 
 export type WorkItemStatus = (typeof workItemStatuses)[number];
 export type WorkItemPriority = "p1" | "p2" | "p3";
-export type WorkItemSource = "orbit" | "local" | "jira" | "github" | "slack" | "calendar";
+export type WorkItemSource = "mowamowa" | "local" | "jira" | "github" | "slack" | "calendar";
 
 export interface WorkItem {
   id: string;
