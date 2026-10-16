@@ -1,0 +1,193 @@
+[
+ {
+  "id": "chiikawa",
+  "name": "치이카와",
+  "group": "friends",
+  "accent": "#f1aebc",
+  "description": "작은 용기를 모아, 오늘도 한 걸음.",
+  "crop": [
+   0,
+   0,
+   335,
+   362
+  ]
+ },
+ {
+  "id": "hachiware",
+  "name": "하치와레",
+  "group": "friends",
+  "accent": "#94c5e3",
+  "description": "괜찮아! 같이 하면 할 수 있어.",
+  "crop": [
+   343,
+   0,
+   335,
+   374
+  ]
+ },
+ {
+  "id": "usagi",
+  "name": "우사기",
+  "group": "friends",
+  "accent": "#efd480",
+  "description": "야하! 에너지 넘치는 집중 친구.",
+  "crop": [
+   690,
+   0,
+   335,
+   463
+  ]
+ },
+ {
+  "id": "momonga",
+  "name": "모몽가",
+  "group": "friends",
+  "accent": "#b4d6ed",
+  "description": "잠깐 쉬어! 귀여움 충전할 시간이야.",
+  "crop": [
+   1035,
+   0,
+   419,
+   391
+  ]
+ },
+ {
+  "id": "kurimanju",
+  "name": "쿠리만쥬",
+  "group": "friends",
+  "accent": "#c59d7b",
+  "description": "차분하게 한 가지씩, 쉬는 시간도 소중해.",
+  "crop": [
+   1457,
+   0,
+   308,
+   365
+  ]
+ },
+ {
+  "id": "rakko",
+  "name": "랏코",
+  "group": "friends",
+  "accent": "#dcd2a9",
+  "description": "든든한 선생님과 함께 집중 모드.",
+  "crop": [
+   2289,
+   0,
+   340,
+   362
+  ]
+ },
+ {
+  "id": "shisa",
+  "name": "시사",
+  "group": "friends",
+  "accent": "#eca87d",
+  "description": "성실하게 차곡차곡 쌓아가는 하루.",
+  "crop": [
+   2636,
+   0,
+   400,
+   355
+  ]
+ },
+ {
+  "id": "furuhonya",
+  "name": "헌책방",
+  "group": "friends",
+  "accent": "#eeb5c8",
+  "description": "조용히 곁을 지켜 주는 분홍빛 친구.",
+  "crop": [
+   3456,
+   0,
+   310,
+   424
+  ]
+ },
+ {
+  "id": "pochette",
+  "name": "파우치 갑옷",
+  "group": "armor",
+  "accent": "#d6c4c3",
+  "description": "작은 물건에도 마음을 담는 다정한 친구.",
+  "crop": [
+   1776,
+   0,
+   161,
+   427
+  ]
+ },
+ {
+  "id": "labor",
+  "name": "노동 갑옷",
+  "group": "armor",
+  "accent": "#b6afaa",
+  "description": "오늘의 할 일을 든든하게 함께해요.",
+  "crop": [
+   1947,
+   0,
+   161,
+   427
+  ]
+ },
+ {
+  "id": "ramen",
+  "name": "라멘 갑옷",
+  "group": "armor",
+  "accent": "#dfd481",
+  "description": "집중도 휴식도 정성껏 준비해요.",
+  "crop": [
+   2118,
+   0,
+   161,
+   427
+  ]
+ },
+ {
+  "id": "pajama-green",
+  "name": "파자마 그린",
+  "group": "pajamas",
+  "accent": "#b9d4a0",
+  "description": "초록빛 리듬으로 가볍게 시작해요.",
+  "crop": null
+ },
+ {
+  "id": "pajama-pink",
+  "name": "파자마 핑크",
+  "group": "pajamas",
+  "accent": "#e7aab9",
+  "description": "완료할 때마다 즐거운 작은 춤.",
+  "crop": null
+ },
+ {
+  "id": "pajama-white",
+  "name": "파자마 화이트",
+  "group": "pajamas",
+  "accent": "#f2e9d7",
+  "description": "포근하고 느긋한 나만의 작업 친구.",
+  "crop": null
+ },
+ {
+  "id": "pajama-purple",
+  "name": "파자마 퍼플",
+  "group": "pajamas",
+  "accent": "#c4b3d6",
+  "description": "보랏빛 박자에 맞춰 한 가지씩.",
+  "crop": null
+ },
+ {
+  "id": "anoko",
+  "name": "그 아이",
+  "group": "neighbors",
+  "accent": "#e4cca3",
+  "description": "커다란 몸, 호기심 가득한 작은 표정.",
+  "crop": null
+ },
+ {
+  "id": "ode",
+  "name": "오데",
+  "group": "neighbors",
+  "accent": "#e7d19a",
+  "description": "묵직한 응원으로 오늘도 힘내요.",
+  "crop": null
+ }
+]
