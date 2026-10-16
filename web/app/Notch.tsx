@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { asset } from "./asset";
 import { Pet } from "./Pet";
 
 const FOCUS_SECONDS = 25 * 60;
@@ -30,7 +31,7 @@ export function Notch() {
           <Pet id="rakko" mood={1} size={34} />
           <span className="notch-timer">{mm}:{ss}</span>
         </span>
-        <span className="notch-panel" />
+        <span className="notch-panel" style={{ backgroundImage: `url(${asset("/shots/notch-tasks.png")})` }} />
       </button>
       <p className="notch-hint">{open ? "마우스를 벗어나면 다시 접혀요" : "노치에 마우스를 올려 보세요"}</p>
     </div>

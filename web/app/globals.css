@@ -85,7 +85,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9em;
 .notch-timer { color: var(--timer); font-family: var(--font-fallback); font-variant-numeric: tabular-nums; font-size: 17px; font-weight: 600; letter-spacing: .02em; }
 .notch-panel {
   position: absolute; inset: 0;
-  background: url(/shots/notch-tasks.png) -90px 0 / 560px 600px no-repeat;
+  background: -90px 0 / 560px 600px no-repeat;
   opacity: 0;
   transition: opacity 200ms 120ms;
 }

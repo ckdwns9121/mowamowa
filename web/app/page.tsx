@@ -1,6 +1,7 @@
 import { Notch } from "./Notch";
 import { PetPicker } from "./PetPicker";
 import { Portrait } from "./Portrait";
+import { asset } from "./asset";
 
 const REPO = "https://github.com/ckdwns9121/mowamowa";
 
@@ -60,7 +61,7 @@ export default function Page() {
             {SHOTS.map((s, i) => (
               <figure key={s.img} className={`polaroid ${i % 2 ? "tilt-r" : "tilt-l"}`}>
                 <span className="tape" />
-                <div className="panel" style={{ backgroundImage: `url(/shots/${s.img}.png)` }} role="img" aria-label={s.title} />
+                <div className="panel" style={{ backgroundImage: `url(${asset(`/shots/${s.img}.png`)})` }} role="img" aria-label={s.title} />
                 <figcaption>
                   <h3>{s.title}</h3>
                   <p>{s.body}</p>
@@ -69,7 +70,7 @@ export default function Page() {
             ))}
           </div>
           <figure className="sticker sword">
-            <img src="/shots/rakko-sword.png" alt="칼을 뽑아 두 번 휘두르는 랏코의 연속 동작" width={1280} height={256} />
+            <img src={asset("/shots/rakko-sword.png")} alt="칼을 뽑아 두 번 휘두르는 랏코의 연속 동작" width={1280} height={256} />
             <figcaption>가만히 두면 랏코가 칼을 뽑아 두 번 휘둘러요. 클릭하면 점프와 빠른 5회전, 착지 이펙트!</figcaption>
           </figure>
         </div>
