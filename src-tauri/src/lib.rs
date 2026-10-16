@@ -14,6 +14,7 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 
 mod jira_issue;
 mod github_reviews;
+mod now_playing;
 
 static SECRET_CACHE: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
@@ -687,6 +688,7 @@ pub fn run() {
             let last_tray_shown_blur = last_tray_shown.clone();
 
             let _ = APP_HANDLE.set(app.handle().clone());
+            now_playing::start(app.handle());
             let clock = app.handle().clone();
             std::thread::spawn(move || {
                 let mut awake = Instant::now();
@@ -784,7 +786,9 @@ pub fn run() {
             set_secret,
             delete_secret,
             jira_issue::fetch_assigned_jira_issues,
-            github_reviews::fetch_github_review_requests
+            github_reviews::fetch_github_review_requests,
+            now_playing::now_playing,
+            now_playing::media_send
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

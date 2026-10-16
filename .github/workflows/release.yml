@@ -25,14 +25,27 @@ jobs:
     timeout-minutes: 60
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      # Only export Apple secrets that are actually set: an empty
+      # APPLE_CERTIFICATE makes the Tauri bundler try (and fail) to import it.
+      - name: Export Apple signing secrets
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            if [[ -n "${!name}" ]]; then
+              echo "::add-mask::${!name}"
+              echo "$name=${!name}" >> "$GITHUB_ENV"
+            fi
+          done
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
