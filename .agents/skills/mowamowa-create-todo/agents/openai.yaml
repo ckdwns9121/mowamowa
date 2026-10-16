@@ -1,0 +1,11 @@
+interface:
+  display_name: "MowaMowa: Create Todos"
+  short_description: "Create one or multiple MowaMowa tasks"
+  default_prompt: "Use $mowamowa-create-todo to create these tasks in MowaMowa."
+policy:
+  allow_implicit_invocation: false
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mowamowa"
+      description: "Local MowaMowa task and ticket MCP server"

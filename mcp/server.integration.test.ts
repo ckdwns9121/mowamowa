@@ -10,7 +10,7 @@ let testDirectory = "";
 let databasePath = "";
 
 beforeEach(() => {
-  testDirectory = mkdtempSync(join(tmpdir(), "orbit-mcp-protocol-"));
+  testDirectory = mkdtempSync(join(tmpdir(), "mowamowa-mcp-protocol-"));
   databasePath = join(testDirectory, "orbit.db");
   const database = new Database(databasePath);
   database.exec(`
@@ -37,13 +37,13 @@ beforeEach(() => {
 
 afterEach(() => rmSync(testDirectory, { recursive: true, force: true }));
 
-describe("Orbit MCP protocol", () => {
+describe("MowaMowa MCP protocol", () => {
   test("discovers tools and creates a task over stdio", async () => {
-    const client = new Client({ name: "orbit-test", version: "0.1.0" });
+    const client = new Client({ name: "mowamowa-test", version: "0.1.0" });
     const transport = new StdioClientTransport({
       command: "bun",
-      args: ["run", process.env.ORBIT_MCP_ENTRY || join(import.meta.dir, "server.ts")],
-      env: { ...process.env, ORBIT_DB_PATH: databasePath },
+      args: ["run", process.env.MOWAMOWA_MCP_ENTRY || join(import.meta.dir, "server.ts")],
+      env: { ...process.env, MOWAMOWA_DB_PATH: databasePath },
       stderr: "pipe",
     });
 

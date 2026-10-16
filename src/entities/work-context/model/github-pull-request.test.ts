@@ -4,8 +4,8 @@ import { pullRequestWaitLabel, reviewRequestedPullRequests } from "./github-pull
 
 function pullRequest(number: number, reviewRequested: boolean, updatedAt: string): GitHubPullRequest {
   return {
-    repository: "orbit/web", repoPath: "/tmp/orbit", number, title: `PR ${number}`,
-    url: `https://github.com/orbit/web/pull/${number}`, headRefName: `feature/${number}`,
+    repository: "mowamowa/web", repoPath: "/tmp/mowamowa", number, title: `PR ${number}`,
+    url: `https://github.com/mowamowa/web/pull/${number}`, headRefName: `feature/${number}`,
     baseRefName: "main", isDraft: false, updatedAt, authorLogin: "reviewee",
     sessionMatchCount: 0, authoredByViewer: false, reviewRequested, discoveredAt: updatedAt,
   };

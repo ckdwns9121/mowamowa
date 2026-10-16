@@ -4,7 +4,7 @@ import type { WorkItem, WorkItemStatus } from "./work-item";
 
 function item(id: string, overrides: Partial<WorkItem> = {}): WorkItem {
   return {
-    id, title: id, status: "todo", priority: null, source: "orbit", externalId: null,
+    id, title: id, status: "todo", priority: null, source: "mowamowa", externalId: null,
     externalUrl: null, goal: null, checkpoint: null, nextAction: null, doneDefinition: null,
     blockedReason: null, resumeCondition: null, pausedAt: null, lastFocusedAt: null,
     nextReviewAt: null, revision: 0, targetAt: null, reminderSentAt: null, position: 0,

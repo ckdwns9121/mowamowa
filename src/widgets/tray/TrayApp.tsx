@@ -282,7 +282,7 @@ export default function TrayApp() {
         </div>
       )}
       <main className="tray-shell" inert={!expanded}>
-        <nav className="tray-tabs" aria-label="Orbit">
+        <nav className="tray-tabs" aria-label="MowaMowa">
           {([{ id: "tasks", label: "할 일" }, { id: "jira", label: "Jira" }, { id: "reviews", label: "PR 리뷰" }] as const).map((item) => (
             <button type="button" key={item.id} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setHistoryOpen(false); setPetPickerOpen(false); }}>{item.label}</button>
           ))}

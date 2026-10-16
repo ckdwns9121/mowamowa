@@ -5,7 +5,7 @@ import { DEFAULT_PET_ID, getPet } from "../model/pet";
 
 const STORAGE_KEY = "orbit.pet-character";
 const EVENT = "pet-selection-changed";
-const LOCAL_EVENT = "orbit:pet-selection";
+const LOCAL_EVENT = "mowamowa:pet-selection";
 let selectionQueue = Promise.resolve();
 
 export async function saveSelectedPet(id: string): Promise<void> {

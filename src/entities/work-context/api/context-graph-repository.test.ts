@@ -41,13 +41,13 @@ function emptyInput(): ContextGraphProjectionInput {
 
 function seedGraphSources(database: BunDatabase): void {
   database.query(`INSERT INTO work_items(id,title,status,source,goal,position,created_at,updated_at)
-    VALUES ('task-1','CGKR-42 피킹 슬립 누락 수정','todo','orbit','배치 누락 원인 확인',0,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z'),
-           ('task-2','피킹 슬립 운영 확인','todo','orbit',NULL,1,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z'),
-           ('task-3','유빈 인터뷰 정리','todo','orbit',NULL,2,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z')`).run();
+    VALUES ('task-1','CGKR-42 피킹 슬립 누락 수정','todo','mowamowa','배치 누락 원인 확인',0,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z'),
+           ('task-2','피킹 슬립 운영 확인','todo','mowamowa',NULL,1,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z'),
+           ('task-3','유빈 인터뷰 정리','todo','mowamowa',NULL,2,'2024-05-01T00:00:00Z','2024-05-02T00:00:00Z')`).run();
   database.query(`INSERT INTO jira_issues(issue_key,summary,status,status_category,project_key,project_name,updated_at,url,discovered_at)
     VALUES ('CGKR-42','피킹 슬립 누락','진행 중','indeterminate','CGKR','CGKR','2024-05-02T01:00:00Z','https://example.atlassian.net/browse/CGKR-42','2024-05-02T01:00:00Z')`).run();
   database.query(`INSERT INTO github_pull_requests(repository,number,repo_path,title,url,head_ref_name,base_ref_name,updated_at,discovered_at)
-    VALUES ('org/orbit',7,'/tmp/orbit','CGKR-42 누락 수정','https://github.com/org/orbit/pull/7','CGKR-42-fix','main','2024-05-03T00:00:00Z','2024-05-03T00:00:00Z')`).run();
+    VALUES ('org/mowamowa',7,'/tmp/mowamowa','CGKR-42 누락 수정','https://github.com/org/mowamowa/pull/7','CGKR-42-fix','main','2024-05-03T00:00:00Z','2024-05-03T00:00:00Z')`).run();
   database.query(`INSERT INTO slack_messages(id,channel_id,channel_name,user_name,text,permalink,message_ts,discovered_at)
     VALUES ('message-1','C1','oncall','Ada','CGKR-42 피킹 슬립 누락 원인은 배치입니다.','https://example.slack.com/archives/C1/p1','1714608000.000000','2024-05-02T02:00:00Z')`).run();
   database.query(`INSERT INTO ai_sessions(provider,session_id,title,modified_at_ms,message_count,acknowledged_at_ms,linked_work_item_id,discovered_at)
@@ -56,7 +56,7 @@ function seedGraphSources(database: BunDatabase): void {
     VALUES ('l1','task-1','jira','CGKR-42','https://example.atlassian.net/browse/CGKR-42','CGKR-42','2024-05-02T00:00:00Z'),
            ('l2','task-1','slack','message-1','https://example.slack.com/archives/C1/p1','oncall message','2024-05-02T00:00:00Z'),
            ('l3','task-2','slack','message-1','https://example.slack.com/archives/C1/p1','same message','2024-05-02T00:00:00Z'),
-           ('l4','task-1','github_commit','org/orbit@abc1234','https://github.com/org/orbit/commit/abc1234','commit abc1234','2024-05-02T00:00:00Z')`).run();
+           ('l4','task-1','github_commit','org/mowamowa@abc1234','https://github.com/org/mowamowa/commit/abc1234','commit abc1234','2024-05-02T00:00:00Z')`).run();
 }
 
 afterEach(() => {
@@ -86,7 +86,7 @@ describe("context graph projection", () => {
   test("redacts credentials and excludes injected AI session context", () => {
     const input = emptyInput();
     input.slack.push({ id: "m1", channel_id: "C1", channel_name: "ops", user_name: "Ada", text: "token=top-secret Bearer abc.def", permalink: "https://slack/m1", message_ts: "1714608000", discovered_at: "2024-01-01" });
-    input.aiSessions.push({ provider: "codex", session_id: "s1", title: "세션", custom_title: null, cwd: "/tmp/orbit", model: "gpt", first_prompt: "<environment_context>private setup</environment_context>", last_prompt: "authorization=secret-value", modified_at_ms: 1714608000000, updated_at: null, linked_work_item_id: null });
+    input.aiSessions.push({ provider: "codex", session_id: "s1", title: "세션", custom_title: null, cwd: "/tmp/mowamowa", model: "gpt", first_prompt: "<environment_context>private setup</environment_context>", last_prompt: "authorization=secret-value", modified_at_ms: 1714608000000, updated_at: null, linked_work_item_id: null });
     const graph = projectContextGraph(input);
     expect(graph.nodes.find((node) => node.nodeType === "slack_message")?.body).toBe("token=[REDACTED] Bearer [REDACTED]");
     const sessionBody = graph.nodes.find((node) => node.nodeType === "ai_session")?.body ?? "";
@@ -223,7 +223,7 @@ describe("context graph index", () => {
     const { raw, adapter } = migratedDatabase();
     raw.exec("BEGIN");
     const insertTask = raw.prepare(`INSERT INTO work_items(id,title,status,source,position,created_at,updated_at)
-      VALUES (?,?, 'todo','orbit',0,'2024-01-01','2024-01-01')`);
+      VALUES (?,?, 'todo','mowamowa',0,'2024-01-01','2024-01-01')`);
     const insertSlack = raw.prepare(`INSERT INTO slack_messages(id,channel_id,channel_name,user_name,text,permalink,message_ts,discovered_at)
       VALUES (?,'C1','perf','Ada',?,?,?,'2024-01-01')`);
     for (let index = 0; index < 500; index += 1) insertTask.run(`t${index}`, `성능 작업 ${index}`);

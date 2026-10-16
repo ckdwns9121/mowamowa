@@ -11,5 +11,5 @@ fn main() {
         app.setActivationPolicy(NSApplicationActivationPolicy::Accessory);
     }
 
-    orbit_lib::run()
+    mowamowa_lib::run()
 }

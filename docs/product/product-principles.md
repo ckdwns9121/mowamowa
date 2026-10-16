@@ -1,8 +1,8 @@
-# Orbit 제품 원칙
+# MowaMowa 제품 원칙
 
 - 상태: Accepted
-- 적용 범위: Orbit 전체 제품
-- 근거: [제품 문제 정의](../product-problem.md), [업무 연속성 PRD](../prd/prd-orbit-work-continuity.md)
+- 적용 범위: MowaMowa 전체 제품
+- 근거: [제품 문제 정의](../product-problem.md), [업무 연속성 PRD](../prd/prd-mowamowa-work-continuity.md)
 
 ## 1. Task가 업무의 기준점이다
 

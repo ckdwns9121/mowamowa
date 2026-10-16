@@ -14,7 +14,7 @@ function migratedDatabase(): Database {
 function insertTask(database: Database, id: string): void {
   database.query(`INSERT INTO work_items(
     id, title, status, source, position, created_at, updated_at
-  ) VALUES (?, ?, 'todo', 'orbit', 0, ?, ?)`)
+  ) VALUES (?, ?, 'todo', 'mowamowa', 0, ?, ?)`)
     .run(id, `Task ${id}`, "2026-08-06T01:00:00.000Z", "2026-08-06T01:00:00.000Z");
 }
 

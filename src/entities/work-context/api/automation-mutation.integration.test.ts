@@ -30,7 +30,7 @@ function applyMigration(database: Database, version: number): void {
 function insertTask(database: Database, id = "task-1"): void {
   database.run(
     `INSERT INTO work_items(id,title,status,source,created_at,updated_at)
-     VALUES (?,?,'todo','orbit','2026-08-07T01:00:00.000Z','2026-08-07T01:00:00.000Z')`,
+     VALUES (?,?,'todo','mowamowa','2026-08-07T01:00:00.000Z','2026-08-07T01:00:00.000Z')`,
     [id, `Task ${id}`],
   );
 }

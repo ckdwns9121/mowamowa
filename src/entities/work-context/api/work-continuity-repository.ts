@@ -241,7 +241,7 @@ export async function recordActivityEvent(input: {
     ) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
     [
       id, input.workItemId ?? null, input.eventType, input.correlationId ?? crypto.randomUUID(),
-      input.source ?? "orbit", JSON.stringify(safeEventPayload(input.payload ?? {})),
+      input.source ?? "mowamowa", JSON.stringify(safeEventPayload(input.payload ?? {})),
       input.occurredAt ?? new Date().toISOString(),
     ],
   );

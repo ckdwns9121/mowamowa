@@ -1,15 +1,15 @@
 # Product Design
 
-Orbit의 canonical UI/UX 계약은 저장소 루트 [DESIGN.md](../../DESIGN.md)다.
+MowaMowa의 canonical UI/UX 계약은 저장소 루트 [DESIGN.md](../../DESIGN.md)다.
 
 ## 참고 순서
 
 1. [DESIGN.md](../../DESIGN.md): 제품 목표, 정보 구조, 시각 언어와 접근성 기준
 2. [제품 원칙](../product/product-principles.md): 자동화·집중·신뢰 경계
-3. [업무 연속성 PRD](../prd/prd-orbit-work-continuity.md): 사용자 가치와 수용기준
+3. [업무 연속성 PRD](../prd/prd-mowamowa-work-continuity.md): 사용자 가치와 수용기준
 4. 화면별 Technical Design: 중요한 UI 흐름을 구현하기 전 작성
 
-Orca는 고밀도 데스크톱 UI, 패널 구조와 중립적 시각 언어의 레퍼런스다. Orbit은 Orca의 제품 구조나 코드 컴포넌트를 그대로 복제하지 않는다.
+Orca는 고밀도 데스크톱 UI, 패널 구조와 중립적 시각 언어의 레퍼런스다. MowaMowa은 Orca의 제품 구조나 코드 컴포넌트를 그대로 복제하지 않는다.
 
 ## 변경 규칙
 

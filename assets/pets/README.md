@@ -1,4 +1,4 @@
-# Orbit pet collection
+# MowaMowa pet collection
 
 17 selectable characters, each with an editable Rive artboard and Idle, Focus, Break, Celebrate, and React timelines. The `Pet` state machine reads the `PetState.mood` number: 0–4 in that order. Acting transitions blend for 110 ms; idle/focus/break transitions blend for 220 ms.
 

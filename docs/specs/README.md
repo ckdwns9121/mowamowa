@@ -18,4 +18,4 @@
 
 `spec-`, 공백, 밑줄이나 대괄호를 붙이지 않는다. 폴더가 문서 유형을 이미 나타내므로 기능명만 한글 하이픈 형식으로 작성한다.
 
-기존 [업무 연속성 Spec](../prd/spec-orbit-work-continuity.md)은 링크 호환성을 위해 기존 위치에 유지한다.
+기존 [업무 연속성 Spec](../prd/spec-mowamowa-work-continuity.md)은 링크 호환성을 위해 기존 위치에 유지한다.

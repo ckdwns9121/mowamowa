@@ -1,6 +1,6 @@
-# Orbit FSD 구조
+# MowaMowa FSD 구조
 
-Orbit 프런트엔드는 사용자 흐름과 변경 이유를 기준으로 다음 계층을 사용한다.
+MowaMowa 프런트엔드는 사용자 흐름과 변경 이유를 기준으로 다음 계층을 사용한다.
 
 ```text
 app → pages → widgets → features → entities → shared
@@ -10,7 +10,7 @@ app → pages → widgets → features → entities → shared
 - `pages`: 라우팅 가능한 화면 조합
 - `widgets`: 여러 feature/entity를 조합하는 독립 UI 블록
 - `features`: 사용자가 수행하는 행동과 유스케이스
-- `entities`: Orbit의 업무 데이터와 저장소
+- `entities`: MowaMowa의 업무 데이터와 저장소
 - `shared`: 제품 도메인을 모르는 공용 UI, 설정, 스타일
 
 상위 계층은 하위 계층을 사용할 수 있지만 하위 계층은 상위 계층을 참조하지 않는다.

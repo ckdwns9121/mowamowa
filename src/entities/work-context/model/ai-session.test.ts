@@ -11,8 +11,8 @@ import {
 const session = {
   provider: "codex",
   sessionId: "1",
-  title: "Orbit workspace",
-  cwd: "/Users/me/orbit",
+  title: "MowaMowa workspace",
+  cwd: "/Users/me/mowamowa",
   model: null,
   firstPrompt: null,
   lastPrompt: null,
@@ -32,19 +32,19 @@ describe("AI session activity", () => {
   });
 
   test("derives a project label from cwd", () => {
-    expect(projectName(session.cwd)).toBe("orbit");
+    expect(projectName(session.cwd)).toBe("mowamowa");
     expect(projectName(null)).toBe("프로젝트 없음");
   });
 
   test("hides injected environment context from titles and prompts", () => {
-    const injected = "<environment_context> <cwd>/Users/me/orbit</cwd> </environment_context>";
+    const injected = "<environment_context> <cwd>/Users/me/mowamowa</cwd> </environment_context>";
     const noisy = { ...session, title: injected, firstPrompt: injected, lastPrompt: "실제 작업 요청" };
     expect(isInternalSessionText(injected)).toBe(true);
     expect(displaySessionTitle(noisy)).toBe("실제 작업 요청");
     expect(displaySessionPrompt(injected)).toBeNull();
   });
 
-  test("uses the Orbit session alias before the transcript title", () => {
+  test("uses the MowaMowa session alias before the transcript title", () => {
     expect(displaySessionTitle({ ...session, customTitle: "로그인 오류 수정 세션" }))
       .toBe("로그인 오류 수정 세션");
   });

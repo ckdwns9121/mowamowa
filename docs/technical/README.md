@@ -7,7 +7,7 @@
 - [Tech stack and engineering standards](tech-stack.md)
 - [Frontend FSD Architecture](../fsd-architecture.md)
 - [Context Graph Architecture](../context-graph-architecture.md)
-- [Orbit MCP and terminal skills](orbit-mcp.md)
+- [MowaMowa MCP and terminal skills](mowamowa-mcp.md)
 - [Dependency risk register](dependency-risk-register.md)
 - [Technical Design template](../templates/technical-design-template.md)
 

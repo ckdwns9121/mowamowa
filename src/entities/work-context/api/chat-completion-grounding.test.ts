@@ -15,9 +15,9 @@ const completedWork: CompletedWorkSearchResult = {
   evidence: [
     {
       source: "github_pr",
-      sourceId: "orbit#42",
+      sourceId: "mowamowa#42",
       label: "PR #42 재시도 멱등성",
-      url: "https://github.com/example/orbit/pull/42",
+      url: "https://github.com/example/mowamowa/pull/42",
       excerpt: "멱등 키 저장과 충돌 응답을 추가함",
     },
     {
@@ -53,7 +53,7 @@ describe("completed work Chat grounding", () => {
     expect(context).toContain(completedWork.decisions);
     expect(context).toContain(completedWork.remainingRisk);
     expect(context).toContain(completedWork.retrospective);
-    expect(context).toContain("[PR #42 재시도 멱등성](https://github.com/example/orbit/pull/42)");
+    expect(context).toContain("[PR #42 재시도 멱등성](https://github.com/example/mowamowa/pull/42)");
     expect(context).toContain("[PAY-17](https://example.atlassian.net/browse/PAY-17)");
     expect(context).toContain("아래에 없는 사실은 추가하지 마세요");
   });

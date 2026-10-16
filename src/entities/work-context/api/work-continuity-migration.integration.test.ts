@@ -41,7 +41,7 @@ function insertWorkItem(
   database.run(
     `INSERT INTO work_items(
       id, title, status, source, position, created_at, updated_at, completed_at
-    ) VALUES (?, ?, ?, 'orbit', 0, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, 'mowamowa', 0, ?, ?, ?)`,
     [id, `Task ${id}`, status, "2026-08-07T01:00:00.000Z", "2026-08-07T01:00:00.000Z", completedAt],
   );
 }

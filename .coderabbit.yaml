@@ -8,7 +8,7 @@ reviews:
   high_level_summary: true
   review_status: true
   path_filters:
-    - "!agent-plugins/orbit/dist/**"
+    - "!agent-plugins/mowamowa/dist/**"
     - "!bun.lock"
     - "!src-tauri/Cargo.lock"
   auto_review:
