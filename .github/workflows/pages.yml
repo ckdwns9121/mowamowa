@@ -34,7 +34,7 @@ jobs:
       - run: bun run build
         env:
           NEXT_PUBLIC_BASE_PATH: /mowamowa
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web/out
       - id: deployment
